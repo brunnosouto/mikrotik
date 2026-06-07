@@ -412,6 +412,28 @@
         </div>
     </div>
 
+    <!-- Bandwidth Chart Section -->
+    <div class="chart-grid" style="grid-template-columns: repeat(2, 1fr); margin-top: 1.5rem; margin-bottom: 2rem;">
+        <div class="chart-card">
+            <div class="chart-title">
+                <i class="fa-solid fa-chart-line" style="color: var(--accent-vivo);"></i>
+                <span>Consumo Banda VIVO (Mbps)</span>
+            </div>
+            <div class="chart-container">
+                <canvas id="chart-bandwidth-vivo"></canvas>
+            </div>
+        </div>
+        <div class="chart-card">
+            <div class="chart-title">
+                <i class="fa-solid fa-chart-line" style="color: var(--accent-micks);"></i>
+                <span>Consumo Banda MICKS (Mbps)</span>
+            </div>
+            <div class="chart-container">
+                <canvas id="chart-bandwidth-micks"></canvas>
+            </div>
+        </div>
+    </div>
+
     <!-- Charts Section -->
     <div class="chart-grid">
         <div class="chart-card">
@@ -514,6 +536,17 @@
         </div>
     </div>
 
+    <!-- Failure & Incident Log Panel -->
+    <div class="card" style="margin-top: 1.5rem; margin-bottom: 2.5rem; padding: 1.5rem;">
+        <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1.2rem; display: flex; align-items: center; gap: 0.6rem;">
+            <i class="fa-solid fa-circle-exclamation" style="color: var(--accent-orange);"></i>
+            <span>Painel de Eventos e Falhas (Últimos 3 dias)</span>
+        </h3>
+        <div id="incidents-container" style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.8rem; padding-right: 0.5rem;">
+            <div style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 2rem;">Buscando histórico de incidentes...</div>
+        </div>
+    </div>
+
     <footer>
         <p>MikroTik Telemetry Monitor &copy; 2026. Desenvolvido para estabilidade total.</p>
     </footer>
@@ -577,6 +610,33 @@
                 datasets: [
                     { label: 'VIVO', data: [], borderColor: '#6f42c1', backgroundColor: 'rgba(111, 66, 193, 0.1)', borderWidth: 2, fill: true, tension: 0.3 },
                     { label: 'MICKS', data: [], borderColor: '#00d2fc', backgroundColor: 'rgba(0, 210, 252, 0.1)', borderWidth: 2, fill: true, tension: 0.3 }
+                ]
+            },
+            options: chartOptions
+        });
+
+        // Initialize Bandwidth Charts
+        const ctxBwVivo = document.getElementById('chart-bandwidth-vivo').getContext('2d');
+        const chartBwVivo = new Chart(ctxBwVivo, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    { label: 'Download (RX)', data: [], borderColor: 'var(--accent-green)', backgroundColor: 'rgba(0, 255, 135, 0.05)', borderWidth: 2, fill: true, tension: 0.3 },
+                    { label: 'Upload (TX)', data: [], borderColor: 'var(--accent-micks)', backgroundColor: 'rgba(0, 210, 252, 0.05)', borderWidth: 2, fill: true, tension: 0.3 }
+                ]
+            },
+            options: chartOptions
+        });
+
+        const ctxBwMicks = document.getElementById('chart-bandwidth-micks').getContext('2d');
+        const chartBwMicks = new Chart(ctxBwMicks, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    { label: 'Download (RX)', data: [], borderColor: 'var(--accent-green)', backgroundColor: 'rgba(0, 255, 135, 0.05)', borderWidth: 2, fill: true, tension: 0.3 },
+                    { label: 'Upload (TX)', data: [], borderColor: 'var(--accent-micks)', backgroundColor: 'rgba(0, 210, 252, 0.05)', borderWidth: 2, fill: true, tension: 0.3 }
                 ]
             },
             options: chartOptions
@@ -667,10 +727,73 @@
                 chartLP.data.datasets[1].data = data.map(item => item.rtt_micks_lp);
                 chartLP.update('none');
 
+                // Update Bandwidth (Mbps)
+                chartBwVivo.data.labels = labels;
+                chartBwVivo.data.datasets[0].data = data.map(item => item.traffic_vivo_rx / 1000000);
+                chartBwVivo.data.datasets[1].data = data.map(item => item.traffic_vivo_tx / 1000000);
+                chartBwVivo.update('none');
+
+                chartBwMicks.data.labels = labels;
+                chartBwMicks.data.datasets[0].data = data.map(item => item.traffic_micks_rx / 1000000);
+                chartBwMicks.data.datasets[1].data = data.map(item => item.traffic_micks_tx / 1000000);
+                chartBwMicks.update('none');
+
+                // Fetch incident log
+                fetchIncidents();
+
             } catch (err) {
                 console.error("Fetch update failed:", err);
                 document.getElementById('connection-dot').classList.add('down');
                 document.getElementById('connection-status').innerText = "Offline";
+            }
+        }
+
+        async function fetchIncidents() {
+            try {
+                const response = await fetch('/api/incidents?days=3');
+                if (!response.ok) throw new Error("API error");
+                const incidents = await response.json();
+                
+                const container = document.getElementById('incidents-container');
+                if (incidents.length === 0) {
+                    container.innerHTML = '<div style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 2rem;">Nenhuma falha ou oscilação registrada nos últimos 3 dias.</div>';
+                    return;
+                }
+                
+                let html = '';
+                incidents.forEach(inc => {
+                    let severityColor = 'var(--accent-red)';
+                    let icon = 'fa-circle-xmark';
+                    let bgColor = 'rgba(255, 77, 77, 0.06)';
+                    let borderColor = 'rgba(255, 77, 77, 0.15)';
+                    
+                    if (inc.severity === 'warning') {
+                        severityColor = 'var(--accent-orange)';
+                        icon = 'fa-triangle-exclamation';
+                        bgColor = 'rgba(255, 159, 67, 0.06)';
+                        borderColor = 'rgba(255, 159, 67, 0.15)';
+                    } else if (inc.severity === 'success') {
+                        severityColor = 'var(--accent-green)';
+                        icon = 'fa-circle-check';
+                        bgColor = 'rgba(0, 255, 135, 0.06)';
+                        borderColor = 'rgba(0, 255, 135, 0.15)';
+                    }
+                    
+                    const localTime = new Date(inc.timestamp.replace(' ', 'T') + 'Z').toLocaleString('pt-BR');
+                    
+                    html += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: ${bgColor}; border: 1px solid ${borderColor}; padding: 0.8rem 1.2rem; border-radius: 12px; font-size: 0.9rem; transition: all 0.2s;">
+                        <div style="display: flex; align-items: center; gap: 0.8rem; color: var(--text-main);">
+                            <i class="fa-solid ${icon}" style="color: ${severityColor}; font-size: 1.05rem;"></i>
+                            <span>${inc.message}</span>
+                        </div>
+                        <div style="color: var(--text-muted); font-size: 0.8rem; font-weight: 500;">${localTime}</div>
+                    </div>
+                    `;
+                });
+                container.innerHTML = html;
+            } catch (err) {
+                console.error("Failed to load incidents:", err);
             }
         }
 

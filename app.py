@@ -130,6 +130,103 @@ def get_data():
         result.append(dict(row))
     return jsonify(result)
 
+@app.route('/api/incidents', methods=['GET'])
+def get_incidents():
+    days = request.args.get('days', 3, type=int)
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    # Fetch records for the last N days ordered by ID ascending
+    cursor.execute('''
+        SELECT * FROM telemetry 
+        WHERE timestamp >= datetime('now', ?) 
+        ORDER BY id ASC
+    ''', (f'-{days} days',))
+    rows = cursor.fetchall()
+    conn.close()
+
+    incidents = []
+    if not rows:
+        return jsonify(incidents)
+
+    prev_link = rows[0]['link_ativo']
+    
+    # We will track active state for each destination to group events
+    # States: 'OK', 'HIGH_LATENCY', 'OFFLINE'
+    dest_states = {
+        'VIVO_MM': 'OK', 'VIVO_LF': 'OK', 'VIVO_LP': 'OK',
+        'MICKS_MM': 'OK', 'MICKS_LF': 'OK', 'MICKS_LP': 'OK'
+    }
+
+    def check_dest_state(rtt, limit):
+        if rtt == 0.0:
+            return 'OFFLINE'
+        elif rtt > limit:
+            return 'HIGH_LATENCY'
+        return 'OK'
+
+    limits = {
+        'MM': 150.0,
+        'LF': 280.0,
+        'LP': 280.0
+    }
+
+    for row in rows:
+        timestamp = row['timestamp']
+        current_link = row['link_ativo']
+
+        # 1. Detect link switch
+        if current_link != prev_link:
+            incidents.append({
+                "timestamp": timestamp,
+                "type": "SWITCH",
+                "severity": "warning",
+                "message": f"Link ativo alterado de {prev_link} para {current_link}"
+            })
+            prev_link = current_link
+
+        # 2. Detect SLA breaches / offline status
+        checks = [
+            ('VIVO_MM', row['rtt_vivo_mm'], limits['MM'], "VIVO - MobileMed"),
+            ('VIVO_LF', row['rtt_vivo_lf'], limits['LF'], "VIVO - LifeFocus"),
+            ('VIVO_LP', row['rtt_vivo_lp'], limits['LP'], "VIVO - LifePlus"),
+            ('MICKS_MM', row['rtt_micks_mm'], limits['MM'], "MICKS - MobileMed"),
+            ('MICKS_LF', row['rtt_micks_lf'], limits['LF'], "MICKS - LifeFocus"),
+            ('MICKS_LP', row['rtt_micks_lp'], limits['LP'], "MICKS - LifePlus"),
+        ]
+
+        for key, rtt, limit, display_name in checks:
+            new_state = check_dest_state(rtt, limit)
+            old_state = dest_states[key]
+
+            if new_state != old_state:
+                if new_state == 'OFFLINE':
+                    incidents.append({
+                        "timestamp": timestamp,
+                        "type": "OFFLINE",
+                        "severity": "danger",
+                        "message": f"{display_name} ficou OFFLINE (Sem resposta do Netwatch)"
+                    })
+                elif new_state == 'HIGH_LATENCY':
+                    incidents.append({
+                        "timestamp": timestamp,
+                        "type": "SLA_BREACH",
+                        "severity": "warning",
+                        "message": f"{display_name} RTT elevado: {rtt} ms (Limite: {limit} ms)"
+                    })
+                elif new_state == 'OK':
+                    incidents.append({
+                        "timestamp": timestamp,
+                        "type": "RECOVERY",
+                        "severity": "success",
+                        "message": f"{display_name} normalizado"
+                    })
+                dest_states[key] = new_state
+
+    # Return in reverse chronological order
+    incidents.reverse()
+    return jsonify(incidents)
+
 @app.route('/')
 def dashboard():
     return render_template('index.html')
