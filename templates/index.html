@@ -761,7 +761,7 @@
             bwLabels[maxBwPoints - 1 - i] = timeVal.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         }
 
-        // Initialize Bandwidth Charts with peakLinesPlugin
+        // Initialize Bandwidth Charts with peakLinesPlugin and deep-copied options to prevent scale reference sharing
         const ctxBwVivo = document.getElementById('chart-bandwidth-vivo').getContext('2d');
         const chartBwVivo = new Chart(ctxBwVivo, {
             type: 'line',
@@ -772,7 +772,7 @@
                     { label: 'Upload (TX)', data: vivoTxData, borderColor: '#ff007f', backgroundColor: 'transparent', borderWidth: 3, fill: false, tension: 0.3, pointRadius: 0, hoverRadius: 4 }
                 ]
             },
-            options: chartOptions,
+            options: JSON.parse(JSON.stringify(chartOptions)),
             plugins: [peakLinesPlugin]
         });
 
@@ -786,7 +786,7 @@
                     { label: 'Upload (TX)', data: micksTxData, borderColor: '#ff007f', backgroundColor: 'transparent', borderWidth: 3, fill: false, tension: 0.3, pointRadius: 0, hoverRadius: 4 }
                 ]
             },
-            options: chartOptions,
+            options: JSON.parse(JSON.stringify(chartOptions)),
             plugins: [peakLinesPlugin]
         });
 
