@@ -632,7 +632,7 @@
                 document.getElementById('ram-usage').innerText = latest.ram + "%";
                 
                 // Last update text
-                const formattedTime = new Date(latest.timestamp + 'Z').toLocaleTimeString('pt-BR');
+                const formattedTime = new Date(latest.timestamp.replace(' ', 'T') + 'Z').toLocaleTimeString('pt-BR');
                 document.getElementById('last-update').innerText = "Recebido às " + formattedTime;
 
                 // Traffic details table
@@ -645,7 +645,7 @@
 
                 // Update charts data
                 const labels = data.map(item => {
-                    const t = new Date(item.timestamp + 'Z');
+                    const t = new Date(item.timestamp.replace(' ', 'T') + 'Z');
                     return t.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
                 });
 
