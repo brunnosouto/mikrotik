@@ -553,6 +553,11 @@
                     <span class="bandwidth-badge" id="delta-mm" style="font-size: 0.68rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.15rem 0.4rem; border-radius: 4px;">Δt: -- ms</span>
                 </div>
             </div>
+            <!-- Subtitle for 24h High/Low Peaks -->
+            <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-muted); background: rgba(255,255,255,0.02); padding: 0.35rem 0.6rem; border-radius: 6px; margin-bottom: 0.8rem; border: 1px solid rgba(255,255,255,0.03);">
+                <div>VIVO 24h: <span id="rtt-mm-v-peaks" style="color: var(--accent-green); font-weight: 600;">-- / -- ms</span></div>
+                <div>MICKS 24h: <span id="rtt-mm-m-peaks" style="color: var(--accent-micks); font-weight: 600;">-- / -- ms</span></div>
+            </div>
             <div class="chart-container">
                 <canvas id="chart-mobilemed"></canvas>
             </div>
@@ -569,6 +574,11 @@
                     <span class="bandwidth-badge" id="loss-lf" style="font-size: 0.68rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.15rem 0.4rem; border-radius: 4px; color: var(--text-muted);">Perda: --%</span>
                     <span class="bandwidth-badge" id="delta-lf" style="font-size: 0.68rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.15rem 0.4rem; border-radius: 4px;">Δt: -- ms</span>
                 </div>
+            </div>
+            <!-- Subtitle for 24h High/Low Peaks -->
+            <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-muted); background: rgba(255,255,255,0.02); padding: 0.35rem 0.6rem; border-radius: 6px; margin-bottom: 0.8rem; border: 1px solid rgba(255,255,255,0.03);">
+                <div>VIVO 24h: <span id="rtt-lf-v-peaks" style="color: var(--accent-green); font-weight: 600;">-- / -- ms</span></div>
+                <div>MICKS 24h: <span id="rtt-lf-m-peaks" style="color: var(--accent-micks); font-weight: 600;">-- / -- ms</span></div>
             </div>
             <div class="chart-container">
                 <canvas id="chart-lifefocus"></canvas>
@@ -587,6 +597,11 @@
                     <span class="bandwidth-badge" id="delta-lp" style="font-size: 0.68rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.15rem 0.4rem; border-radius: 4px;">Δt: -- ms</span>
                 </div>
             </div>
+            <!-- Subtitle for 24h High/Low Peaks -->
+            <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-muted); background: rgba(255,255,255,0.02); padding: 0.35rem 0.6rem; border-radius: 6px; margin-bottom: 0.8rem; border: 1px solid rgba(255,255,255,0.03);">
+                <div>VIVO 24h: <span id="rtt-lp-v-peaks" style="color: var(--accent-green); font-weight: 600;">-- / -- ms</span></div>
+                <div>MICKS 24h: <span id="rtt-lp-m-peaks" style="color: var(--accent-micks); font-weight: 600;">-- / -- ms</span></div>
+            </div>
             <div class="chart-container">
                 <canvas id="chart-lifeplus"></canvas>
             </div>
@@ -603,6 +618,11 @@
                     <span class="bandwidth-badge" id="loss-ld" style="font-size: 0.68rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.15rem 0.4rem; border-radius: 4px; color: var(--text-muted);">Perda: --%</span>
                     <span class="bandwidth-badge" id="delta-ld" style="font-size: 0.68rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.15rem 0.4rem; border-radius: 4px;">Δt: -- ms</span>
                 </div>
+            </div>
+            <!-- Subtitle for 24h High/Low Peaks -->
+            <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-muted); background: rgba(255,255,255,0.02); padding: 0.35rem 0.6rem; border-radius: 6px; margin-bottom: 0.8rem; border: 1px solid rgba(255,255,255,0.03);">
+                <div>VIVO 24h: <span id="rtt-ld-v-peaks" style="color: var(--accent-green); font-weight: 600;">-- / -- ms</span></div>
+                <div>MICKS 24h: <span id="rtt-ld-m-peaks" style="color: var(--accent-micks); font-weight: 600;">-- / -- ms</span></div>
             </div>
             <div class="chart-container">
                 <canvas id="chart-laudite"></canvas>
@@ -1078,6 +1098,23 @@
 
                 chartBwVivo.update('none');
                 chartBwMicks.update('none');
+
+                // Update SLA 24h peaks UI badges (Max / Min RTT)
+                if (stats.rtt_peaks) {
+                    const rp = stats.rtt_peaks;
+                    document.getElementById('rtt-mm-v-peaks').innerText = `${rp.mm_vivo_max.toFixed(1)} / ${rp.mm_vivo_min.toFixed(1)} ms`;
+                    document.getElementById('rtt-mm-m-peaks').innerText = `${rp.mm_micks_max.toFixed(1)} / ${rp.mm_micks_min.toFixed(1)} ms`;
+                    
+                    document.getElementById('rtt-lf-v-peaks').innerText = `${rp.lf_vivo_max.toFixed(1)} / ${rp.lf_vivo_min.toFixed(1)} ms`;
+                    document.getElementById('rtt-lf-m-peaks').innerText = `${rp.lf_micks_max.toFixed(1)} / ${rp.lf_micks_min.toFixed(1)} ms`;
+                    
+                    document.getElementById('rtt-lp-v-peaks').innerText = `${rp.lp_vivo_max.toFixed(1)} / ${rp.lp_vivo_min.toFixed(1)} ms`;
+                    document.getElementById('rtt-lp-m-peaks').innerText = `${rp.lp_micks_max.toFixed(1)} / ${rp.lp_micks_min.toFixed(1)} ms`;
+                    
+                    document.getElementById('rtt-ld-v-peaks').innerText = `${rp.ld_vivo_max.toFixed(1)} / ${rp.ld_vivo_min.toFixed(1)} ms`;
+                    document.getElementById('rtt-ld-m-peaks').innerText = `${rp.ld_micks_max.toFixed(1)} / ${rp.ld_micks_min.toFixed(1)} ms`;
+                }
+
             } catch (err) {
                 console.error("Failed to load traffic stats:", err);
             }

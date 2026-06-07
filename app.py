@@ -530,6 +530,26 @@ def get_traffic_stats():
         ''')
         row_peaks = cursor.fetchone()
 
+        # 4. Fetch RTT high/low peaks of the last 24 hours
+        # For MIN, we exclude 0.0 values so that offline periods don't show as a 0ms peak.
+        cursor.execute('''
+            SELECT 
+                MAX(rtt_vivo_mm), MIN(CASE WHEN rtt_vivo_mm > 0 THEN rtt_vivo_mm END),
+                MAX(rtt_micks_mm), MIN(CASE WHEN rtt_micks_mm > 0 THEN rtt_micks_mm END),
+                
+                MAX(rtt_vivo_lf), MIN(CASE WHEN rtt_vivo_lf > 0 THEN rtt_vivo_lf END),
+                MAX(rtt_micks_lf), MIN(CASE WHEN rtt_micks_lf > 0 THEN rtt_micks_lf END),
+                
+                MAX(rtt_vivo_lp), MIN(CASE WHEN rtt_vivo_lp > 0 THEN rtt_vivo_lp END),
+                MAX(rtt_micks_lp), MIN(CASE WHEN rtt_micks_lp > 0 THEN rtt_micks_lp END),
+                
+                MAX(rtt_vivo_laudite), MIN(CASE WHEN rtt_vivo_laudite > 0 THEN rtt_vivo_laudite END),
+                MAX(rtt_micks_laudite), MIN(CASE WHEN rtt_micks_laudite > 0 THEN rtt_micks_laudite END)
+            FROM telemetry
+            WHERE timestamp >= datetime('now', '-24 hours')
+        ''')
+        row_rtt_peaks = cursor.fetchone()
+
         conn.close()
 
         def make_stats_dict(row):
@@ -554,6 +574,29 @@ def get_traffic_stats():
         peak_micks_rx = max(db_micks_rx, current_minute_peaks['micks_rx'])
         peak_micks_tx = max(db_micks_tx, current_minute_peaks['micks_tx'])
 
+        rtt_peaks = {}
+        if row_rtt_peaks:
+            rtt_peaks = {
+                "mm_vivo_max": row_rtt_peaks[0] or 0.0, "mm_vivo_min": row_rtt_peaks[1] or 0.0,
+                "mm_micks_max": row_rtt_peaks[2] or 0.0, "mm_micks_min": row_rtt_peaks[3] or 0.0,
+                
+                "lf_vivo_max": row_rtt_peaks[4] or 0.0, "lf_vivo_min": row_rtt_peaks[5] or 0.0,
+                "lf_micks_max": row_rtt_peaks[6] or 0.0, "lf_micks_min": row_rtt_peaks[7] or 0.0,
+                
+                "lp_vivo_max": row_rtt_peaks[8] or 0.0, "lp_vivo_min": row_rtt_peaks[9] or 0.0,
+                "lp_micks_max": row_rtt_peaks[10] or 0.0, "lp_micks_min": row_rtt_peaks[11] or 0.0,
+                
+                "ld_vivo_max": row_rtt_peaks[12] or 0.0, "ld_vivo_min": row_rtt_peaks[13] or 0.0,
+                "ld_micks_max": row_rtt_peaks[14] or 0.0, "ld_micks_min": row_rtt_peaks[15] or 0.0
+            }
+        else:
+            rtt_peaks = {
+                "mm_vivo_max": 0.0, "mm_vivo_min": 0.0, "mm_micks_max": 0.0, "mm_micks_min": 0.0,
+                "lf_vivo_max": 0.0, "lf_vivo_min": 0.0, "lf_micks_max": 0.0, "lf_micks_min": 0.0,
+                "lp_vivo_max": 0.0, "lp_vivo_min": 0.0, "lp_micks_max": 0.0, "lp_micks_min": 0.0,
+                "ld_vivo_max": 0.0, "ld_vivo_min": 0.0, "ld_micks_max": 0.0, "ld_micks_min": 0.0
+            }
+
         return jsonify({
             "today": make_stats_dict(row_today),
             "month": make_stats_dict(row_month),
@@ -562,7 +605,8 @@ def get_traffic_stats():
                 "vivo_tx": peak_vivo_tx,
                 "micks_rx": peak_micks_rx,
                 "micks_tx": peak_micks_tx
-            }
+            },
+            "rtt_peaks": rtt_peaks
         })
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
