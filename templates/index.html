@@ -542,8 +542,9 @@
                             <th>Interface</th>
                             <th>Velocidade</th>
                             <th>Erros (CRC)</th>
-                            <th>Hoje (Total)</th>
-                            <th>Mês (Total)</th>
+                            <th>Hoje (RX / TX)</th>
+                            <th>Mês (RX / TX)</th>
+                            <th>Pico (24h)</th>
                             <th>Download (RX)</th>
                             <th>Upload (TX)</th>
                         </tr>
@@ -558,8 +559,9 @@
                             </td>
                             <td><span class="bandwidth-badge" id="vivo-speed" style="font-weight: 600;">--</span></td>
                             <td><span class="bandwidth-badge" id="vivo-errors" style="color: var(--text-muted); font-weight: 600;">0</span></td>
-                            <td><span class="bandwidth-badge" id="vivo-today" style="font-weight: 600; color: var(--text-main);">0.00 GB</span></td>
-                            <td><span class="bandwidth-badge" id="vivo-month" style="font-weight: 600; color: var(--text-main);">0.00 GB</span></td>
+                            <td><span class="bandwidth-badge" id="vivo-today" style="font-weight: 600; color: var(--text-main);">0.00 GB / 0.00 GB</span></td>
+                            <td><span class="bandwidth-badge" id="vivo-month" style="font-weight: 600; color: var(--text-main);">0.00 GB / 0.00 GB</span></td>
+                            <td><span class="bandwidth-badge" id="vivo-peak" style="font-weight: 600; color: var(--accent-orange);">0.00 / 0.00 Mbps</span></td>
                             <td><span class="bandwidth-badge rx-badge" id="vivo-rx">0.00 Mbps</span></td>
                             <td><span class="bandwidth-badge tx-badge" id="vivo-tx">0.00 Mbps</span></td>
                         </tr>
@@ -572,8 +574,9 @@
                             </td>
                             <td><span class="bandwidth-badge" id="micks-speed" style="font-weight: 600;">--</span></td>
                             <td><span class="bandwidth-badge" id="micks-errors" style="color: var(--text-muted); font-weight: 600;">0</span></td>
-                            <td><span class="bandwidth-badge" id="micks-today" style="font-weight: 600; color: var(--text-main);">0.00 GB</span></td>
-                            <td><span class="bandwidth-badge" id="micks-month" style="font-weight: 600; color: var(--text-main);">0.00 GB</span></td>
+                            <td><span class="bandwidth-badge" id="micks-today" style="font-weight: 600; color: var(--text-main);">0.00 GB / 0.00 GB</span></td>
+                            <td><span class="bandwidth-badge" id="micks-month" style="font-weight: 600; color: var(--text-main);">0.00 GB / 0.00 GB</span></td>
+                            <td><span class="bandwidth-badge" id="micks-peak" style="font-weight: 600; color: var(--accent-orange);">0.00 / 0.00 Mbps</span></td>
                             <td><span class="bandwidth-badge rx-badge" id="micks-rx">0.00 Mbps</span></td>
                             <td><span class="bandwidth-badge tx-badge" id="micks-tx">0.00 Mbps</span></td>
                         </tr>
@@ -586,6 +589,7 @@
                             </td>
                             <td><span class="bandwidth-badge" style="font-weight: 600;">1 Gbps</span></td>
                             <td><span class="bandwidth-badge" style="color: var(--text-muted); font-weight: 600;">0</span></td>
+                            <td><span class="bandwidth-badge" style="font-weight: 600; color: var(--text-muted);">--</span></td>
                             <td><span class="bandwidth-badge" style="font-weight: 600; color: var(--text-muted);">--</span></td>
                             <td><span class="bandwidth-badge" style="font-weight: 600; color: var(--text-muted);">--</span></td>
                             <td><span class="bandwidth-badge rx-badge" id="lan-rx">0.00 Mbps</span></td>
@@ -895,23 +899,32 @@
                 if (!response.ok) throw new Error("Stats API error");
                 const stats = await response.json();
                 
-                // VIVO Totals
+                // VIVO Totals (Separate RX and TX)
                 const vivoRxToday = stats.today.vivo_rx || 0;
                 const vivoTxToday = stats.today.vivo_tx || 0;
                 const vivoRxMonth = stats.month.vivo_rx || 0;
                 const vivoTxMonth = stats.month.vivo_tx || 0;
                 
-                document.getElementById('vivo-today').innerText = formatBytesToGB(vivoRxToday + vivoTxToday);
-                document.getElementById('vivo-month').innerText = formatBytesToGB(vivoRxMonth + vivoTxMonth);
+                document.getElementById('vivo-today').innerText = `${formatBytesToGB(vivoRxToday)} / ${formatBytesToGB(vivoTxToday)}`;
+                document.getElementById('vivo-month').innerText = `${formatBytesToGB(vivoRxMonth)} / ${formatBytesToGB(vivoTxMonth)}`;
                 
-                // MICKS Totals
+                // MICKS Totals (Separate RX and TX)
                 const micksRxToday = stats.today.micks_rx || 0;
                 const micksTxToday = stats.today.micks_tx || 0;
                 const micksRxMonth = stats.month.micks_rx || 0;
                 const micksTxMonth = stats.month.micks_tx || 0;
                 
-                document.getElementById('micks-today').innerText = formatBytesToGB(micksRxToday + micksTxToday);
-                document.getElementById('micks-month').innerText = formatBytesToGB(micksRxMonth + micksTxMonth);
+                document.getElementById('micks-today').innerText = `${formatBytesToGB(micksRxToday)} / ${formatBytesToGB(micksTxToday)}`;
+                document.getElementById('micks-month').innerText = `${formatBytesToGB(micksRxMonth)} / ${formatBytesToGB(micksTxMonth)}`;
+
+                // Peaks (24h)
+                const peakVivoRx = stats.peaks ? (stats.peaks.vivo_rx || 0) : 0;
+                const peakVivoTx = stats.peaks ? (stats.peaks.vivo_tx || 0) : 0;
+                const peakMicksRx = stats.peaks ? (stats.peaks.micks_rx || 0) : 0;
+                const peakMicksTx = stats.peaks ? (stats.peaks.micks_tx || 0) : 0;
+
+                document.getElementById('vivo-peak').innerText = `${formatBytes(peakVivoRx)} / ${formatBytes(peakVivoTx)}`;
+                document.getElementById('micks-peak').innerText = `${formatBytes(peakMicksRx)} / ${formatBytes(peakMicksTx)}`;
             } catch (err) {
                 console.error("Failed to load traffic stats:", err);
             }
@@ -1049,9 +1062,9 @@
             }
         }
 
-        // Fetch every 5s for high responsiveness on open tab
+        // Fetch every 1s for high responsiveness on open tab
         fetchAndUpdate();
-        setInterval(fetchAndUpdate, 5000);
+        setInterval(fetchAndUpdate, 1000);
     </script>
 </body>
 </html>

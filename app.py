@@ -65,6 +65,16 @@ def init_db():
         )
     ''')
 
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS traffic_peaks_log (
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            vivo_rx REAL DEFAULT 0.0,
+            vivo_tx REAL DEFAULT 0.0,
+            micks_rx REAL DEFAULT 0.0,
+            micks_tx REAL DEFAULT 0.0
+        )
+    ''')
+
     conn.commit()
     conn.close()
 
@@ -117,6 +127,15 @@ latest_traffic = {
     'timestamp': None
 }
 
+import time
+current_minute_peaks = {
+    'vivo_rx': 0.0,
+    'vivo_tx': 0.0,
+    'micks_rx': 0.0,
+    'micks_tx': 0.0
+}
+last_peak_write_time = time.time()
+
 @app.route('/api/traffic', methods=['POST'])
 def receive_traffic():
     try:
@@ -125,14 +144,55 @@ def receive_traffic():
             return jsonify({"status": "error", "message": "No data received"}), 400
 
         # 1. Update in-memory real-time rates
-        global latest_traffic
-        latest_traffic['traffic_vivo_rx'] = parse_float(data.get('traffic_vivo_rx', 0))
-        latest_traffic['traffic_vivo_tx'] = parse_float(data.get('traffic_vivo_tx', 0))
-        latest_traffic['traffic_micks_rx'] = parse_float(data.get('traffic_micks_rx', 0))
-        latest_traffic['traffic_micks_tx'] = parse_float(data.get('traffic_micks_tx', 0))
+        global latest_traffic, current_minute_peaks, last_peak_write_time
+        vivo_rx = parse_float(data.get('traffic_vivo_rx', 0))
+        vivo_tx = parse_float(data.get('traffic_vivo_tx', 0))
+        micks_rx = parse_float(data.get('traffic_micks_rx', 0))
+        micks_tx = parse_float(data.get('traffic_micks_tx', 0))
+
+        latest_traffic['traffic_vivo_rx'] = vivo_rx
+        latest_traffic['traffic_vivo_tx'] = vivo_tx
+        latest_traffic['traffic_micks_rx'] = micks_rx
+        latest_traffic['traffic_micks_tx'] = micks_tx
         latest_traffic['traffic_lan_rx'] = parse_float(data.get('traffic_lan_rx', 0))
         latest_traffic['traffic_lan_tx'] = parse_float(data.get('traffic_lan_tx', 0))
         latest_traffic['timestamp'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+        # Update peak rates for the current minute
+        current_minute_peaks['vivo_rx'] = max(current_minute_peaks['vivo_rx'], vivo_rx)
+        current_minute_peaks['vivo_tx'] = max(current_minute_peaks['vivo_tx'], vivo_tx)
+        current_minute_peaks['micks_rx'] = max(current_minute_peaks['micks_rx'], micks_rx)
+        current_minute_peaks['micks_tx'] = max(current_minute_peaks['micks_tx'], micks_tx)
+
+        # Write peak logs to SQLite every 60s and clear old data (> 24 hours)
+        now_time = time.time()
+        if (now_time - last_peak_write_time) >= 60.0:
+            try:
+                conn_peak = sqlite3.connect(DB_PATH)
+                cursor_peak = conn_peak.cursor()
+                cursor_peak.execute('''
+                    INSERT INTO traffic_peaks_log (vivo_rx, vivo_tx, micks_rx, micks_tx)
+                    VALUES (?, ?, ?, ?)
+                ''', (
+                    current_minute_peaks['vivo_rx'],
+                    current_minute_peaks['vivo_tx'],
+                    current_minute_peaks['micks_rx'],
+                    current_minute_peaks['micks_tx']
+                ))
+                cursor_peak.execute("DELETE FROM traffic_peaks_log WHERE timestamp < datetime('now', '-24 hours')")
+                conn_peak.commit()
+                conn_peak.close()
+            except Exception as e_db:
+                print("Error writing to peak log database:", e_db)
+
+            # Reset current minute buffers
+            current_minute_peaks = {
+                'vivo_rx': 0.0,
+                'vivo_tx': 0.0,
+                'micks_rx': 0.0,
+                'micks_tx': 0.0
+            }
+            last_peak_write_time = now_time
 
         # 2. Extract byte counters to calculate accumulated traffic
         bytes_keys = ['bytes_vivo_rx', 'bytes_vivo_tx', 'bytes_micks_rx', 'bytes_micks_tx']
@@ -395,6 +455,14 @@ def get_traffic_stats():
         ''', (current_month_prefix,))
         row_month = cursor.fetchone()
 
+        # 3. Fetch peak rates of the last 24 hours
+        cursor.execute('''
+            SELECT MAX(vivo_rx), MAX(vivo_tx), MAX(micks_rx), MAX(micks_tx)
+            FROM traffic_peaks_log
+            WHERE timestamp >= datetime('now', '-24 hours')
+        ''')
+        row_peaks = cursor.fetchone()
+
         conn.close()
 
         def make_stats_dict(row):
@@ -407,9 +475,27 @@ def get_traffic_stats():
                 "micks_tx": row[3]
             }
 
+        # Query values from database
+        db_vivo_rx = row_peaks[0] if (row_peaks and row_peaks[0] is not None) else 0.0
+        db_vivo_tx = row_peaks[1] if (row_peaks and row_peaks[1] is not None) else 0.0
+        db_micks_rx = row_peaks[2] if (row_peaks and row_peaks[2] is not None) else 0.0
+        db_micks_tx = row_peaks[3] if (row_peaks and row_peaks[3] is not None) else 0.0
+
+        # Combine with current minute's peak for absolute realtime peak precision
+        peak_vivo_rx = max(db_vivo_rx, current_minute_peaks['vivo_rx'])
+        peak_vivo_tx = max(db_vivo_tx, current_minute_peaks['vivo_tx'])
+        peak_micks_rx = max(db_micks_rx, current_minute_peaks['micks_rx'])
+        peak_micks_tx = max(db_micks_tx, current_minute_peaks['micks_tx'])
+
         return jsonify({
             "today": make_stats_dict(row_today),
-            "month": make_stats_dict(row_month)
+            "month": make_stats_dict(row_month),
+            "peaks": {
+                "vivo_rx": peak_vivo_rx,
+                "vivo_tx": peak_vivo_tx,
+                "micks_rx": peak_micks_rx,
+                "micks_tx": peak_micks_tx
+            }
         })
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
