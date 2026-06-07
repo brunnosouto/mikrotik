@@ -42,7 +42,9 @@ def init_db():
         'eth2_speed': 'TEXT DEFAULT "1Gbps"',
         'eth1_errors': 'INTEGER DEFAULT 0',
         'eth2_errors': 'INTEGER DEFAULT 0',
-        'logs': 'TEXT DEFAULT ""'
+        'logs': 'TEXT DEFAULT ""',
+        'rtt_vivo_laudite': 'REAL DEFAULT 0.0',
+        'rtt_micks_laudite': 'REAL DEFAULT 0.0'
     }
     for col, col_type in new_cols.items():
         if col not in columns:
@@ -288,8 +290,9 @@ def receive_telemetry():
                 traffic_micks_rx, traffic_micks_tx,
                 traffic_lan_rx, traffic_lan_tx,
                 dhcp_active_leases, eth1_speed, eth2_speed,
-                eth1_errors, eth2_errors, logs
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                eth1_errors, eth2_errors, logs,
+                rtt_vivo_laudite, rtt_micks_laudite
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             data.get('link_ativo', 'VIVO'),
             parse_rtt(data.get('rtt_vivo_mm', data.get('MONITOR_VIVO_MOBILEMED', 0))),
@@ -313,7 +316,9 @@ def receive_telemetry():
             data.get('eth2_speed', '1Gbps'),
             parse_int(data.get('eth1_errors', 0)),
             parse_int(data.get('eth2_errors', 0)),
-            data.get('logs', '')
+            data.get('logs', ''),
+            parse_rtt(data.get('rtt_vivo_laudite', data.get('MONITOR_VIVO_LAUDITE', 0))),
+            parse_rtt(data.get('rtt_micks_laudite', data.get('MONITOR_MICKS_LAUDITE', 0)))
         ))
         conn.commit()
         conn.close()
@@ -373,7 +378,8 @@ def get_incidents():
     # States: 'OK', 'HIGH_LATENCY', 'OFFLINE'
     dest_states = {
         'VIVO_MM': 'OK', 'VIVO_LF': 'OK', 'VIVO_LP': 'OK',
-        'MICKS_MM': 'OK', 'MICKS_LF': 'OK', 'MICKS_LP': 'OK'
+        'MICKS_MM': 'OK', 'MICKS_LF': 'OK', 'MICKS_LP': 'OK',
+        'VIVO_LAUDITE': 'OK', 'MICKS_LAUDITE': 'OK'
     }
 
     def check_dest_state(rtt, limit):
@@ -442,6 +448,8 @@ def get_incidents():
             ('MICKS_MM', row['rtt_micks_mm'], limits['MM'], "MICKS - MobileMed"),
             ('MICKS_LF', row['rtt_micks_lf'], limits['LF'], "MICKS - LifeFocus"),
             ('MICKS_LP', row['rtt_micks_lp'], limits['LP'], "MICKS - LifePlus"),
+            ('VIVO_LAUDITE', row['rtt_vivo_laudite'], 250.0, "VIVO - Laudite"),
+            ('MICKS_LAUDITE', row['rtt_micks_laudite'], 250.0, "MICKS - Laudite"),
         ]
 
         for key, rtt, limit, display_name in checks:

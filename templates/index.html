@@ -179,6 +179,25 @@
             margin-bottom: 2rem;
         }
 
+        .sla-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 1200px) {
+            .sla-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sla-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .chart-card {
             grid-column: span 1;
             background: var(--card-bg);
@@ -521,7 +540,7 @@
     </div>
 
     <!-- Charts Section -->
-    <div class="chart-grid">
+    <div class="sla-grid">
         <div class="chart-card">
             <div class="chart-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
                 <div>
@@ -570,6 +589,23 @@
             </div>
             <div class="chart-container">
                 <canvas id="chart-lifeplus"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                <div>
+                    <i class="fa-solid fa-heart-pulse"></i>
+                    <span>Laudite SLA (250ms)</span>
+                </div>
+                <div style="display: flex; gap: 0.4rem; align-items: center;">
+                    <span class="bandwidth-badge" id="jitter-ld" style="font-size: 0.68rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.15rem 0.4rem; border-radius: 4px; color: var(--text-muted);">Jitter: -- ms</span>
+                    <span class="bandwidth-badge" id="loss-ld" style="font-size: 0.68rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.15rem 0.4rem; border-radius: 4px; color: var(--text-muted);">Perda: --%</span>
+                    <span class="bandwidth-badge" id="delta-ld" style="font-size: 0.68rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.15rem 0.4rem; border-radius: 4px;">Δt: -- ms</span>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="chart-laudite"></canvas>
             </div>
         </div>
     </div>
@@ -682,6 +718,19 @@
 
         const ctxLP = document.getElementById('chart-lifeplus').getContext('2d');
         const chartLP = new Chart(ctxLP, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    { label: 'VIVO', data: [], borderColor: '#6f42c1', backgroundColor: 'rgba(111, 66, 193, 0.1)', borderWidth: 2, fill: true, tension: 0.3 },
+                    { label: 'MICKS', data: [], borderColor: '#00d2fc', backgroundColor: 'rgba(0, 210, 252, 0.1)', borderWidth: 2, fill: true, tension: 0.3 }
+                ]
+            },
+            options: chartOptions
+        });
+
+        const ctxLD = document.getElementById('chart-laudite').getContext('2d');
+        const chartLD = new Chart(ctxLD, {
             type: 'line',
             data: {
                 labels: [],
@@ -886,6 +935,12 @@
                 chartLP.data.datasets[1].data = data.map(item => item.rtt_micks_lp);
                 chartLP.update('none');
 
+                // Update Laudite
+                chartLD.data.labels = labels;
+                chartLD.data.datasets[0].data = data.map(item => item.rtt_vivo_laudite || 0);
+                chartLD.data.datasets[1].data = data.map(item => item.rtt_micks_laudite || 0);
+                chartLD.update('none');
+
                 // Update Rolling Bandwidth data buffers (convert bits per second to Mbps)
                 const nowTimeStr = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 
@@ -910,15 +965,18 @@
                 updateDeltaBadge('delta-mm', latest.rtt_vivo_mm, latest.rtt_micks_mm);
                 updateDeltaBadge('delta-lf', latest.rtt_vivo_lf, latest.rtt_micks_lf);
                 updateDeltaBadge('delta-lp', latest.rtt_vivo_lp, latest.rtt_micks_lp);
+                updateDeltaBadge('delta-ld', latest.rtt_vivo_laudite, latest.rtt_micks_laudite);
 
                 // Update Jitter & Loss for active link
                 const mmRtts = data.map(item => item.link_ativo === "VIVO" ? item.rtt_vivo_mm : item.rtt_micks_mm);
                 const lfRtts = data.map(item => item.link_ativo === "VIVO" ? item.rtt_vivo_lf : item.rtt_micks_lf);
                 const lpRtts = data.map(item => item.link_ativo === "VIVO" ? item.rtt_vivo_lp : item.rtt_micks_lp);
+                const ldRtts = data.map(item => item.link_ativo === "VIVO" ? item.rtt_vivo_laudite : item.rtt_micks_laudite);
                 
                 updateJitterAndLoss('jitter-mm', 'loss-mm', mmRtts);
                 updateJitterAndLoss('jitter-lf', 'loss-lf', lfRtts);
                 updateJitterAndLoss('jitter-lp', 'loss-lp', lpRtts);
+                updateJitterAndLoss('jitter-ld', 'loss-ld', ldRtts);
 
                 // Fetch incident log
                 fetchIncidents();
