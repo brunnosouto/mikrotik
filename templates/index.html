@@ -437,9 +437,12 @@
     <!-- Charts Section -->
     <div class="chart-grid">
         <div class="chart-card">
-            <div class="chart-title">
-                <i class="fa-solid fa-heart-pulse"></i>
-                <span>MobileMed SLA (150ms)</span>
+            <div class="chart-title" style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <i class="fa-solid fa-heart-pulse"></i>
+                    <span>MobileMed SLA (150ms)</span>
+                </div>
+                <span class="bandwidth-badge" id="delta-mm" style="font-size: 0.75rem; font-weight: 700; background: rgba(255,255,255,0.05); padding: 0.2rem 0.5rem; border-radius: 6px;">Δt: -- ms</span>
             </div>
             <div class="chart-container">
                 <canvas id="chart-mobilemed"></canvas>
@@ -447,9 +450,12 @@
         </div>
 
         <div class="chart-card">
-            <div class="chart-title">
-                <i class="fa-solid fa-heart-pulse"></i>
-                <span>LifeFocus SLA (280ms)</span>
+            <div class="chart-title" style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <i class="fa-solid fa-heart-pulse"></i>
+                    <span>LifeFocus SLA (280ms)</span>
+                </div>
+                <span class="bandwidth-badge" id="delta-lf" style="font-size: 0.75rem; font-weight: 700; background: rgba(255,255,255,0.05); padding: 0.2rem 0.5rem; border-radius: 6px;">Δt: -- ms</span>
             </div>
             <div class="chart-container">
                 <canvas id="chart-lifefocus"></canvas>
@@ -457,9 +463,12 @@
         </div>
 
         <div class="chart-card">
-            <div class="chart-title">
-                <i class="fa-solid fa-heart-pulse"></i>
-                <span>LifePlus SLA (280ms)</span>
+            <div class="chart-title" style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <i class="fa-solid fa-heart-pulse"></i>
+                    <span>LifePlus SLA (280ms)</span>
+                </div>
+                <span class="bandwidth-badge" id="delta-lp" style="font-size: 0.75rem; font-weight: 700; background: rgba(255,255,255,0.05); padding: 0.2rem 0.5rem; border-radius: 6px;">Δt: -- ms</span>
             </div>
             <div class="chart-container">
                 <canvas id="chart-lifeplus"></canvas>
@@ -738,6 +747,11 @@
                 chartBwMicks.data.datasets[1].data = data.map(item => item.traffic_micks_tx / 1000000);
                 chartBwMicks.update('none');
 
+                // Update delta badges
+                updateDeltaBadge('delta-mm', latest.rtt_vivo_mm, latest.rtt_micks_mm);
+                updateDeltaBadge('delta-lf', latest.rtt_vivo_lf, latest.rtt_micks_lf);
+                updateDeltaBadge('delta-lp', latest.rtt_vivo_lp, latest.rtt_micks_lp);
+
                 // Fetch incident log
                 fetchIncidents();
 
@@ -745,6 +759,37 @@
                 console.error("Fetch update failed:", err);
                 document.getElementById('connection-dot').classList.add('down');
                 document.getElementById('connection-status').innerText = "Offline";
+            }
+        }
+
+        function updateDeltaBadge(badgeId, rttVivo, rttMicks) {
+            const badge = document.getElementById(badgeId);
+            if (!rttVivo || !rttMicks || rttVivo === 0 || rttMicks === 0) {
+                badge.innerText = "Δt: -- ms";
+                badge.style.color = "var(--text-muted)";
+                badge.style.background = "rgba(255, 255, 255, 0.05)";
+                badge.style.border = "none";
+                return;
+            }
+            const diff = rttVivo - rttMicks;
+            const absDiff = Math.abs(diff).toFixed(1);
+            if (diff < 0) {
+                // VIVO is faster (lower RTT)
+                badge.innerText = `Δt: -${absDiff} ms (VIVO ±)`;
+                badge.style.color = "var(--accent-green)";
+                badge.style.background = "rgba(0, 255, 135, 0.08)";
+                badge.style.border = "1px solid rgba(0, 255, 135, 0.15)";
+            } else if (diff > 0) {
+                // MICKS is faster (lower RTT)
+                badge.innerText = `Δt: -${absDiff} ms (MICKS ±)`;
+                badge.style.color = "var(--accent-micks)";
+                badge.style.background = "rgba(0, 210, 252, 0.08)";
+                badge.style.border = "1px solid rgba(0, 210, 252, 0.15)";
+            } else {
+                badge.innerText = `Δt: 0 ms`;
+                badge.style.color = "var(--text-muted)";
+                badge.style.background = "rgba(255, 255, 255, 0.05)";
+                badge.style.border = "none";
             }
         }
 
@@ -797,9 +842,9 @@
             }
         }
 
-        // Fetch every 15s for high responsiveness on open tab
+        // Fetch every 5s for high responsiveness on open tab
         fetchAndUpdate();
-        setInterval(fetchAndUpdate, 15000);
+        setInterval(fetchAndUpdate, 5000);
     </script>
 </body>
 </html>
