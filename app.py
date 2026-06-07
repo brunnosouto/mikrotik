@@ -355,7 +355,7 @@ def get_data():
 
 @app.route('/api/incidents', methods=['GET'])
 def get_incidents():
-    days = request.args.get('days', 3, type=int)
+    days = request.args.get('days', 7, type=int)
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
@@ -373,6 +373,7 @@ def get_incidents():
         return jsonify(incidents)
 
     prev_link = rows[0]['link_ativo']
+    micks_start_time = None
     
     # We will track active state for each destination to group events
     # States: 'OK', 'HIGH_LATENCY', 'OFFLINE'
@@ -404,6 +405,7 @@ def get_incidents():
             severity = "warning"
             if current_link == "MICKS":
                 # VIVO to MICKS switch
+                micks_start_time = datetime.datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
                 reasons = []
                 if row['rtt_vivo_mm'] == 0.0 or row['rtt_vivo_mm'] > limits['MM']:
                     status = "OFFLINE" if row['rtt_vivo_mm'] == 0.0 else f"RTT {row['rtt_vivo_mm']}ms (Limite {limits['MM']}ms)"
@@ -420,6 +422,19 @@ def get_incidents():
                 severity = "danger"
             else:
                 # MICKS to VIVO switch
+                duration_str = ""
+                if micks_start_time:
+                    try:
+                        v_back = datetime.datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
+                        diff_sec = int((v_back - micks_start_time).total_seconds())
+                        if diff_sec >= 60:
+                            duration_str = f" (Duração: {diff_sec // 60}m {diff_sec % 60}s)"
+                        else:
+                            duration_str = f" (Duração: {diff_sec}s)"
+                    except Exception:
+                        pass
+                    micks_start_time = None
+                
                 reasons = []
                 if row['rtt_vivo_mm'] > 0.0 and row['rtt_vivo_mm'] <= limits['MM']:
                     reasons.append(f"MobileMed {row['rtt_vivo_mm']}ms")
@@ -429,7 +444,7 @@ def get_incidents():
                     reasons.append(f"LifePlus {row['rtt_vivo_lp']}ms")
                 
                 reason_str = ", ".join(reasons) if reasons else "Restabelecimento de SLA"
-                msg = f"✅ RETORNO: VIVO restabelecida. Motivo: Normalização de {reason_str}"
+                msg = f"✅ RETORNO: VIVO restabelecida. Motivo: Normalização de {reason_str}{duration_str}"
                 severity = "success"
 
             incidents.append({

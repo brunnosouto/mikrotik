@@ -642,7 +642,7 @@
         <div class="card" style="padding: 1.5rem;">
             <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1.2rem; display: flex; align-items: center; gap: 0.6rem;">
                 <i class="fa-solid fa-circle-exclamation" style="color: var(--accent-orange);"></i>
-                <span>Painel de Eventos (3 dias)</span>
+                <span>Painel de Eventos (7 dias)</span>
             </h3>
             <div id="incidents-container" style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.8rem; padding-right: 0.5rem;">
                 <div style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 2rem;">Buscando histórico de incidentes...</div>
@@ -981,36 +981,32 @@
                 // Fetch incident log
                 fetchIncidents();
 
-                // Update RouterOS System Logs
+                // Update RouterOS System Logs (Chaveamentos de Link - 7 dias)
                 const logContainer = document.getElementById('router-logs-container');
-                if (latest.logs && latest.logs.trim() !== "") {
-                    const logLines = latest.logs.split('\n');
+                const switchEvents = window.cachedIncidents.filter(inc => inc.type === 'SWITCH');
+                if (switchEvents.length > 0) {
                     let logHtml = '';
-                    logLines.forEach(line => {
-                        if (line.trim() === "") return;
-                        
-                        let color = "var(--text-muted)";
-                        let prefix = "";
-                        if (line.toLowerCase().includes("error") || line.toLowerCase().includes("critical") || line.toLowerCase().includes("fail")) {
+                    switchEvents.forEach(inc => {
+                        let color = "var(--accent-orange)";
+                        let prefix = "🟡 ";
+                        if (inc.severity === 'danger') {
                             color = "var(--accent-red)";
                             prefix = "🔴 ";
-                        } else if (line.toLowerCase().includes("warning") || line.toLowerCase().includes("down")) {
-                            color = "var(--accent-orange)";
-                            prefix = "🟡 ";
-                        } else if (line.toLowerCase().includes("info") || line.toLowerCase().includes("logged in") || line.toLowerCase().includes("up")) {
-                            color = "var(--accent-micks)";
-                            prefix = "🔵 ";
+                        } else if (inc.severity === 'success') {
+                            color = "var(--accent-green)";
+                            prefix = "🟢 ";
                         }
-                        
+                        const eventTime = new Date(inc.timestamp.replace(' ', 'T') + 'Z').toLocaleString('pt-BR');
                         logHtml += `
                         <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); padding: 0.5rem 0.8rem; border-radius: 8px; font-size: 0.82rem; color: ${color}; text-align: left; line-height: 1.3; margin-bottom: 0.4rem;">
-                            ${prefix}${line}
+                            <span style="color: var(--text-muted); font-size: 0.75rem; display: block; margin-bottom: 0.15rem;">[${eventTime}]</span>
+                            ${prefix}${inc.message}
                         </div>
                         `;
                     });
                     logContainer.innerHTML = logHtml;
                 } else {
-                    logContainer.innerHTML = '<div style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 2rem;">Nenhum log crítico recebido do roteador.</div>';
+                    logContainer.innerHTML = '<div style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 2rem;">Nenhum chaveamento de link registrado nos últimos 7 dias.</div>';
                 }
 
                 // Fetch daily and monthly traffic totals
@@ -1170,15 +1166,19 @@
             }
         }
 
+        // Global store to hold incidents data for log rendering
+        window.cachedIncidents = [];
+
         async function fetchIncidents() {
             try {
-                const response = await fetch('/api/incidents?days=3');
+                const response = await fetch('/api/incidents?days=7');
                 if (!response.ok) throw new Error("API error");
                 const incidents = await response.json();
+                window.cachedIncidents = incidents;
                 
                 const container = document.getElementById('incidents-container');
                 if (incidents.length === 0) {
-                    container.innerHTML = '<div style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 2rem;">Nenhuma falha ou oscilação registrada nos últimos 3 dias.</div>';
+                    container.innerHTML = '<div style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 2rem;">Nenhuma falha ou oscilação registrada nos últimos 7 dias.</div>';
                     return;
                 }
                 
