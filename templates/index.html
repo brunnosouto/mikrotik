@@ -336,6 +336,24 @@
             }
         }
 
+        .two-col-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            width: 100%;
+        }
+
+        @media (max-width: 992px) {
+            .two-col-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         @media (max-width: 768px) {
             .dashboard-grid {
                 grid-template-columns: 1fr;
@@ -413,7 +431,7 @@
     </div>
 
     <!-- Bandwidth Chart Section -->
-    <div class="chart-grid" style="grid-template-columns: repeat(2, 1fr); margin-top: 1.5rem; margin-bottom: 2rem;">
+    <div class="two-col-grid" style="margin-top: 1.5rem; margin-bottom: 2rem;">
         <div class="chart-card">
             <div class="chart-title">
                 <i class="fa-solid fa-chart-line" style="color: var(--accent-vivo);"></i>
@@ -517,60 +535,62 @@
 
         <div class="traffic-table-card">
             <h3 style="font-size: 1rem; font-weight: 600;"><i class="fa-solid fa-arrow-right-arrow-left" style="color: var(--accent-micks); margin-right: 0.5rem;"></i>Interface & Tráfego de Operadoras</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Interface</th>
-                        <th>Velocidade</th>
-                        <th>Erros (CRC)</th>
-                        <th>Taxa de Download (RX)</th>
-                        <th>Taxa de Upload (TX)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>
-                            <div class="interface-name">
-                                <i class="fa-solid fa-network-wired" style="color: var(--accent-vivo);"></i>
-                                <span>VIVO WAN (ether1)</span>
-                            </div>
-                        </td>
-                        <td><span class="bandwidth-badge" id="vivo-speed" style="font-weight: 600;">--</span></td>
-                        <td><span class="bandwidth-badge" id="vivo-errors" style="color: var(--text-muted); font-weight: 600;">0</span></td>
-                        <td><span class="bandwidth-badge rx-badge" id="vivo-rx">0.00 Mbps</span></td>
-                        <td><span class="bandwidth-badge tx-badge" id="vivo-tx">0.00 Mbps</span></td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="interface-name">
-                                <i class="fa-solid fa-network-wired" style="color: var(--accent-micks);"></i>
-                                <span>MICKS WAN (ether2)</span>
-                            </div>
-                        </td>
-                        <td><span class="bandwidth-badge" id="micks-speed" style="font-weight: 600;">--</span></td>
-                        <td><span class="bandwidth-badge" id="micks-errors" style="color: var(--text-muted); font-weight: 600;">0</span></td>
-                        <td><span class="bandwidth-badge rx-badge" id="micks-rx">0.00 Mbps</span></td>
-                        <td><span class="bandwidth-badge tx-badge" id="micks-tx">0.00 Mbps</span></td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="interface-name">
-                                <i class="fa-solid fa-network-wired" style="color: var(--accent-green);"></i>
-                                <span>Rede Local LAN (bridge1)</span>
-                            </div>
-                        </td>
-                        <td><span class="bandwidth-badge" style="font-weight: 600;">1 Gbps</span></td>
-                        <td><span class="bandwidth-badge" style="color: var(--text-muted); font-weight: 600;">0</span></td>
-                        <td><span class="bandwidth-badge rx-badge" id="lan-rx">0.00 Mbps</span></td>
-                        <td><span class="bandwidth-badge tx-badge" id="lan-tx">0.00 Mbps</span></td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Interface</th>
+                            <th>Velocidade</th>
+                            <th>Erros (CRC)</th>
+                            <th>Taxa de Download (RX)</th>
+                            <th>Taxa de Upload (TX)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div class="interface-name">
+                                    <i class="fa-solid fa-network-wired" style="color: var(--accent-vivo);"></i>
+                                    <span>VIVO WAN (ether1)</span>
+                                </div>
+                            </td>
+                            <td><span class="bandwidth-badge" id="vivo-speed" style="font-weight: 600;">--</span></td>
+                            <td><span class="bandwidth-badge" id="vivo-errors" style="color: var(--text-muted); font-weight: 600;">0</span></td>
+                            <td><span class="bandwidth-badge rx-badge" id="vivo-rx">0.00 Mbps</span></td>
+                            <td><span class="bandwidth-badge tx-badge" id="vivo-tx">0.00 Mbps</span></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="interface-name">
+                                    <i class="fa-solid fa-network-wired" style="color: var(--accent-micks);"></i>
+                                    <span>MICKS WAN (ether2)</span>
+                                </div>
+                            </td>
+                            <td><span class="bandwidth-badge" id="micks-speed" style="font-weight: 600;">--</span></td>
+                            <td><span class="bandwidth-badge" id="micks-errors" style="color: var(--text-muted); font-weight: 600;">0</span></td>
+                            <td><span class="bandwidth-badge rx-badge" id="micks-rx">0.00 Mbps</span></td>
+                            <td><span class="bandwidth-badge tx-badge" id="micks-tx">0.00 Mbps</span></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="interface-name">
+                                    <i class="fa-solid fa-network-wired" style="color: var(--accent-green);"></i>
+                                    <span>Rede Local LAN (bridge1)</span>
+                                </div>
+                            </td>
+                            <td><span class="bandwidth-badge" style="font-weight: 600;">1 Gbps</span></td>
+                            <td><span class="bandwidth-badge" style="color: var(--text-muted); font-weight: 600;">0</span></td>
+                            <td><span class="bandwidth-badge rx-badge" id="lan-rx">0.00 Mbps</span></td>
+                            <td><span class="bandwidth-badge tx-badge" id="lan-tx">0.00 Mbps</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
     <!-- Logs & Events Section -->
-    <div class="chart-grid" style="grid-template-columns: repeat(2, 1fr); margin-top: 1.5rem; margin-bottom: 2.5rem;">
+    <div class="two-col-grid" style="margin-top: 1.5rem; margin-bottom: 2.5rem;">
         <!-- Failure & Incident Log Panel -->
         <div class="card" style="padding: 1.5rem;">
             <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1.2rem; display: flex; align-items: center; gap: 0.6rem;">
