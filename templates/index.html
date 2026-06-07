@@ -452,6 +452,74 @@
         </div>
     </div>
 
+    <!-- Interface & Tráfego de Operadoras -->
+    <div class="traffic-table-card" style="margin-bottom: 2rem;">
+        <h3 style="font-size: 1rem; font-weight: 600;"><i class="fa-solid fa-arrow-right-arrow-left" style="color: var(--accent-micks); margin-right: 0.5rem;"></i>Interface & Tráfego de Operadoras</h3>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Interface</th>
+                        <th>Velocidade</th>
+                        <th>Erros (CRC)</th>
+                        <th>Hoje (RX / TX)</th>
+                        <th>Mês (RX / TX)</th>
+                        <th>Pico (24h)</th>
+                        <th>Download (RX)</th>
+                        <th>Upload (TX)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <div class="interface-name">
+                                <i class="fa-solid fa-network-wired" style="color: var(--accent-vivo);"></i>
+                                <span>VIVO WAN (ether1)</span>
+                            </div>
+                        </td>
+                        <td><span class="bandwidth-badge" id="vivo-speed" style="font-weight: 600;">--</span></td>
+                        <td><span class="bandwidth-badge" id="vivo-errors" style="color: var(--text-muted); font-weight: 600;">0</span></td>
+                        <td><span class="bandwidth-badge" id="vivo-today" style="font-weight: 600; color: var(--text-main);">0.00 GB / 0.00 GB</span></td>
+                        <td><span class="bandwidth-badge" id="vivo-month" style="font-weight: 600; color: var(--text-main);">0.00 GB / 0.00 GB</span></td>
+                        <td><span class="bandwidth-badge" id="vivo-peak" style="font-weight: 600; color: var(--accent-orange);">0.00 / 0.00 Mbps</span></td>
+                        <td><span class="bandwidth-badge rx-badge" id="vivo-rx">0.00 Mbps</span></td>
+                        <td><span class="bandwidth-badge tx-badge" id="vivo-tx">0.00 Mbps</span></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="interface-name">
+                                <i class="fa-solid fa-network-wired" style="color: var(--accent-micks);"></i>
+                                <span>MICKS WAN (ether2)</span>
+                            </div>
+                        </td>
+                        <td><span class="bandwidth-badge" id="micks-speed" style="font-weight: 600;">--</span></td>
+                        <td><span class="bandwidth-badge" id="micks-errors" style="color: var(--text-muted); font-weight: 600;">0</span></td>
+                        <td><span class="bandwidth-badge" id="micks-today" style="font-weight: 600; color: var(--text-main);">0.00 GB / 0.00 GB</span></td>
+                        <td><span class="bandwidth-badge" id="micks-month" style="font-weight: 600; color: var(--text-main);">0.00 GB / 0.00 GB</span></td>
+                        <td><span class="bandwidth-badge" id="micks-peak" style="font-weight: 600; color: var(--accent-orange);">0.00 / 0.00 Mbps</span></td>
+                        <td><span class="bandwidth-badge rx-badge" id="micks-rx">0.00 Mbps</span></td>
+                        <td><span class="bandwidth-badge tx-badge" id="micks-tx">0.00 Mbps</span></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="interface-name">
+                                <i class="fa-solid fa-network-wired" style="color: var(--accent-green);"></i>
+                                <span>Rede Local LAN (bridge1)</span>
+                            </div>
+                        </td>
+                        <td><span class="bandwidth-badge" style="font-weight: 600;">1 Gbps</span></td>
+                        <td><span class="bandwidth-badge" style="color: var(--text-muted); font-weight: 600;">0</span></td>
+                        <td><span class="bandwidth-badge" style="font-weight: 600; color: var(--text-muted);">--</span></td>
+                        <td><span class="bandwidth-badge" style="font-weight: 600; color: var(--text-muted);">--</span></td>
+                        <td><span class="bandwidth-badge" style="font-weight: 600; color: var(--text-muted);">--</span></td>
+                        <td><span class="bandwidth-badge rx-badge" id="lan-rx">0.00 Mbps</span></td>
+                        <td><span class="bandwidth-badge tx-badge" id="lan-tx">0.00 Mbps</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <!-- Charts Section -->
     <div class="chart-grid">
         <div class="chart-card">
@@ -506,9 +574,10 @@
         </div>
     </div>
 
-    <!-- Bottom Details Section -->
-    <div class="details-grid">
-        <div class="hw-card">
+    <!-- Bottom Resources & Logs Grid Section -->
+    <div class="chart-grid" style="margin-top: 1.5rem; margin-bottom: 2.5rem;">
+        <!-- System Resources -->
+        <div class="hw-card" style="display: flex; flex-direction: column; gap: 1.2rem; padding: 1.5rem;">
             <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem;"><i class="fa-solid fa-microchip" style="color: var(--accent-vivo); margin-right: 0.5rem;"></i>Recursos do Sistema</h3>
             
             <div class="hw-metric">
@@ -533,81 +602,11 @@
             </div>
         </div>
 
-        <div class="traffic-table-card">
-            <h3 style="font-size: 1rem; font-weight: 600;"><i class="fa-solid fa-arrow-right-arrow-left" style="color: var(--accent-micks); margin-right: 0.5rem;"></i>Interface & Tráfego de Operadoras</h3>
-            <div class="table-responsive">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Interface</th>
-                            <th>Velocidade</th>
-                            <th>Erros (CRC)</th>
-                            <th>Hoje (RX / TX)</th>
-                            <th>Mês (RX / TX)</th>
-                            <th>Pico (24h)</th>
-                            <th>Download (RX)</th>
-                            <th>Upload (TX)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>
-                                <div class="interface-name">
-                                    <i class="fa-solid fa-network-wired" style="color: var(--accent-vivo);"></i>
-                                    <span>VIVO WAN (ether1)</span>
-                                </div>
-                            </td>
-                            <td><span class="bandwidth-badge" id="vivo-speed" style="font-weight: 600;">--</span></td>
-                            <td><span class="bandwidth-badge" id="vivo-errors" style="color: var(--text-muted); font-weight: 600;">0</span></td>
-                            <td><span class="bandwidth-badge" id="vivo-today" style="font-weight: 600; color: var(--text-main);">0.00 GB / 0.00 GB</span></td>
-                            <td><span class="bandwidth-badge" id="vivo-month" style="font-weight: 600; color: var(--text-main);">0.00 GB / 0.00 GB</span></td>
-                            <td><span class="bandwidth-badge" id="vivo-peak" style="font-weight: 600; color: var(--accent-orange);">0.00 / 0.00 Mbps</span></td>
-                            <td><span class="bandwidth-badge rx-badge" id="vivo-rx">0.00 Mbps</span></td>
-                            <td><span class="bandwidth-badge tx-badge" id="vivo-tx">0.00 Mbps</span></td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="interface-name">
-                                    <i class="fa-solid fa-network-wired" style="color: var(--accent-micks);"></i>
-                                    <span>MICKS WAN (ether2)</span>
-                                </div>
-                            </td>
-                            <td><span class="bandwidth-badge" id="micks-speed" style="font-weight: 600;">--</span></td>
-                            <td><span class="bandwidth-badge" id="micks-errors" style="color: var(--text-muted); font-weight: 600;">0</span></td>
-                            <td><span class="bandwidth-badge" id="micks-today" style="font-weight: 600; color: var(--text-main);">0.00 GB / 0.00 GB</span></td>
-                            <td><span class="bandwidth-badge" id="micks-month" style="font-weight: 600; color: var(--text-main);">0.00 GB / 0.00 GB</span></td>
-                            <td><span class="bandwidth-badge" id="micks-peak" style="font-weight: 600; color: var(--accent-orange);">0.00 / 0.00 Mbps</span></td>
-                            <td><span class="bandwidth-badge rx-badge" id="micks-rx">0.00 Mbps</span></td>
-                            <td><span class="bandwidth-badge tx-badge" id="micks-tx">0.00 Mbps</span></td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="interface-name">
-                                    <i class="fa-solid fa-network-wired" style="color: var(--accent-green);"></i>
-                                    <span>Rede Local LAN (bridge1)</span>
-                                </div>
-                            </td>
-                            <td><span class="bandwidth-badge" style="font-weight: 600;">1 Gbps</span></td>
-                            <td><span class="bandwidth-badge" style="color: var(--text-muted); font-weight: 600;">0</span></td>
-                            <td><span class="bandwidth-badge" style="font-weight: 600; color: var(--text-muted);">--</span></td>
-                            <td><span class="bandwidth-badge" style="font-weight: 600; color: var(--text-muted);">--</span></td>
-                            <td><span class="bandwidth-badge" style="font-weight: 600; color: var(--text-muted);">--</span></td>
-                            <td><span class="bandwidth-badge rx-badge" id="lan-rx">0.00 Mbps</span></td>
-                            <td><span class="bandwidth-badge tx-badge" id="lan-tx">0.00 Mbps</span></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- Logs & Events Section -->
-    <div class="two-col-grid" style="margin-top: 1.5rem; margin-bottom: 2.5rem;">
         <!-- Failure & Incident Log Panel -->
         <div class="card" style="padding: 1.5rem;">
             <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1.2rem; display: flex; align-items: center; gap: 0.6rem;">
                 <i class="fa-solid fa-circle-exclamation" style="color: var(--accent-orange);"></i>
-                <span>Painel de Eventos e Falhas (Últimos 3 dias)</span>
+                <span>Painel de Eventos (3 dias)</span>
             </h3>
             <div id="incidents-container" style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.8rem; padding-right: 0.5rem;">
                 <div style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 2rem;">Buscando histórico de incidentes...</div>
@@ -618,7 +617,7 @@
         <div class="card" style="padding: 1.5rem;">
             <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1.2rem; display: flex; align-items: center; gap: 0.6rem;">
                 <i class="fa-solid fa-terminal" style="color: var(--accent-micks);"></i>
-                <span>Logs do Roteador (Alertas do MikroTik)</span>
+                <span>Logs do Roteador (Alertas)</span>
             </h3>
             <div id="router-logs-container" style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.8rem; padding-right: 0.5rem; font-family: monospace;">
                 <div style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 2rem;">Nenhum log crítico recebido do roteador.</div>
@@ -694,15 +693,29 @@
             options: chartOptions
         });
 
+        // Rolling buffer for bandwidth charts (60 points representing 60 seconds history)
+        const maxBwPoints = 60;
+        const vivoRxData = Array(maxBwPoints).fill(0);
+        const vivoTxData = Array(maxBwPoints).fill(0);
+        const micksRxData = Array(maxBwPoints).fill(0);
+        const micksTxData = Array(maxBwPoints).fill(0);
+        const bwLabels = Array(maxBwPoints).fill('');
+
+        // Pre-fill labels with blank or initial times
+        for (let i = maxBwPoints - 1; i >= 0; i--) {
+            const timeVal = new Date(Date.now() - i * 1000);
+            bwLabels[maxBwPoints - 1 - i] = timeVal.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+
         // Initialize Bandwidth Charts
         const ctxBwVivo = document.getElementById('chart-bandwidth-vivo').getContext('2d');
         const chartBwVivo = new Chart(ctxBwVivo, {
             type: 'line',
             data: {
-                labels: [],
+                labels: bwLabels,
                 datasets: [
-                    { label: 'Download (RX)', data: [], borderColor: 'var(--accent-green)', backgroundColor: 'rgba(0, 255, 135, 0.05)', borderWidth: 2, fill: true, tension: 0.3 },
-                    { label: 'Upload (TX)', data: [], borderColor: 'var(--accent-micks)', backgroundColor: 'rgba(0, 210, 252, 0.05)', borderWidth: 2, fill: true, tension: 0.3 }
+                    { label: 'Download (RX)', data: vivoRxData, borderColor: 'var(--accent-green)', backgroundColor: 'rgba(0, 255, 135, 0.05)', borderWidth: 2, fill: true, tension: 0.3 },
+                    { label: 'Upload (TX)', data: vivoTxData, borderColor: 'var(--accent-micks)', backgroundColor: 'rgba(0, 210, 252, 0.05)', borderWidth: 2, fill: true, tension: 0.3 }
                 ]
             },
             options: chartOptions
@@ -712,10 +725,10 @@
         const chartBwMicks = new Chart(ctxBwMicks, {
             type: 'line',
             data: {
-                labels: [],
+                labels: bwLabels,
                 datasets: [
-                    { label: 'Download (RX)', data: [], borderColor: 'var(--accent-green)', backgroundColor: 'rgba(0, 255, 135, 0.05)', borderWidth: 2, fill: true, tension: 0.3 },
-                    { label: 'Upload (TX)', data: [], borderColor: 'var(--accent-micks)', backgroundColor: 'rgba(0, 210, 252, 0.05)', borderWidth: 2, fill: true, tension: 0.3 }
+                    { label: 'Download (RX)', data: micksRxData, borderColor: 'var(--accent-green)', backgroundColor: 'rgba(0, 255, 135, 0.05)', borderWidth: 2, fill: true, tension: 0.3 },
+                    { label: 'Upload (TX)', data: micksTxData, borderColor: 'var(--accent-micks)', backgroundColor: 'rgba(0, 210, 252, 0.05)', borderWidth: 2, fill: true, tension: 0.3 }
                 ]
             },
             options: chartOptions
@@ -817,15 +830,24 @@
                 chartLP.data.datasets[1].data = data.map(item => item.rtt_micks_lp);
                 chartLP.update('none');
 
-                // Update Bandwidth (Mbps)
-                chartBwVivo.data.labels = labels;
-                chartBwVivo.data.datasets[0].data = data.map(item => item.traffic_vivo_rx / 1000000);
-                chartBwVivo.data.datasets[1].data = data.map(item => item.traffic_vivo_tx / 1000000);
-                chartBwVivo.update('none');
+                // Update Rolling Bandwidth data buffers (convert bits per second to Mbps)
+                const nowTimeStr = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                
+                vivoRxData.push(latest.traffic_vivo_rx / 1000000);
+                vivoRxData.shift();
+                vivoTxData.push(latest.traffic_vivo_tx / 1000000);
+                vivoTxData.shift();
 
-                chartBwMicks.data.labels = labels;
-                chartBwMicks.data.datasets[0].data = data.map(item => item.traffic_micks_rx / 1000000);
-                chartBwMicks.data.datasets[1].data = data.map(item => item.traffic_micks_tx / 1000000);
+                micksRxData.push(latest.traffic_micks_rx / 1000000);
+                micksRxData.shift();
+                micksTxData.push(latest.traffic_micks_tx / 1000000);
+                micksTxData.shift();
+
+                bwLabels.push(nowTimeStr);
+                bwLabels.shift();
+
+                // Update charts
+                chartBwVivo.update('none');
                 chartBwMicks.update('none');
 
                 // Update delta badges
