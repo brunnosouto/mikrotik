@@ -48,6 +48,23 @@ def init_db():
         if col not in columns:
             cursor.execute(f"ALTER TABLE telemetry ADD COLUMN {col} {col_type}")
             
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS traffic_accumulation (
+            date TEXT PRIMARY KEY,
+            vivo_rx INTEGER DEFAULT 0,
+            vivo_tx INTEGER DEFAULT 0,
+            micks_rx INTEGER DEFAULT 0,
+            micks_tx INTEGER DEFAULT 0
+        )
+    ''')
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS traffic_metadata (
+            key TEXT PRIMARY KEY,
+            val TEXT
+        )
+    ''')
+
     conn.commit()
     conn.close()
 
@@ -86,6 +103,99 @@ def parse_int(val):
         return int(val)
     except:
         return 0
+
+import datetime
+
+# Memory storage for the latest 5-second traffic rates to feed the real-time UI
+latest_traffic = {
+    'traffic_vivo_rx': 0.0,
+    'traffic_vivo_tx': 0.0,
+    'traffic_micks_rx': 0.0,
+    'traffic_micks_tx': 0.0,
+    'traffic_lan_rx': 0.0,
+    'traffic_lan_tx': 0.0,
+    'timestamp': None
+}
+
+@app.route('/api/traffic', methods=['POST'])
+def receive_traffic():
+    try:
+        data = request.get_json(silent=True) or request.form
+        if not data:
+            return jsonify({"status": "error", "message": "No data received"}), 400
+
+        # 1. Update in-memory real-time rates
+        global latest_traffic
+        latest_traffic['traffic_vivo_rx'] = parse_float(data.get('traffic_vivo_rx', 0))
+        latest_traffic['traffic_vivo_tx'] = parse_float(data.get('traffic_vivo_tx', 0))
+        latest_traffic['traffic_micks_rx'] = parse_float(data.get('traffic_micks_rx', 0))
+        latest_traffic['traffic_micks_tx'] = parse_float(data.get('traffic_micks_tx', 0))
+        latest_traffic['traffic_lan_rx'] = parse_float(data.get('traffic_lan_rx', 0))
+        latest_traffic['traffic_lan_tx'] = parse_float(data.get('traffic_lan_tx', 0))
+        latest_traffic['timestamp'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+        # 2. Extract byte counters to calculate accumulated traffic
+        bytes_keys = ['bytes_vivo_rx', 'bytes_vivo_tx', 'bytes_micks_rx', 'bytes_micks_tx']
+        current_bytes = {}
+        for key in bytes_keys:
+            current_bytes[key] = parse_int(data.get(key, 0))
+
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+
+        # Load last byte counters from metadata
+        cursor.execute("SELECT key, val FROM traffic_metadata")
+        metadata = dict(cursor.fetchall())
+
+        deltas = {}
+        for key in bytes_keys:
+            current_val = current_bytes[key]
+            last_val = parse_int(metadata.get(key, None))
+            
+            if last_val is None:
+                # First telemetry payload or no previous record, delta is 0
+                deltas[key] = 0
+            elif current_val >= last_val:
+                deltas[key] = current_val - last_val
+            else:
+                # Router rebooted / counters reset
+                deltas[key] = current_val
+            
+            # Save new value to metadata
+            cursor.execute('''
+                INSERT OR REPLACE INTO traffic_metadata (key, val) VALUES (?, ?)
+            ''', (key, str(current_val)))
+
+        # 3. Accumulate deltas for today's date
+        today = datetime.date.today().isoformat()
+        cursor.execute('''
+            INSERT OR IGNORE INTO traffic_accumulation (date, vivo_rx, vivo_tx, micks_rx, micks_tx)
+            VALUES (?, 0, 0, 0, 0)
+        ''', (today,))
+
+        cursor.execute('''
+            UPDATE traffic_accumulation
+            SET vivo_rx = vivo_rx + ?,
+                vivo_tx = vivo_tx + ?,
+                micks_rx = micks_rx + ?,
+                micks_tx = micks_tx + ?
+            WHERE date = ?
+        ''', (
+            deltas['bytes_vivo_rx'],
+            deltas['bytes_vivo_tx'],
+            deltas['bytes_micks_rx'],
+            deltas['bytes_micks_tx'],
+            today
+        ))
+
+        conn.commit()
+        conn.close()
+
+        return jsonify({"status": "success", "message": "Traffic rates and counters updated"})
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/telemetry', methods=['POST'])
 def receive_telemetry():
@@ -153,6 +263,16 @@ def get_data():
     result = []
     for row in reversed(rows):
         result.append(dict(row))
+        
+    # Override the latest element's traffic rates with the in-memory 5-second real-time values if available
+    if result and latest_traffic['timestamp'] is not None:
+        result[-1]['traffic_vivo_rx'] = latest_traffic['traffic_vivo_rx']
+        result[-1]['traffic_vivo_tx'] = latest_traffic['traffic_vivo_tx']
+        result[-1]['traffic_micks_rx'] = latest_traffic['traffic_micks_rx']
+        result[-1]['traffic_micks_tx'] = latest_traffic['traffic_micks_tx']
+        result[-1]['traffic_lan_rx'] = latest_traffic['traffic_lan_rx']
+        result[-1]['traffic_lan_tx'] = latest_traffic['traffic_lan_tx']
+        
     return jsonify(result)
 
 @app.route('/api/incidents', methods=['GET'])
@@ -251,6 +371,48 @@ def get_incidents():
     # Return in reverse chronological order
     incidents.reverse()
     return jsonify(incidents)
+
+@app.route('/api/traffic/stats', methods=['GET'])
+def get_traffic_stats():
+    try:
+        today = datetime.date.today().isoformat()
+        current_month_prefix = today[:7] + '%' # e.g. '2026-06%'
+        
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+
+        # 1. Fetch today's stats
+        cursor.execute('''
+            SELECT SUM(vivo_rx), SUM(vivo_tx), SUM(micks_rx), SUM(micks_tx)
+            FROM traffic_accumulation WHERE date = ?
+        ''', (today,))
+        row_today = cursor.fetchone()
+        
+        # 2. Fetch monthly stats
+        cursor.execute('''
+            SELECT SUM(vivo_rx), SUM(vivo_tx), SUM(micks_rx), SUM(micks_tx)
+            FROM traffic_accumulation WHERE date LIKE ?
+        ''', (current_month_prefix,))
+        row_month = cursor.fetchone()
+
+        conn.close()
+
+        def make_stats_dict(row):
+            if not row or row[0] is None:
+                return {"vivo_rx": 0, "vivo_tx": 0, "micks_rx": 0, "micks_tx": 0}
+            return {
+                "vivo_rx": row[0],
+                "vivo_tx": row[1],
+                "micks_rx": row[2],
+                "micks_tx": row[3]
+            }
+
+        return jsonify({
+            "today": make_stats_dict(row_today),
+            "month": make_stats_dict(row_month)
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/')
 def dashboard():

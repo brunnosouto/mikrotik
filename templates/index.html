@@ -542,8 +542,10 @@
                             <th>Interface</th>
                             <th>Velocidade</th>
                             <th>Erros (CRC)</th>
-                            <th>Taxa de Download (RX)</th>
-                            <th>Taxa de Upload (TX)</th>
+                            <th>Hoje (Total)</th>
+                            <th>Mês (Total)</th>
+                            <th>Download (RX)</th>
+                            <th>Upload (TX)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -556,6 +558,8 @@
                             </td>
                             <td><span class="bandwidth-badge" id="vivo-speed" style="font-weight: 600;">--</span></td>
                             <td><span class="bandwidth-badge" id="vivo-errors" style="color: var(--text-muted); font-weight: 600;">0</span></td>
+                            <td><span class="bandwidth-badge" id="vivo-today" style="font-weight: 600; color: var(--text-main);">0.00 GB</span></td>
+                            <td><span class="bandwidth-badge" id="vivo-month" style="font-weight: 600; color: var(--text-main);">0.00 GB</span></td>
                             <td><span class="bandwidth-badge rx-badge" id="vivo-rx">0.00 Mbps</span></td>
                             <td><span class="bandwidth-badge tx-badge" id="vivo-tx">0.00 Mbps</span></td>
                         </tr>
@@ -568,6 +572,8 @@
                             </td>
                             <td><span class="bandwidth-badge" id="micks-speed" style="font-weight: 600;">--</span></td>
                             <td><span class="bandwidth-badge" id="micks-errors" style="color: var(--text-muted); font-weight: 600;">0</span></td>
+                            <td><span class="bandwidth-badge" id="micks-today" style="font-weight: 600; color: var(--text-main);">0.00 GB</span></td>
+                            <td><span class="bandwidth-badge" id="micks-month" style="font-weight: 600; color: var(--text-main);">0.00 GB</span></td>
                             <td><span class="bandwidth-badge rx-badge" id="micks-rx">0.00 Mbps</span></td>
                             <td><span class="bandwidth-badge tx-badge" id="micks-tx">0.00 Mbps</span></td>
                         </tr>
@@ -580,6 +586,8 @@
                             </td>
                             <td><span class="bandwidth-badge" style="font-weight: 600;">1 Gbps</span></td>
                             <td><span class="bandwidth-badge" style="color: var(--text-muted); font-weight: 600;">0</span></td>
+                            <td><span class="bandwidth-badge" style="font-weight: 600; color: var(--text-muted);">--</span></td>
+                            <td><span class="bandwidth-badge" style="font-weight: 600; color: var(--text-muted);">--</span></td>
                             <td><span class="bandwidth-badge rx-badge" id="lan-rx">0.00 Mbps</span></td>
                             <td><span class="bandwidth-badge tx-badge" id="lan-tx">0.00 Mbps</span></td>
                         </tr>
@@ -865,10 +873,47 @@
                     logContainer.innerHTML = '<div style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 2rem;">Nenhum log crítico recebido do roteador.</div>';
                 }
 
+                // Fetch daily and monthly traffic totals
+                fetchTrafficStats();
+
             } catch (err) {
                 console.error("Fetch update failed:", err);
                 document.getElementById('connection-dot').classList.add('down');
                 document.getElementById('connection-status').innerText = "Offline";
+            }
+        }
+
+        function formatBytesToGB(bytes) {
+            if (bytes === 0 || bytes === null || bytes === undefined) return "0.00 GB";
+            const gb = bytes / 1073741824; // 1024^3
+            return gb.toFixed(2) + " GB";
+        }
+
+        async function fetchTrafficStats() {
+            try {
+                const response = await fetch('/api/traffic/stats');
+                if (!response.ok) throw new Error("Stats API error");
+                const stats = await response.json();
+                
+                // VIVO Totals
+                const vivoRxToday = stats.today.vivo_rx || 0;
+                const vivoTxToday = stats.today.vivo_tx || 0;
+                const vivoRxMonth = stats.month.vivo_rx || 0;
+                const vivoTxMonth = stats.month.vivo_tx || 0;
+                
+                document.getElementById('vivo-today').innerText = formatBytesToGB(vivoRxToday + vivoTxToday);
+                document.getElementById('vivo-month').innerText = formatBytesToGB(vivoRxMonth + vivoTxMonth);
+                
+                // MICKS Totals
+                const micksRxToday = stats.today.micks_rx || 0;
+                const micksTxToday = stats.today.micks_tx || 0;
+                const micksRxMonth = stats.month.micks_rx || 0;
+                const micksTxMonth = stats.month.micks_tx || 0;
+                
+                document.getElementById('micks-today').innerText = formatBytesToGB(micksRxToday + micksTxToday);
+                document.getElementById('micks-month').innerText = formatBytesToGB(micksRxMonth + micksTxMonth);
+            } catch (err) {
+                console.error("Failed to load traffic stats:", err);
             }
         }
 
