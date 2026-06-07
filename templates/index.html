@@ -307,11 +307,11 @@
         }
 
         .rx-badge {
-            color: var(--accent-green);
+            color: #00d2fc;
         }
 
         .tx-badge {
-            color: var(--accent-orange);
+            color: #ff007f;
         }
 
         /* Footer */
@@ -714,8 +714,8 @@
             data: {
                 labels: bwLabels,
                 datasets: [
-                    { label: 'Download (RX)', data: vivoRxData, borderColor: 'var(--accent-green)', backgroundColor: 'rgba(0, 255, 135, 0.05)', borderWidth: 2, fill: true, tension: 0.3 },
-                    { label: 'Upload (TX)', data: vivoTxData, borderColor: 'var(--accent-orange)', backgroundColor: 'rgba(255, 159, 67, 0.05)', borderWidth: 2, fill: true, tension: 0.3 }
+                    { label: 'Download (RX)', data: vivoRxData, borderColor: '#00d2fc', backgroundColor: 'transparent', borderWidth: 3, fill: false, tension: 0.3, pointRadius: 0, hoverRadius: 4 },
+                    { label: 'Upload (TX)', data: vivoTxData, borderColor: '#ff007f', backgroundColor: 'transparent', borderWidth: 3, fill: false, tension: 0.3, pointRadius: 0, hoverRadius: 4 }
                 ]
             },
             options: chartOptions
@@ -727,8 +727,8 @@
             data: {
                 labels: bwLabels,
                 datasets: [
-                    { label: 'Download (RX)', data: micksRxData, borderColor: 'var(--accent-green)', backgroundColor: 'rgba(0, 255, 135, 0.05)', borderWidth: 2, fill: true, tension: 0.3 },
-                    { label: 'Upload (TX)', data: micksTxData, borderColor: 'var(--accent-orange)', backgroundColor: 'rgba(255, 159, 67, 0.05)', borderWidth: 2, fill: true, tension: 0.3 }
+                    { label: 'Download (RX)', data: micksRxData, borderColor: '#00d2fc', backgroundColor: 'transparent', borderWidth: 3, fill: false, tension: 0.3, pointRadius: 0, hoverRadius: 4 },
+                    { label: 'Upload (TX)', data: micksTxData, borderColor: '#ff007f', backgroundColor: 'transparent', borderWidth: 3, fill: false, tension: 0.3, pointRadius: 0, hoverRadius: 4 }
                 ]
             },
             options: chartOptions
