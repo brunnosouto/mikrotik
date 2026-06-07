@@ -90,12 +90,12 @@ def receive_telemetry():
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             data.get('link_ativo', 'VIVO'),
-            parse_rtt(data.get('rtt_vivo_mm', 0)),
-            parse_rtt(data.get('rtt_vivo_lf', 0)),
-            parse_rtt(data.get('rtt_vivo_lp', 0)),
-            parse_rtt(data.get('rtt_micks_mm', 0)),
-            parse_rtt(data.get('rtt_micks_lf', 0)),
-            parse_rtt(data.get('rtt_micks_lp', 0)),
+            parse_rtt(data.get('rtt_vivo_mm', data.get('MONITOR_VIVO_MOBILEMED', 0))),
+            parse_rtt(data.get('rtt_vivo_lf', data.get('MONITOR_VIVO_LIFEFOCUS', 0))),
+            parse_rtt(data.get('rtt_vivo_lp', data.get('MONITOR_VIVO_LIFEPLUS', 0))),
+            parse_rtt(data.get('rtt_micks_mm', data.get('MONITOR_MICKS_MOBILEMED', 0))),
+            parse_rtt(data.get('rtt_micks_lf', data.get('MONITOR_MICKS_LIFEFOCUS', 0))),
+            parse_rtt(data.get('rtt_micks_lp', data.get('MONITOR_MICKS_LIFEPLUS', 0))),
             parse_int(data.get('cpu', 0)),
             parse_int(data.get('temp', 0)),
             parse_int(data.get('ram', 0)),
