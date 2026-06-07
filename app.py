@@ -395,11 +395,42 @@ def get_incidents():
 
         # 1. Detect link switch
         if current_link != prev_link:
+            severity = "warning"
+            if current_link == "MICKS":
+                # VIVO to MICKS switch
+                reasons = []
+                if row['rtt_vivo_mm'] == 0.0 or row['rtt_vivo_mm'] > limits['MM']:
+                    status = "OFFLINE" if row['rtt_vivo_mm'] == 0.0 else f"RTT {row['rtt_vivo_mm']}ms (Limite {limits['MM']}ms)"
+                    reasons.append(f"MobileMed {status}")
+                if row['rtt_vivo_lf'] == 0.0 or row['rtt_vivo_lf'] > limits['LF']:
+                    status = "OFFLINE" if row['rtt_vivo_lf'] == 0.0 else f"RTT {row['rtt_vivo_lf']}ms (Limite {limits['LF']}ms)"
+                    reasons.append(f"LifeFocus {status}")
+                if row['rtt_vivo_lp'] == 0.0 or row['rtt_vivo_lp'] > limits['LP']:
+                    status = "OFFLINE" if row['rtt_vivo_lp'] == 0.0 else f"RTT {row['rtt_vivo_lp']}ms (Limite {limits['LP']}ms)"
+                    reasons.append(f"LifePlus {status}")
+                
+                reason_str = ", ".join(reasons) if reasons else "Mudança preventiva ou manual"
+                msg = f"⚠️ ROTA ALTERADA: VIVO -> MICKS. Motivo: Instabilidade em {reason_str}"
+                severity = "danger"
+            else:
+                # MICKS to VIVO switch
+                reasons = []
+                if row['rtt_vivo_mm'] > 0.0 and row['rtt_vivo_mm'] <= limits['MM']:
+                    reasons.append(f"MobileMed {row['rtt_vivo_mm']}ms")
+                if row['rtt_vivo_lf'] > 0.0 and row['rtt_vivo_lf'] <= limits['LF']:
+                    reasons.append(f"LifeFocus {row['rtt_vivo_lf']}ms")
+                if row['rtt_vivo_lp'] > 0.0 and row['rtt_vivo_lp'] <= limits['LP']:
+                    reasons.append(f"LifePlus {row['rtt_vivo_lp']}ms")
+                
+                reason_str = ", ".join(reasons) if reasons else "Restabelecimento de SLA"
+                msg = f"✅ RETORNO: VIVO restabelecida. Motivo: Normalização de {reason_str}"
+                severity = "success"
+
             incidents.append({
                 "timestamp": timestamp,
                 "type": "SWITCH",
-                "severity": "warning",
-                "message": f"Link ativo alterado de {prev_link} para {current_link}"
+                "severity": severity,
+                "message": msg
             })
             prev_link = current_link
 
