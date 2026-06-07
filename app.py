@@ -75,6 +75,11 @@ def init_db():
         )
     ''')
 
+    # Reset traffic stats and metadata to clear historical fake terabytes
+    cursor.execute("DELETE FROM traffic_metadata")
+    cursor.execute("DELETE FROM traffic_accumulation")
+    cursor.execute("DELETE FROM traffic_peaks_log")
+
     conn.commit()
     conn.close()
 
@@ -216,10 +221,18 @@ def receive_traffic():
                 # First telemetry payload or no previous record, delta is 0
                 deltas[key] = 0
             elif current_val >= last_val:
-                deltas[key] = current_val - last_val
+                diff = current_val - last_val
+                # If delta is abnormally large (e.g. > 500 MB), treat as baseline reset
+                if diff > 500 * 1024 * 1024:
+                    deltas[key] = 0
+                else:
+                    deltas[key] = diff
             else:
                 # Router rebooted / counters reset
-                deltas[key] = current_val
+                if current_val > 500 * 1024 * 1024:
+                    deltas[key] = 0
+                else:
+                    deltas[key] = current_val
             
             # Save new value to metadata
             cursor.execute('''
