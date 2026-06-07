@@ -693,6 +693,60 @@
             options: chartOptions
         });
 
+        // Custom plugin to draw horizontal peak lines inside bandwidth charts
+        const peakLinesPlugin = {
+            id: 'peakLines',
+            afterDraw: (chart) => {
+                const ctx = chart.ctx;
+                const peakRx = chart.options.peakRx || 0;
+                const peakTx = chart.options.peakTx || 0;
+                if (!peakRx && !peakTx) return;
+
+                const yScale = chart.scales.y;
+                const xScale = chart.scales.x;
+                
+                ctx.save();
+                
+                // Draw Peak RX Line (Cyan)
+                if (peakRx > 0) {
+                    const yPosVal = yScale.getPixelForValue(peakRx);
+                    if (yPosVal >= yScale.top && yPosVal <= yScale.bottom) {
+                        ctx.strokeStyle = 'rgba(0, 210, 252, 0.4)';
+                        ctx.lineWidth = 1.5;
+                        ctx.setLineDash([5, 5]);
+                        ctx.beginPath();
+                        ctx.moveTo(xScale.left, yPosVal);
+                        ctx.lineTo(xScale.right, yPosVal);
+                        ctx.stroke();
+
+                        ctx.fillStyle = '#00d2fc';
+                        ctx.font = 'bold 9px Plus Jakarta Sans';
+                        ctx.fillText(`Pico RX: ${peakRx.toFixed(2)} Mbps`, xScale.left + 8, yPosVal - 5);
+                    }
+                }
+
+                // Draw Peak TX Line (Pink)
+                if (peakTx > 0) {
+                    const yPosVal = yScale.getPixelForValue(peakTx);
+                    if (yPosVal >= yScale.top && yPosVal <= yScale.bottom) {
+                        ctx.strokeStyle = 'rgba(255, 0, 127, 0.4)';
+                        ctx.lineWidth = 1.5;
+                        ctx.setLineDash([5, 5]);
+                        ctx.beginPath();
+                        ctx.moveTo(xScale.left, yPosVal);
+                        ctx.lineTo(xScale.right, yPosVal);
+                        ctx.stroke();
+
+                        ctx.fillStyle = '#ff007f';
+                        ctx.font = 'bold 9px Plus Jakarta Sans';
+                        ctx.fillText(`Pico TX: ${peakTx.toFixed(2)} Mbps`, xScale.right - 120, yPosVal - 5);
+                    }
+                }
+                
+                ctx.restore();
+            }
+        };
+
         // Rolling buffer for bandwidth charts (60 points representing 60 seconds history)
         const maxBwPoints = 60;
         const vivoRxData = Array(maxBwPoints).fill(0);
@@ -707,7 +761,7 @@
             bwLabels[maxBwPoints - 1 - i] = timeVal.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         }
 
-        // Initialize Bandwidth Charts
+        // Initialize Bandwidth Charts with peakLinesPlugin
         const ctxBwVivo = document.getElementById('chart-bandwidth-vivo').getContext('2d');
         const chartBwVivo = new Chart(ctxBwVivo, {
             type: 'line',
@@ -718,7 +772,8 @@
                     { label: 'Upload (TX)', data: vivoTxData, borderColor: '#ff007f', backgroundColor: 'transparent', borderWidth: 3, fill: false, tension: 0.3, pointRadius: 0, hoverRadius: 4 }
                 ]
             },
-            options: chartOptions
+            options: chartOptions,
+            plugins: [peakLinesPlugin]
         });
 
         const ctxBwMicks = document.getElementById('chart-bandwidth-micks').getContext('2d');
@@ -731,7 +786,8 @@
                     { label: 'Upload (TX)', data: micksTxData, borderColor: '#ff007f', backgroundColor: 'transparent', borderWidth: 3, fill: false, tension: 0.3, pointRadius: 0, hoverRadius: 4 }
                 ]
             },
-            options: chartOptions
+            options: chartOptions,
+            plugins: [peakLinesPlugin]
         });
 
         function formatBytes(bits) {
@@ -947,6 +1003,27 @@
 
                 document.getElementById('vivo-peak').innerText = `${formatBytes(peakVivoRx)} / ${formatBytes(peakVivoTx)}`;
                 document.getElementById('micks-peak').innerText = `${formatBytes(peakMicksRx)} / ${formatBytes(peakMicksTx)}`;
+
+                // Update dynamic Y-axis maximums and peak parameters
+                const rxVivoMbps = peakVivoRx / 1000000;
+                const txVivoMbps = peakVivoTx / 1000000;
+                const rxMicksMbps = peakMicksRx / 1000000;
+                const txMicksMbps = peakMicksTx / 1000000;
+
+                chartBwVivo.options.peakRx = rxVivoMbps;
+                chartBwVivo.options.peakTx = txVivoMbps;
+                chartBwMicks.options.peakRx = rxMicksMbps;
+                chartBwMicks.options.peakTx = txMicksMbps;
+
+                // Scale Y axis dynamically to ensure peak lines fit on canvas
+                const maxValVivo = Math.max(...vivoRxData, ...vivoTxData, rxVivoMbps, txVivoMbps) * 1.25;
+                const maxValMicks = Math.max(...micksRxData, ...micksTxData, rxMicksMbps, txMicksMbps) * 1.25;
+
+                chartBwVivo.options.scales.y.max = maxValVivo > 1 ? maxValVivo : 1;
+                chartBwMicks.options.scales.y.max = maxValMicks > 1 ? maxValMicks : 1;
+
+                chartBwVivo.update('none');
+                chartBwMicks.update('none');
             } catch (err) {
                 console.error("Failed to load traffic stats:", err);
             }
