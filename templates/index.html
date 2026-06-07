@@ -437,12 +437,16 @@
     <!-- Charts Section -->
     <div class="chart-grid">
         <div class="chart-card">
-            <div class="chart-title" style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="chart-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
                 <div>
                     <i class="fa-solid fa-heart-pulse"></i>
                     <span>MobileMed SLA (150ms)</span>
                 </div>
-                <span class="bandwidth-badge" id="delta-mm" style="font-size: 0.75rem; font-weight: 700; background: rgba(255,255,255,0.05); padding: 0.2rem 0.5rem; border-radius: 6px;">Δt: -- ms</span>
+                <div style="display: flex; gap: 0.4rem; align-items: center;">
+                    <span class="bandwidth-badge" id="jitter-mm" style="font-size: 0.68rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.15rem 0.4rem; border-radius: 4px; color: var(--text-muted);">Jitter: -- ms</span>
+                    <span class="bandwidth-badge" id="loss-mm" style="font-size: 0.68rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.15rem 0.4rem; border-radius: 4px; color: var(--text-muted);">Perda: --%</span>
+                    <span class="bandwidth-badge" id="delta-mm" style="font-size: 0.68rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.15rem 0.4rem; border-radius: 4px;">Δt: -- ms</span>
+                </div>
             </div>
             <div class="chart-container">
                 <canvas id="chart-mobilemed"></canvas>
@@ -450,12 +454,16 @@
         </div>
 
         <div class="chart-card">
-            <div class="chart-title" style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="chart-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
                 <div>
                     <i class="fa-solid fa-heart-pulse"></i>
                     <span>LifeFocus SLA (280ms)</span>
                 </div>
-                <span class="bandwidth-badge" id="delta-lf" style="font-size: 0.75rem; font-weight: 700; background: rgba(255,255,255,0.05); padding: 0.2rem 0.5rem; border-radius: 6px;">Δt: -- ms</span>
+                <div style="display: flex; gap: 0.4rem; align-items: center;">
+                    <span class="bandwidth-badge" id="jitter-lf" style="font-size: 0.68rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.15rem 0.4rem; border-radius: 4px; color: var(--text-muted);">Jitter: -- ms</span>
+                    <span class="bandwidth-badge" id="loss-lf" style="font-size: 0.68rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.15rem 0.4rem; border-radius: 4px; color: var(--text-muted);">Perda: --%</span>
+                    <span class="bandwidth-badge" id="delta-lf" style="font-size: 0.68rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.15rem 0.4rem; border-radius: 4px;">Δt: -- ms</span>
+                </div>
             </div>
             <div class="chart-container">
                 <canvas id="chart-lifefocus"></canvas>
@@ -463,12 +471,16 @@
         </div>
 
         <div class="chart-card">
-            <div class="chart-title" style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="chart-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
                 <div>
                     <i class="fa-solid fa-heart-pulse"></i>
                     <span>LifePlus SLA (280ms)</span>
                 </div>
-                <span class="bandwidth-badge" id="delta-lp" style="font-size: 0.75rem; font-weight: 700; background: rgba(255,255,255,0.05); padding: 0.2rem 0.5rem; border-radius: 6px;">Δt: -- ms</span>
+                <div style="display: flex; gap: 0.4rem; align-items: center;">
+                    <span class="bandwidth-badge" id="jitter-lp" style="font-size: 0.68rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.15rem 0.4rem; border-radius: 4px; color: var(--text-muted);">Jitter: -- ms</span>
+                    <span class="bandwidth-badge" id="loss-lp" style="font-size: 0.68rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.15rem 0.4rem; border-radius: 4px; color: var(--text-muted);">Perda: --%</span>
+                    <span class="bandwidth-badge" id="delta-lp" style="font-size: 0.68rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.15rem 0.4rem; border-radius: 4px;">Δt: -- ms</span>
+                </div>
             </div>
             <div class="chart-container">
                 <canvas id="chart-lifeplus"></canvas>
@@ -494,6 +506,10 @@
                 <div class="hw-val" id="system-uptime" style="font-size: 0.95rem;">--</div>
             </div>
             <div class="hw-metric">
+                <div class="hw-label"><i class="fa-solid fa-users"></i>Clientes DHCP Ativos</div>
+                <div class="hw-val" id="dhcp-leases">0</div>
+            </div>
+            <div class="hw-metric">
                 <div class="hw-label"><i class="fa-solid fa-database"></i>Último Envio</div>
                 <div class="hw-val" id="last-update" style="font-size: 0.9rem; font-weight: normal; color: var(--text-muted);">Aguardando...</div>
             </div>
@@ -505,6 +521,8 @@
                 <thead>
                     <tr>
                         <th>Interface</th>
+                        <th>Velocidade</th>
+                        <th>Erros (CRC)</th>
                         <th>Taxa de Download (RX)</th>
                         <th>Taxa de Upload (TX)</th>
                     </tr>
@@ -517,6 +535,8 @@
                                 <span>VIVO WAN (ether1)</span>
                             </div>
                         </td>
+                        <td><span class="bandwidth-badge" id="vivo-speed" style="font-weight: 600;">--</span></td>
+                        <td><span class="bandwidth-badge" id="vivo-errors" style="color: var(--text-muted); font-weight: 600;">0</span></td>
                         <td><span class="bandwidth-badge rx-badge" id="vivo-rx">0.00 Mbps</span></td>
                         <td><span class="bandwidth-badge tx-badge" id="vivo-tx">0.00 Mbps</span></td>
                     </tr>
@@ -527,6 +547,8 @@
                                 <span>MICKS WAN (ether2)</span>
                             </div>
                         </td>
+                        <td><span class="bandwidth-badge" id="micks-speed" style="font-weight: 600;">--</span></td>
+                        <td><span class="bandwidth-badge" id="micks-errors" style="color: var(--text-muted); font-weight: 600;">0</span></td>
                         <td><span class="bandwidth-badge rx-badge" id="micks-rx">0.00 Mbps</span></td>
                         <td><span class="bandwidth-badge tx-badge" id="micks-tx">0.00 Mbps</span></td>
                     </tr>
@@ -537,6 +559,8 @@
                                 <span>Rede Local LAN (bridge1)</span>
                             </div>
                         </td>
+                        <td><span class="bandwidth-badge" style="font-weight: 600;">1 Gbps</span></td>
+                        <td><span class="bandwidth-badge" style="color: var(--text-muted); font-weight: 600;">0</span></td>
                         <td><span class="bandwidth-badge rx-badge" id="lan-rx">0.00 Mbps</span></td>
                         <td><span class="bandwidth-badge tx-badge" id="lan-tx">0.00 Mbps</span></td>
                     </tr>
@@ -545,14 +569,28 @@
         </div>
     </div>
 
-    <!-- Failure & Incident Log Panel -->
-    <div class="card" style="margin-top: 1.5rem; margin-bottom: 2.5rem; padding: 1.5rem;">
-        <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1.2rem; display: flex; align-items: center; gap: 0.6rem;">
-            <i class="fa-solid fa-circle-exclamation" style="color: var(--accent-orange);"></i>
-            <span>Painel de Eventos e Falhas (Últimos 3 dias)</span>
-        </h3>
-        <div id="incidents-container" style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.8rem; padding-right: 0.5rem;">
-            <div style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 2rem;">Buscando histórico de incidentes...</div>
+    <!-- Logs & Events Section -->
+    <div class="chart-grid" style="grid-template-columns: repeat(2, 1fr); margin-top: 1.5rem; margin-bottom: 2.5rem;">
+        <!-- Failure & Incident Log Panel -->
+        <div class="card" style="padding: 1.5rem;">
+            <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1.2rem; display: flex; align-items: center; gap: 0.6rem;">
+                <i class="fa-solid fa-circle-exclamation" style="color: var(--accent-orange);"></i>
+                <span>Painel de Eventos e Falhas (Últimos 3 dias)</span>
+            </h3>
+            <div id="incidents-container" style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.8rem; padding-right: 0.5rem;">
+                <div style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 2rem;">Buscando histórico de incidentes...</div>
+            </div>
+        </div>
+
+        <!-- RouterOS System Logs Panel -->
+        <div class="card" style="padding: 1.5rem;">
+            <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1.2rem; display: flex; align-items: center; gap: 0.6rem;">
+                <i class="fa-solid fa-terminal" style="color: var(--accent-micks);"></i>
+                <span>Logs do Roteador (Alertas do MikroTik)</span>
+            </h3>
+            <div id="router-logs-container" style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.8rem; padding-right: 0.5rem; font-family: monospace;">
+                <div style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 2rem;">Nenhum log crítico recebido do roteador.</div>
+            </div>
         </div>
     </div>
 
@@ -699,6 +737,7 @@
                 document.getElementById('system-temp').innerText = latest.temp + "°C";
                 document.getElementById('cpu-load').innerText = latest.cpu + "%";
                 document.getElementById('ram-usage').innerText = latest.ram + "%";
+                document.getElementById('dhcp-leases').innerText = latest.dhcp_active_leases || 0;
                 
                 // Last update text
                 const formattedTime = new Date(latest.timestamp.replace(' ', 'T') + 'Z').toLocaleTimeString('pt-BR');
@@ -711,6 +750,16 @@
                 document.getElementById('micks-tx').innerText = formatBytes(latest.traffic_micks_tx);
                 document.getElementById('lan-rx').innerText = formatBytes(latest.traffic_lan_rx);
                 document.getElementById('lan-tx').innerText = formatBytes(latest.traffic_lan_tx);
+
+                // Port Speed & Errors
+                document.getElementById('vivo-speed').innerText = latest.eth1_speed || "1 Gbps";
+                document.getElementById('micks-speed').innerText = latest.eth2_speed || "1 Gbps";
+                document.getElementById('vivo-errors').innerText = latest.eth1_errors || 0;
+                document.getElementById('micks-errors').innerText = latest.eth2_errors || 0;
+
+                // Color code port errors if higher than 0
+                document.getElementById('vivo-errors').style.color = (latest.eth1_errors > 0) ? "var(--accent-red)" : "var(--text-muted)";
+                document.getElementById('micks-errors').style.color = (latest.eth2_errors > 0) ? "var(--accent-red)" : "var(--text-muted)";
 
                 // Update charts data
                 const labels = data.map(item => {
@@ -752,13 +801,106 @@
                 updateDeltaBadge('delta-lf', latest.rtt_vivo_lf, latest.rtt_micks_lf);
                 updateDeltaBadge('delta-lp', latest.rtt_vivo_lp, latest.rtt_micks_lp);
 
+                // Update Jitter & Loss for active link
+                const mmRtts = data.map(item => item.link_ativo === "VIVO" ? item.rtt_vivo_mm : item.rtt_micks_mm);
+                const lfRtts = data.map(item => item.link_ativo === "VIVO" ? item.rtt_vivo_lf : item.rtt_micks_lf);
+                const lpRtts = data.map(item => item.link_ativo === "VIVO" ? item.rtt_vivo_lp : item.rtt_micks_lp);
+                
+                updateJitterAndLoss('jitter-mm', 'loss-mm', mmRtts);
+                updateJitterAndLoss('jitter-lf', 'loss-lf', lfRtts);
+                updateJitterAndLoss('jitter-lp', 'loss-lp', lpRtts);
+
                 // Fetch incident log
                 fetchIncidents();
+
+                // Update RouterOS System Logs
+                const logContainer = document.getElementById('router-logs-container');
+                if (latest.logs && latest.logs.trim() !== "") {
+                    const logLines = latest.logs.split('\n');
+                    let logHtml = '';
+                    logLines.forEach(line => {
+                        if (line.trim() === "") return;
+                        
+                        let color = "var(--text-muted)";
+                        let prefix = "";
+                        if (line.toLowerCase().includes("error") || line.toLowerCase().includes("critical") || line.toLowerCase().includes("fail")) {
+                            color = "var(--accent-red)";
+                            prefix = "🔴 ";
+                        } else if (line.toLowerCase().includes("warning") || line.toLowerCase().includes("down")) {
+                            color = "var(--accent-orange)";
+                            prefix = "🟡 ";
+                        } else if (line.toLowerCase().includes("info") || line.toLowerCase().includes("logged in") || line.toLowerCase().includes("up")) {
+                            color = "var(--accent-micks)";
+                            prefix = "🔵 ";
+                        }
+                        
+                        logHtml += `
+                        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); padding: 0.5rem 0.8rem; border-radius: 8px; font-size: 0.82rem; color: ${color}; text-align: left; line-height: 1.3; margin-bottom: 0.4rem;">
+                            ${prefix}${line}
+                        </div>
+                        `;
+                    });
+                    logContainer.innerHTML = logHtml;
+                } else {
+                    logContainer.innerHTML = '<div style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 2rem;">Nenhum log crítico recebido do roteador.</div>';
+                }
 
             } catch (err) {
                 console.error("Fetch update failed:", err);
                 document.getElementById('connection-dot').classList.add('down');
                 document.getElementById('connection-status').innerText = "Offline";
+            }
+        }
+
+        function updateJitterAndLoss(jitterId, lossId, rttList) {
+            const jitterBadge = document.getElementById(jitterId);
+            const lossBadge = document.getElementById(lossId);
+            
+            if (!rttList || rttList.length === 0) {
+                jitterBadge.innerText = "Jitter: -- ms";
+                lossBadge.innerText = "Perda: --%";
+                return;
+            }
+            
+            let lossCount = 0;
+            let validRtts = [];
+            
+            rttList.forEach(rtt => {
+                if (rtt === 0 || rtt === null) {
+                    lossCount++;
+                } else {
+                    validRtts.push(rtt);
+                }
+            });
+            
+            const lossPercent = (lossCount / rttList.length) * 100;
+            lossBadge.innerText = `Perda: ${lossPercent.toFixed(0)}%`;
+            if (lossPercent > 10) {
+                lossBadge.style.color = "var(--accent-red)";
+                lossBadge.style.background = "rgba(255, 77, 77, 0.08)";
+            } else if (lossPercent > 0) {
+                lossBadge.style.color = "var(--accent-orange)";
+                lossBadge.style.background = "rgba(255, 159, 67, 0.08)";
+            } else {
+                lossBadge.style.color = "var(--accent-green)";
+                lossBadge.style.background = "rgba(0, 255, 135, 0.04)";
+            }
+            
+            let jitter = 0;
+            if (validRtts.length > 1) {
+                let sumDiff = 0;
+                for (let i = 0; i < validRtts.length - 1; i++) {
+                    sumDiff += Math.abs(validRtts[i+1] - validRtts[i]);
+                }
+                jitter = sumDiff / (validRtts.length - 1);
+            }
+            jitterBadge.innerText = `Jitter: ${jitter.toFixed(1)} ms`;
+            if (jitter > 30) {
+                jitterBadge.style.color = "var(--accent-red)";
+            } else if (jitter > 10) {
+                jitterBadge.style.color = "var(--accent-orange)";
+            } else {
+                jitterBadge.style.color = "var(--text-muted)";
             }
         }
 

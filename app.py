@@ -31,6 +31,23 @@ def init_db():
             traffic_lan_tx REAL
         )
     ''')
+    
+    # Run automatic safe migrations for new columns
+    cursor.execute("PRAGMA table_info(telemetry)")
+    columns = [row[1] for row in cursor.fetchall()]
+    
+    new_cols = {
+        'dhcp_active_leases': 'INTEGER DEFAULT 0',
+        'eth1_speed': 'TEXT DEFAULT "1Gbps"',
+        'eth2_speed': 'TEXT DEFAULT "1Gbps"',
+        'eth1_errors': 'INTEGER DEFAULT 0',
+        'eth2_errors': 'INTEGER DEFAULT 0',
+        'logs': 'TEXT DEFAULT ""'
+    }
+    for col, col_type in new_cols.items():
+        if col not in columns:
+            cursor.execute(f"ALTER TABLE telemetry ADD COLUMN {col} {col_type}")
+            
     conn.commit()
     conn.close()
 
@@ -86,8 +103,10 @@ def receive_telemetry():
                 cpu, temp, ram, uptime,
                 traffic_vivo_rx, traffic_vivo_tx,
                 traffic_micks_rx, traffic_micks_tx,
-                traffic_lan_rx, traffic_lan_tx
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                traffic_lan_rx, traffic_lan_tx,
+                dhcp_active_leases, eth1_speed, eth2_speed,
+                eth1_errors, eth2_errors, logs
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             data.get('link_ativo', 'VIVO'),
             parse_rtt(data.get('rtt_vivo_mm', data.get('MONITOR_VIVO_MOBILEMED', 0))),
@@ -105,7 +124,13 @@ def receive_telemetry():
             parse_float(data.get('traffic_micks_rx', 0)),
             parse_float(data.get('traffic_micks_tx', 0)),
             parse_float(data.get('traffic_lan_rx', 0)),
-            parse_float(data.get('traffic_lan_tx', 0))
+            parse_float(data.get('traffic_lan_tx', 0)),
+            parse_int(data.get('dhcp_active_leases', 0)),
+            data.get('eth1_speed', '1Gbps'),
+            data.get('eth2_speed', '1Gbps'),
+            parse_int(data.get('eth1_errors', 0)),
+            parse_int(data.get('eth2_errors', 0)),
+            data.get('logs', '')
         ))
         conn.commit()
         conn.close()
