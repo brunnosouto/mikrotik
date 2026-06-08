@@ -416,7 +416,8 @@ def get_incidents():
         'RBD': 150.0
     }
 
-    for row in rows:
+    for row_raw in rows:
+        row = dict(row_raw)
         timestamp = row['timestamp']
         current_link = row['link_ativo']
 
