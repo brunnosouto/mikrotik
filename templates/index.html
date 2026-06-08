@@ -985,7 +985,7 @@
                 document.getElementById('dhcp-leases').innerText = latest.dhcp_active_leases || 0;
                 
                 // Last update text
-                const formattedTime = new Date(latest.timestamp.replace(' ', 'T') + 'Z').toLocaleTimeString('pt-BR');
+                const formattedTime = new Date(latest.timestamp.replace(' ', 'T')).toLocaleTimeString('pt-BR');
                 document.getElementById('last-update').innerText = "Recebido às " + formattedTime;
 
                 // Traffic details table
@@ -1102,7 +1102,7 @@
                             color = "var(--accent-green)";
                             prefix = "🟢 ";
                         }
-                        const eventTime = new Date(inc.timestamp.replace(' ', 'T') + 'Z').toLocaleString('pt-BR');
+                        const eventTime = new Date(inc.timestamp.replace(' ', 'T')).toLocaleString('pt-BR');
                         logHtml += `
                         <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); padding: 0.5rem 0.8rem; border-radius: 8px; font-size: 0.82rem; color: ${color}; text-align: left; line-height: 1.3; margin-bottom: 0.4rem;">
                             <span style="color: var(--text-muted); font-size: 0.75rem; display: block; margin-bottom: 0.15rem;">[${eventTime}]</span>
@@ -1336,7 +1336,7 @@
                         borderColor = 'rgba(0, 255, 135, 0.15)';
                     }
                     
-                    const localTime = new Date(inc.timestamp.replace(' ', 'T') + 'Z').toLocaleString('pt-BR');
+                    const localTime = new Date(inc.timestamp.replace(' ', 'T')).toLocaleString('pt-BR');
                     
                     html += `
                     <div style="display: flex; justify-content: space-between; align-items: center; background: ${bgColor}; border: 1px solid ${borderColor}; padding: 0.8rem 1.2rem; border-radius: 12px; font-size: 0.9rem; transition: all 0.2s;">
