@@ -77,11 +77,7 @@ def init_db():
         )
     ''')
 
-    # Reset traffic stats and metadata to clear historical fake terabytes
-    cursor.execute("DELETE FROM traffic_metadata")
-    cursor.execute("DELETE FROM traffic_accumulation")
-    cursor.execute("DELETE FROM traffic_peaks_log")
-
+    # Reset command removed to preserve history across restarts
     conn.commit()
     conn.close()
 
