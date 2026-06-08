@@ -46,7 +46,9 @@ def init_db():
         'rtt_vivo_laudite': 'REAL DEFAULT 0.0',
         'rtt_micks_laudite': 'REAL DEFAULT 0.0',
         'rtt_vivo_laudite_asr': 'REAL DEFAULT 0.0',
-        'rtt_micks_laudite_asr': 'REAL DEFAULT 0.0'
+        'rtt_micks_laudite_asr': 'REAL DEFAULT 0.0',
+        'rtt_vivo_rbd': 'REAL DEFAULT 0.0',
+        'rtt_micks_rbd': 'REAL DEFAULT 0.0'
     }
     for col, col_type in new_cols.items():
         if col not in columns:
@@ -291,8 +293,9 @@ def receive_telemetry():
                 dhcp_active_leases, eth1_speed, eth2_speed,
                 eth1_errors, eth2_errors, logs,
                 rtt_vivo_laudite, rtt_micks_laudite,
-                rtt_vivo_laudite_asr, rtt_micks_laudite_asr
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                rtt_vivo_laudite_asr, rtt_micks_laudite_asr,
+                rtt_vivo_rbd, rtt_micks_rbd
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             data.get('link_ativo', 'VIVO'),
             parse_rtt(data.get('rtt_vivo_mm', data.get('MONITOR_VIVO_MOBILEMED', 0))),
@@ -320,7 +323,9 @@ def receive_telemetry():
             parse_rtt(data.get('rtt_vivo_laudite', data.get('MONITOR_VIVO_LAUDITE', 0))),
             parse_rtt(data.get('rtt_micks_laudite', data.get('MONITOR_MICKS_LAUDITE', 0))),
             parse_rtt(data.get('rtt_vivo_laudite_asr', data.get('MONITOR_VIVO_LAUDITE_ASR', 0))),
-            parse_rtt(data.get('rtt_micks_laudite_asr', data.get('MONITOR_MICKS_LAUDITE_ASR', 0)))
+            parse_rtt(data.get('rtt_micks_laudite_asr', data.get('MONITOR_MICKS_LAUDITE_ASR', 0))),
+            parse_rtt(data.get('rtt_vivo_rbd', data.get('MONITOR_VIVO_RBD', 0))),
+            parse_rtt(data.get('rtt_micks_rbd', data.get('MONITOR_MICKS_RBD', 0)))
         ))
         conn.commit()
         conn.close()
@@ -380,8 +385,8 @@ def get_incidents():
     # We will track active state for each destination to group events
     # States: 'OK', 'HIGH_LATENCY', 'OFFLINE'
     dest_states = {
-        'VIVO_MM': 'OK', 'VIVO_LF': 'OK', 'VIVO_LP': 'OK',
-        'MICKS_MM': 'OK', 'MICKS_LF': 'OK', 'MICKS_LP': 'OK',
+        'VIVO_MM': 'OK', 'VIVO_LF': 'OK', 'VIVO_LP': 'OK', 'VIVO_RBD': 'OK',
+        'MICKS_MM': 'OK', 'MICKS_LF': 'OK', 'MICKS_LP': 'OK', 'MICKS_RBD': 'OK',
         'VIVO_LAUDITE': 'OK', 'MICKS_LAUDITE': 'OK'
     }
 
@@ -395,7 +400,8 @@ def get_incidents():
     limits = {
         'MM': 150.0,
         'LF': 280.0,
-        'LP': 280.0
+        'LP': 280.0,
+        'RBD': 150.0
     }
 
     for row in rows:
@@ -418,6 +424,9 @@ def get_incidents():
                 if row['rtt_vivo_lp'] == 0.0 or row['rtt_vivo_lp'] > limits['LP']:
                     status = "OFFLINE" if row['rtt_vivo_lp'] == 0.0 else f"RTT {row['rtt_vivo_lp']}ms (Limite {limits['LP']}ms)"
                     reasons.append(f"LifePlus {status}")
+                if row.get('rtt_vivo_rbd', 0.0) == 0.0 or row.get('rtt_vivo_rbd', 0.0) > limits['RBD']:
+                    status = "OFFLINE" if row.get('rtt_vivo_rbd', 0.0) == 0.0 else f"RTT {row.get('rtt_vivo_rbd', 0.0)}ms (Limite {limits['RBD']}ms)"
+                    reasons.append(f"RBD PACS {status}")
                 
                 reason_str = ", ".join(reasons) if reasons else "Mudança preventiva ou manual"
                 msg = f"⚠️ ROTA ALTERADA: VIVO -> MICKS. Motivo: Instabilidade em {reason_str}"
@@ -444,6 +453,8 @@ def get_incidents():
                     reasons.append(f"LifeFocus {row['rtt_vivo_lf']}ms")
                 if row['rtt_vivo_lp'] > 0.0 and row['rtt_vivo_lp'] <= limits['LP']:
                     reasons.append(f"LifePlus {row['rtt_vivo_lp']}ms")
+                if row.get('rtt_vivo_rbd', 0.0) > 0.0 and row.get('rtt_vivo_rbd', 0.0) <= limits['RBD']:
+                    reasons.append(f"RBD PACS {row['rtt_vivo_rbd']}ms")
                 
                 reason_str = ", ".join(reasons) if reasons else "Restabelecimento de SLA"
                 msg = f"✅ RETORNO: VIVO restabelecida. Motivo: Normalização de {reason_str}{duration_str}"
@@ -462,9 +473,11 @@ def get_incidents():
             ('VIVO_MM', row['rtt_vivo_mm'], limits['MM'], "VIVO - MobileMed"),
             ('VIVO_LF', row['rtt_vivo_lf'], limits['LF'], "VIVO - LifeFocus"),
             ('VIVO_LP', row['rtt_vivo_lp'], limits['LP'], "VIVO - LifePlus"),
+            ('VIVO_RBD', row.get('rtt_vivo_rbd', 0.0), limits['RBD'], "VIVO - RBD PACS"),
             ('MICKS_MM', row['rtt_micks_mm'], limits['MM'], "MICKS - MobileMed"),
             ('MICKS_LF', row['rtt_micks_lf'], limits['LF'], "MICKS - LifeFocus"),
             ('MICKS_LP', row['rtt_micks_lp'], limits['LP'], "MICKS - LifePlus"),
+            ('MICKS_RBD', row.get('rtt_micks_rbd', 0.0), limits['RBD'], "MICKS - RBD PACS"),
             ('VIVO_LAUDITE', row['rtt_vivo_laudite'], 250.0, "VIVO - Laudite"),
             ('MICKS_LAUDITE', row['rtt_micks_laudite'], 250.0, "MICKS - Laudite"),
         ]
@@ -559,7 +572,10 @@ def get_traffic_stats():
                 MAX(rtt_micks_laudite), MIN(CASE WHEN rtt_micks_laudite > 0 THEN rtt_micks_laudite END),
                 
                 MAX(rtt_vivo_laudite_asr), MIN(CASE WHEN rtt_vivo_laudite_asr > 0 THEN rtt_vivo_laudite_asr END),
-                MAX(rtt_micks_laudite_asr), MIN(CASE WHEN rtt_micks_laudite_asr > 0 THEN rtt_micks_laudite_asr END)
+                MAX(rtt_micks_laudite_asr), MIN(CASE WHEN rtt_micks_laudite_asr > 0 THEN rtt_micks_laudite_asr END),
+                
+                MAX(rtt_vivo_rbd), MIN(CASE WHEN rtt_vivo_rbd > 0 THEN rtt_vivo_rbd END),
+                MAX(rtt_micks_rbd), MIN(CASE WHEN rtt_micks_rbd > 0 THEN rtt_micks_rbd END)
             FROM telemetry
             WHERE timestamp >= datetime('now', '-24 hours')
         ''')
@@ -616,7 +632,10 @@ def get_traffic_stats():
                 "ld_micks_max": row_rtt_peaks[14] or 0.0, "ld_micks_min": row_rtt_peaks[15] or 0.0,
                 
                 "lda_vivo_max": row_rtt_peaks[16] or 0.0, "lda_vivo_min": row_rtt_peaks[17] or 0.0,
-                "lda_micks_max": row_rtt_peaks[18] or 0.0, "lda_micks_min": row_rtt_peaks[19] or 0.0
+                "lda_micks_max": row_rtt_peaks[18] or 0.0, "lda_micks_min": row_rtt_peaks[19] or 0.0,
+                
+                "rbd_vivo_max": row_rtt_peaks[20] or 0.0, "rbd_vivo_min": row_rtt_peaks[21] or 0.0,
+                "rbd_micks_max": row_rtt_peaks[22] or 0.0, "rbd_micks_min": row_rtt_peaks[23] or 0.0
             }
         else:
             rtt_peaks = {
@@ -624,7 +643,8 @@ def get_traffic_stats():
                 "lf_vivo_max": 0.0, "lf_vivo_min": 0.0, "lf_micks_max": 0.0, "lf_micks_min": 0.0,
                 "lp_vivo_max": 0.0, "lp_vivo_min": 0.0, "lp_micks_max": 0.0, "lp_micks_min": 0.0,
                 "ld_vivo_max": 0.0, "ld_vivo_min": 0.0, "ld_micks_max": 0.0, "ld_micks_min": 0.0,
-                "lda_vivo_max": 0.0, "lda_vivo_min": 0.0, "lda_micks_max": 0.0, "lda_micks_min": 0.0
+                "lda_vivo_max": 0.0, "lda_vivo_min": 0.0, "lda_micks_max": 0.0, "lda_micks_min": 0.0,
+                "rbd_vivo_max": 0.0, "rbd_vivo_min": 0.0, "rbd_micks_max": 0.0, "rbd_micks_min": 0.0
             }
 
         return jsonify({

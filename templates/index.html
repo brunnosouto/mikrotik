@@ -181,7 +181,7 @@
 
         .sla-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
         }
@@ -573,6 +573,28 @@
             <div class="chart-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
                 <div>
                     <i class="fa-solid fa-heart-pulse"></i>
+                    <span>RBD PACS SLA (150ms)</span>
+                </div>
+                <div style="display: flex; gap: 0.4rem; align-items: center;">
+                    <span class="bandwidth-badge" id="jitter-rbd" style="font-size: 0.68rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.15rem 0.4rem; border-radius: 4px; color: var(--text-muted);">Jitter: -- ms</span>
+                    <span class="bandwidth-badge" id="loss-rbd" style="font-size: 0.68rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.15rem 0.4rem; border-radius: 4px; color: var(--text-muted);">Perda: --%</span>
+                    <span class="bandwidth-badge" id="delta-rbd" style="font-size: 0.68rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.15rem 0.4rem; border-radius: 4px;">Δt: -- ms</span>
+                </div>
+            </div>
+            <!-- Subtitle for 24h High/Low Peaks -->
+            <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-muted); background: rgba(255,255,255,0.02); padding: 0.35rem 0.6rem; border-radius: 6px; margin-bottom: 0.8rem; border: 1px solid rgba(255,255,255,0.03);">
+                <div>VIVO 24h: <span id="rtt-rbd-v-peaks" style="color: var(--accent-green); font-weight: 600;">-- / -- ms</span></div>
+                <div>MICKS 24h: <span id="rtt-rbd-m-peaks" style="color: var(--accent-micks); font-weight: 600;">-- / -- ms</span></div>
+            </div>
+            <div class="chart-container">
+                <canvas id="chart-rbd"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                <div>
+                    <i class="fa-solid fa-heart-pulse"></i>
                     <span>LifeFocus SLA (280ms)</span>
                 </div>
                 <div style="display: flex; gap: 0.4rem; align-items: center;">
@@ -694,9 +716,41 @@
     <!-- Dashboard Scripts -->
     <script>
         // Charts Initialization
+        const segmentStyle = {
+            borderColor: ctx => {
+                const y0 = ctx.p0.parsed.y;
+                const y1 = ctx.p1.parsed.y;
+                return (y0 === 0 || y1 === 0) ? '#ff4a5a' : undefined;
+            },
+            borderDash: ctx => {
+                const y0 = ctx.p0.parsed.y;
+                const y1 = ctx.p1.parsed.y;
+                return (y0 === 0 || y1 === 0) ? [4, 4] : undefined;
+            }
+        };
+
         const chartOptions = {
             responsive: true,
             maintainAspectRatio: false,
+            elements: {
+                point: {
+                    radius: context => {
+                        const index = context.dataIndex;
+                        const val = context.dataset.data[index];
+                        return val === 0 ? 5 : 3;
+                    },
+                    backgroundColor: context => {
+                        const index = context.dataIndex;
+                        const val = context.dataset.data[index];
+                        return val === 0 ? '#ff4a5a' : context.dataset.borderColor;
+                    },
+                    borderColor: context => {
+                        const index = context.dataIndex;
+                        const val = context.dataset.data[index];
+                        return val === 0 ? '#ff4a5a' : '#ffffff';
+                    }
+                }
+            },
             plugins: {
                 legend: {
                     display: true,
@@ -722,8 +776,21 @@
             data: {
                 labels: [],
                 datasets: [
-                    { label: 'VIVO', data: [], borderColor: '#6f42c1', backgroundColor: 'rgba(111, 66, 193, 0.1)', borderWidth: 2, fill: true, tension: 0.3 },
-                    { label: 'MICKS', data: [], borderColor: '#00d2fc', backgroundColor: 'rgba(0, 210, 252, 0.1)', borderWidth: 2, fill: true, tension: 0.3 }
+                    { label: 'VIVO', data: [], borderColor: '#6f42c1', backgroundColor: 'rgba(111, 66, 193, 0.1)', borderWidth: 2, fill: true, tension: 0.3, segment: segmentStyle },
+                    { label: 'MICKS', data: [], borderColor: '#00d2fc', backgroundColor: 'rgba(0, 210, 252, 0.1)', borderWidth: 2, fill: true, tension: 0.3, segment: segmentStyle }
+                ]
+            },
+            options: chartOptions
+        });
+
+        const ctxRBD = document.getElementById('chart-rbd').getContext('2d');
+        const chartRBD = new Chart(ctxRBD, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    { label: 'VIVO', data: [], borderColor: '#6f42c1', backgroundColor: 'rgba(111, 66, 193, 0.1)', borderWidth: 2, fill: true, tension: 0.3, segment: segmentStyle },
+                    { label: 'MICKS', data: [], borderColor: '#00d2fc', backgroundColor: 'rgba(0, 210, 252, 0.1)', borderWidth: 2, fill: true, tension: 0.3, segment: segmentStyle }
                 ]
             },
             options: chartOptions
@@ -735,8 +802,8 @@
             data: {
                 labels: [],
                 datasets: [
-                    { label: 'VIVO', data: [], borderColor: '#6f42c1', backgroundColor: 'rgba(111, 66, 193, 0.1)', borderWidth: 2, fill: true, tension: 0.3 },
-                    { label: 'MICKS', data: [], borderColor: '#00d2fc', backgroundColor: 'rgba(0, 210, 252, 0.1)', borderWidth: 2, fill: true, tension: 0.3 }
+                    { label: 'VIVO', data: [], borderColor: '#6f42c1', backgroundColor: 'rgba(111, 66, 193, 0.1)', borderWidth: 2, fill: true, tension: 0.3, segment: segmentStyle },
+                    { label: 'MICKS', data: [], borderColor: '#00d2fc', backgroundColor: 'rgba(0, 210, 252, 0.1)', borderWidth: 2, fill: true, tension: 0.3, segment: segmentStyle }
                 ]
             },
             options: chartOptions
@@ -748,8 +815,8 @@
             data: {
                 labels: [],
                 datasets: [
-                    { label: 'VIVO', data: [], borderColor: '#6f42c1', backgroundColor: 'rgba(111, 66, 193, 0.1)', borderWidth: 2, fill: true, tension: 0.3 },
-                    { label: 'MICKS', data: [], borderColor: '#00d2fc', backgroundColor: 'rgba(0, 210, 252, 0.1)', borderWidth: 2, fill: true, tension: 0.3 }
+                    { label: 'VIVO', data: [], borderColor: '#6f42c1', backgroundColor: 'rgba(111, 66, 193, 0.1)', borderWidth: 2, fill: true, tension: 0.3, segment: segmentStyle },
+                    { label: 'MICKS', data: [], borderColor: '#00d2fc', backgroundColor: 'rgba(0, 210, 252, 0.1)', borderWidth: 2, fill: true, tension: 0.3, segment: segmentStyle }
                 ]
             },
             options: chartOptions
@@ -761,10 +828,10 @@
             data: {
                 labels: [],
                 datasets: [
-                    { label: 'VIVO Portal', data: [], borderColor: '#6f42c1', backgroundColor: 'transparent', borderWidth: 2, fill: false, tension: 0.3 },
-                    { label: 'MICKS Portal', data: [], borderColor: '#00d2fc', backgroundColor: 'transparent', borderWidth: 2, fill: false, tension: 0.3 },
-                    { label: 'VIVO Voz', data: [], borderColor: '#6f42c1', backgroundColor: 'transparent', borderWidth: 2, borderDash: [4, 4], fill: false, tension: 0.3 },
-                    { label: 'MICKS Voz', data: [], borderColor: '#00d2fc', backgroundColor: 'transparent', borderWidth: 2, borderDash: [4, 4], fill: false, tension: 0.3 }
+                    { label: 'VIVO Portal', data: [], borderColor: '#6f42c1', backgroundColor: 'transparent', borderWidth: 2, fill: false, tension: 0.3, segment: segmentStyle },
+                    { label: 'MICKS Portal', data: [], borderColor: '#00d2fc', backgroundColor: 'transparent', borderWidth: 2, fill: false, tension: 0.3, segment: segmentStyle },
+                    { label: 'VIVO Voz', data: [], borderColor: '#6f42c1', backgroundColor: 'transparent', borderWidth: 2, borderDash: [4, 4], fill: false, tension: 0.3, segment: segmentStyle },
+                    { label: 'MICKS Voz', data: [], borderColor: '#00d2fc', backgroundColor: 'transparent', borderWidth: 2, borderDash: [4, 4], fill: false, tension: 0.3, segment: segmentStyle }
                 ]
             },
             options: chartOptions
@@ -951,6 +1018,12 @@
                 chartMM.data.datasets[1].data = data.map(item => item.rtt_micks_mm);
                 chartMM.update('none');
 
+                // Update RBD PACS
+                chartRBD.data.labels = labels;
+                chartRBD.data.datasets[0].data = data.map(item => item.rtt_vivo_rbd || 0);
+                chartRBD.data.datasets[1].data = data.map(item => item.rtt_micks_rbd || 0);
+                chartRBD.update('none');
+
                 // Update LifeFocus
                 chartLF.data.labels = labels;
                 chartLF.data.datasets[0].data = data.map(item => item.rtt_vivo_lf);
@@ -993,17 +1066,20 @@
 
                 // Update delta badges
                 updateDeltaBadge('delta-mm', latest.rtt_vivo_mm, latest.rtt_micks_mm);
+                updateDeltaBadge('delta-rbd', latest.rtt_vivo_rbd, latest.rtt_micks_rbd);
                 updateDeltaBadge('delta-lf', latest.rtt_vivo_lf, latest.rtt_micks_lf);
                 updateDeltaBadge('delta-lp', latest.rtt_vivo_lp, latest.rtt_micks_lp);
                 updateDeltaBadge('delta-ld', latest.rtt_vivo_laudite, latest.rtt_micks_laudite);
 
                 // Update Jitter & Loss for active link
                 const mmRtts = data.map(item => item.link_ativo === "VIVO" ? item.rtt_vivo_mm : item.rtt_micks_mm);
+                const rbdRtts = data.map(item => item.link_ativo === "VIVO" ? (item.rtt_vivo_rbd || 0) : (item.rtt_micks_rbd || 0));
                 const lfRtts = data.map(item => item.link_ativo === "VIVO" ? item.rtt_vivo_lf : item.rtt_micks_lf);
                 const lpRtts = data.map(item => item.link_ativo === "VIVO" ? item.rtt_vivo_lp : item.rtt_micks_lp);
                 const ldRtts = data.map(item => item.link_ativo === "VIVO" ? item.rtt_vivo_laudite : item.rtt_micks_laudite);
                 
                 updateJitterAndLoss('jitter-mm', 'loss-mm', mmRtts);
+                updateJitterAndLoss('jitter-rbd', 'loss-rbd', rbdRtts);
                 updateJitterAndLoss('jitter-lf', 'loss-lf', lfRtts);
                 updateJitterAndLoss('jitter-lp', 'loss-lp', lpRtts);
                 updateJitterAndLoss('jitter-ld', 'loss-ld', ldRtts);
@@ -1121,6 +1197,9 @@
                     const rp = stats.rtt_peaks;
                     document.getElementById('rtt-mm-v-peaks').innerText = `${rp.mm_vivo_max.toFixed(1)} / ${rp.mm_vivo_min.toFixed(1)} ms`;
                     document.getElementById('rtt-mm-m-peaks').innerText = `${rp.mm_micks_max.toFixed(1)} / ${rp.mm_micks_min.toFixed(1)} ms`;
+                    
+                    document.getElementById('rtt-rbd-v-peaks').innerText = `${(rp.rbd_vivo_max || 0.0).toFixed(1)} / ${(rp.rbd_vivo_min || 0.0).toFixed(1)} ms`;
+                    document.getElementById('rtt-rbd-m-peaks').innerText = `${(rp.rbd_micks_max || 0.0).toFixed(1)} / ${(rp.rbd_micks_min || 0.0).toFixed(1)} ms`;
                     
                     document.getElementById('rtt-lf-v-peaks').innerText = `${rp.lf_vivo_max.toFixed(1)} / ${rp.lf_vivo_min.toFixed(1)} ms`;
                     document.getElementById('rtt-lf-m-peaks').innerText = `${rp.lf_micks_max.toFixed(1)} / ${rp.lf_micks_min.toFixed(1)} ms`;
