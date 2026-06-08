@@ -483,7 +483,13 @@
                         <th>Erros (CRC)</th>
                         <th>Hoje (RX / TX)</th>
                         <th>Mês (RX / TX)</th>
-                        <th>Pico (24h)</th>
+                        <th>
+                             Pico
+                             <select id="peak-interval-select" onchange="window.currentPeakDays = this.value; fetchTrafficStats();" style="background: rgba(255, 255, 255, 0.08); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.72rem; padding: 0.15rem 0.35rem; margin-left: 0.3rem; cursor: pointer; outline: none; font-weight: 600; font-family: inherit; vertical-align: middle;">
+                                 <option value="7">7d</option>
+                                 <option value="30" selected>30d</option>
+                             </select>
+                         </th>
                         <th>Download (RX)</th>
                         <th>Upload (TX)</th>
                     </tr>
@@ -1047,7 +1053,8 @@
 
         async function fetchTrafficStats() {
             try {
-                const response = await fetch('/api/traffic/stats');
+                const days = window.currentPeakDays || "30";
+                const response = await fetch('/api/traffic/stats?peak_days=' + days);
                 if (!response.ok) throw new Error("Stats API error");
                 const stats = await response.json();
                 
@@ -1069,20 +1076,26 @@
                 document.getElementById('micks-today').innerText = `${formatBytesToGB(micksRxToday)} / ${formatBytesToGB(micksTxToday)}`;
                 document.getElementById('micks-month').innerText = `${formatBytesToGB(micksRxMonth)} / ${formatBytesToGB(micksTxMonth)}`;
 
-                // Peaks (24h)
-                const peakVivoRx = stats.peaks ? (stats.peaks.vivo_rx || 0) : 0;
-                const peakVivoTx = stats.peaks ? (stats.peaks.vivo_tx || 0) : 0;
-                const peakMicksRx = stats.peaks ? (stats.peaks.micks_rx || 0) : 0;
-                const peakMicksTx = stats.peaks ? (stats.peaks.micks_tx || 0) : 0;
+                // Peaks for the table (Chosen interval: 7 or 30 days)
+                const peakVivoRx = stats.peaks_table ? (stats.peaks_table.vivo_rx || 0) : 0;
+                const peakVivoTx = stats.peaks_table ? (stats.peaks_table.vivo_tx || 0) : 0;
+                const peakMicksRx = stats.peaks_table ? (stats.peaks_table.micks_rx || 0) : 0;
+                const peakMicksTx = stats.peaks_table ? (stats.peaks_table.micks_tx || 0) : 0;
 
                 document.getElementById('vivo-peak').innerText = `${formatBytes(peakVivoRx)} / ${formatBytes(peakVivoTx)}`;
                 document.getElementById('micks-peak').innerText = `${formatBytes(peakMicksRx)} / ${formatBytes(peakMicksTx)}`;
 
+                // Peaks for the chart (Strictly 24h)
+                const chartPeakVivoRx = stats.peaks ? (stats.peaks.vivo_rx || 0) : 0;
+                const chartPeakVivoTx = stats.peaks ? (stats.peaks.vivo_tx || 0) : 0;
+                const chartPeakMicksRx = stats.peaks ? (stats.peaks.micks_rx || 0) : 0;
+                const chartPeakMicksTx = stats.peaks ? (stats.peaks.micks_tx || 0) : 0;
+
                 // Update dynamic Y-axis maximums and peak parameters
-                const rxVivoMbps = peakVivoRx / 1000000;
-                const txVivoMbps = peakVivoTx / 1000000;
-                const rxMicksMbps = peakMicksRx / 1000000;
-                const txMicksMbps = peakMicksTx / 1000000;
+                const rxVivoMbps = chartPeakVivoRx / 1000000;
+                const txVivoMbps = chartPeakVivoTx / 1000000;
+                const rxMicksMbps = chartPeakMicksRx / 1000000;
+                const txMicksMbps = chartPeakMicksTx / 1000000;
 
                 chartBwVivo.options.peakRx = rxVivoMbps;
                 chartBwVivo.options.peakTx = txVivoMbps;

@@ -182,7 +182,7 @@ def receive_traffic():
                     current_minute_peaks['micks_rx'],
                     current_minute_peaks['micks_tx']
                 ))
-                cursor_peak.execute("DELETE FROM traffic_peaks_log WHERE timestamp < datetime('now', '-24 hours')")
+                cursor_peak.execute("DELETE FROM traffic_peaks_log WHERE timestamp < datetime('now', '-30 days')")
                 conn_peak.commit()
                 conn_peak.close()
             except Exception as e_db:
@@ -499,6 +499,7 @@ def get_incidents():
 @app.route('/api/traffic/stats', methods=['GET'])
 def get_traffic_stats():
     try:
+        peak_days = request.args.get('peak_days', 30, type=int)
         tz_gmt3 = datetime.timezone(datetime.timedelta(hours=-3))
         today = datetime.datetime.now(tz_gmt3).date().isoformat()
         current_month_prefix = today[:7] + '%' # e.g. '2026-06%'
@@ -520,13 +521,21 @@ def get_traffic_stats():
         ''', (current_month_prefix,))
         row_month = cursor.fetchone()
 
-        # 3. Fetch peak rates of the last 24 hours
+        # 3. Fetch peak rates of the last 24 hours (for charts)
         cursor.execute('''
             SELECT MAX(vivo_rx), MAX(vivo_tx), MAX(micks_rx), MAX(micks_tx)
             FROM traffic_peaks_log
             WHERE timestamp >= datetime('now', '-24 hours')
         ''')
-        row_peaks = cursor.fetchone()
+        row_peaks_24h = cursor.fetchone()
+
+        # 3b. Fetch peak rates of the chosen interval (7 or 30 days) for the table
+        cursor.execute('''
+            SELECT MAX(vivo_rx), MAX(vivo_tx), MAX(micks_rx), MAX(micks_tx)
+            FROM traffic_peaks_log
+            WHERE timestamp >= datetime('now', ?)
+        ''', (f'-{peak_days} days',))
+        row_peaks_table = cursor.fetchone()
 
         # 4. Fetch RTT high/low peaks of the last 24 hours
         # For MIN, we exclude 0.0 values so that offline periods don't show as a 0ms peak.
@@ -560,17 +569,28 @@ def get_traffic_stats():
                 "micks_tx": row[3]
             }
 
-        # Query values from database
-        db_vivo_rx = row_peaks[0] if (row_peaks and row_peaks[0] is not None) else 0.0
-        db_vivo_tx = row_peaks[1] if (row_peaks and row_peaks[1] is not None) else 0.0
-        db_micks_rx = row_peaks[2] if (row_peaks and row_peaks[2] is not None) else 0.0
-        db_micks_tx = row_peaks[3] if (row_peaks and row_peaks[3] is not None) else 0.0
+        # Query values from database - 24h
+        db_vivo_rx_24h = row_peaks_24h[0] if (row_peaks_24h and row_peaks_24h[0] is not None) else 0.0
+        db_vivo_tx_24h = row_peaks_24h[1] if (row_peaks_24h and row_peaks_24h[1] is not None) else 0.0
+        db_micks_rx_24h = row_peaks_24h[2] if (row_peaks_24h and row_peaks_24h[2] is not None) else 0.0
+        db_micks_tx_24h = row_peaks_24h[3] if (row_peaks_24h and row_peaks_24h[3] is not None) else 0.0
+
+        # Query values from database - chosen table period
+        db_vivo_rx_table = row_peaks_table[0] if (row_peaks_table and row_peaks_table[0] is not None) else 0.0
+        db_vivo_tx_table = row_peaks_table[1] if (row_peaks_table and row_peaks_table[1] is not None) else 0.0
+        db_micks_rx_table = row_peaks_table[2] if (row_peaks_table and row_peaks_table[2] is not None) else 0.0
+        db_micks_tx_table = row_peaks_table[3] if (row_peaks_table and row_peaks_table[3] is not None) else 0.0
 
         # Combine with current minute's peak for absolute realtime peak precision
-        peak_vivo_rx = max(db_vivo_rx, current_minute_peaks['vivo_rx'])
-        peak_vivo_tx = max(db_vivo_tx, current_minute_peaks['vivo_tx'])
-        peak_micks_rx = max(db_micks_rx, current_minute_peaks['micks_rx'])
-        peak_micks_tx = max(db_micks_tx, current_minute_peaks['micks_tx'])
+        peak_vivo_rx_24h = max(db_vivo_rx_24h, current_minute_peaks['vivo_rx'])
+        peak_vivo_tx_24h = max(db_vivo_tx_24h, current_minute_peaks['vivo_tx'])
+        peak_micks_rx_24h = max(db_micks_rx_24h, current_minute_peaks['micks_rx'])
+        peak_micks_tx_24h = max(db_micks_tx_24h, current_minute_peaks['micks_tx'])
+
+        peak_vivo_rx_table = max(db_vivo_rx_table, current_minute_peaks['vivo_rx'])
+        peak_vivo_tx_table = max(db_vivo_tx_table, current_minute_peaks['vivo_tx'])
+        peak_micks_rx_table = max(db_micks_rx_table, current_minute_peaks['micks_rx'])
+        peak_micks_tx_table = max(db_micks_tx_table, current_minute_peaks['micks_tx'])
 
         rtt_peaks = {}
         if row_rtt_peaks:
@@ -599,10 +619,16 @@ def get_traffic_stats():
             "today": make_stats_dict(row_today),
             "month": make_stats_dict(row_month),
             "peaks": {
-                "vivo_rx": peak_vivo_rx,
-                "vivo_tx": peak_vivo_tx,
-                "micks_rx": peak_micks_rx,
-                "micks_tx": peak_micks_tx
+                "vivo_rx": peak_vivo_rx_24h,
+                "vivo_tx": peak_vivo_tx_24h,
+                "micks_rx": peak_micks_rx_24h,
+                "micks_tx": peak_micks_tx_24h
+            },
+            "peaks_table": {
+                "vivo_rx": peak_vivo_rx_table,
+                "vivo_tx": peak_vivo_tx_table,
+                "micks_rx": peak_micks_rx_table,
+                "micks_tx": peak_micks_tx_table
             },
             "rtt_peaks": rtt_peaks
         })
