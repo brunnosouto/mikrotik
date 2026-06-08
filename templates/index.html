@@ -626,9 +626,9 @@
                 </div>
             </div>
             <!-- Subtitle for 24h High/Low Peaks -->
-            <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-muted); background: rgba(255,255,255,0.02); padding: 0.35rem 0.6rem; border-radius: 6px; margin-bottom: 0.8rem; border: 1px solid rgba(255,255,255,0.03);">
-                <div>VIVO 24h: <span id="rtt-ld-v-peaks" style="color: var(--accent-green); font-weight: 600;">-- / -- ms</span></div>
-                <div>MICKS 24h: <span id="rtt-ld-m-peaks" style="color: var(--accent-micks); font-weight: 600;">-- / -- ms</span></div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--text-muted); background: rgba(255,255,255,0.02); padding: 0.35rem 0.6rem; border-radius: 6px; margin-bottom: 0.8rem; border: 1px solid rgba(255,255,255,0.03); flex-wrap: wrap; gap: 0.3rem;">
+                <div>VIVO: Portal <span id="rtt-ld-v-peaks" style="color: var(--accent-green); font-weight: 600;">-- ms</span> | Voz <span id="rtt-lda-v-peaks" style="color: var(--accent-green); font-weight: 600;">-- ms</span></div>
+                <div>MICKS: Portal <span id="rtt-ld-m-peaks" style="color: var(--accent-micks); font-weight: 600;">-- ms</span> | Voz <span id="rtt-lda-m-peaks" style="color: var(--accent-micks); font-weight: 600;">-- ms</span></div>
             </div>
             <div class="chart-container">
                 <canvas id="chart-laudite"></canvas>
@@ -761,8 +761,10 @@
             data: {
                 labels: [],
                 datasets: [
-                    { label: 'VIVO', data: [], borderColor: '#6f42c1', backgroundColor: 'rgba(111, 66, 193, 0.1)', borderWidth: 2, fill: true, tension: 0.3 },
-                    { label: 'MICKS', data: [], borderColor: '#00d2fc', backgroundColor: 'rgba(0, 210, 252, 0.1)', borderWidth: 2, fill: true, tension: 0.3 }
+                    { label: 'VIVO Portal', data: [], borderColor: '#6f42c1', backgroundColor: 'transparent', borderWidth: 2, fill: false, tension: 0.3 },
+                    { label: 'MICKS Portal', data: [], borderColor: '#00d2fc', backgroundColor: 'transparent', borderWidth: 2, fill: false, tension: 0.3 },
+                    { label: 'VIVO Voz', data: [], borderColor: '#6f42c1', backgroundColor: 'transparent', borderWidth: 2, borderDash: [4, 4], fill: false, tension: 0.3 },
+                    { label: 'MICKS Voz', data: [], borderColor: '#00d2fc', backgroundColor: 'transparent', borderWidth: 2, borderDash: [4, 4], fill: false, tension: 0.3 }
                 ]
             },
             options: chartOptions
@@ -965,6 +967,8 @@
                 chartLD.data.labels = labels;
                 chartLD.data.datasets[0].data = data.map(item => item.rtt_vivo_laudite || 0);
                 chartLD.data.datasets[1].data = data.map(item => item.rtt_micks_laudite || 0);
+                chartLD.data.datasets[2].data = data.map(item => item.rtt_vivo_laudite_asr || 0);
+                chartLD.data.datasets[3].data = data.map(item => item.rtt_micks_laudite_asr || 0);
                 chartLD.update('none');
 
                 // Update Rolling Bandwidth data buffers (convert bits per second to Mbps)
@@ -1126,6 +1130,8 @@
                     
                     document.getElementById('rtt-ld-v-peaks').innerText = `${rp.ld_vivo_max.toFixed(1)} / ${rp.ld_vivo_min.toFixed(1)} ms`;
                     document.getElementById('rtt-ld-m-peaks').innerText = `${rp.ld_micks_max.toFixed(1)} / ${rp.ld_micks_min.toFixed(1)} ms`;
+                    document.getElementById('rtt-lda-v-peaks').innerText = `${rp.lda_vivo_max.toFixed(1)} / ${rp.lda_vivo_min.toFixed(1)} ms`;
+                    document.getElementById('rtt-lda-m-peaks').innerText = `${rp.lda_micks_max.toFixed(1)} / ${rp.lda_micks_min.toFixed(1)} ms`;
                 }
 
             } catch (err) {

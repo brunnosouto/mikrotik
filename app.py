@@ -44,7 +44,9 @@ def init_db():
         'eth2_errors': 'INTEGER DEFAULT 0',
         'logs': 'TEXT DEFAULT ""',
         'rtt_vivo_laudite': 'REAL DEFAULT 0.0',
-        'rtt_micks_laudite': 'REAL DEFAULT 0.0'
+        'rtt_micks_laudite': 'REAL DEFAULT 0.0',
+        'rtt_vivo_laudite_asr': 'REAL DEFAULT 0.0',
+        'rtt_micks_laudite_asr': 'REAL DEFAULT 0.0'
     }
     for col, col_type in new_cols.items():
         if col not in columns:
@@ -288,8 +290,9 @@ def receive_telemetry():
                 traffic_lan_rx, traffic_lan_tx,
                 dhcp_active_leases, eth1_speed, eth2_speed,
                 eth1_errors, eth2_errors, logs,
-                rtt_vivo_laudite, rtt_micks_laudite
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                rtt_vivo_laudite, rtt_micks_laudite,
+                rtt_vivo_laudite_asr, rtt_micks_laudite_asr
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             data.get('link_ativo', 'VIVO'),
             parse_rtt(data.get('rtt_vivo_mm', data.get('MONITOR_VIVO_MOBILEMED', 0))),
@@ -315,7 +318,9 @@ def receive_telemetry():
             parse_int(data.get('eth2_errors', 0)),
             data.get('logs', ''),
             parse_rtt(data.get('rtt_vivo_laudite', data.get('MONITOR_VIVO_LAUDITE', 0))),
-            parse_rtt(data.get('rtt_micks_laudite', data.get('MONITOR_MICKS_LAUDITE', 0)))
+            parse_rtt(data.get('rtt_micks_laudite', data.get('MONITOR_MICKS_LAUDITE', 0))),
+            parse_rtt(data.get('rtt_vivo_laudite_asr', data.get('MONITOR_VIVO_LAUDITE_ASR', 0))),
+            parse_rtt(data.get('rtt_micks_laudite_asr', data.get('MONITOR_MICKS_LAUDITE_ASR', 0)))
         ))
         conn.commit()
         conn.close()
@@ -551,7 +556,10 @@ def get_traffic_stats():
                 MAX(rtt_micks_lp), MIN(CASE WHEN rtt_micks_lp > 0 THEN rtt_micks_lp END),
                 
                 MAX(rtt_vivo_laudite), MIN(CASE WHEN rtt_vivo_laudite > 0 THEN rtt_vivo_laudite END),
-                MAX(rtt_micks_laudite), MIN(CASE WHEN rtt_micks_laudite > 0 THEN rtt_micks_laudite END)
+                MAX(rtt_micks_laudite), MIN(CASE WHEN rtt_micks_laudite > 0 THEN rtt_micks_laudite END),
+                
+                MAX(rtt_vivo_laudite_asr), MIN(CASE WHEN rtt_vivo_laudite_asr > 0 THEN rtt_vivo_laudite_asr END),
+                MAX(rtt_micks_laudite_asr), MIN(CASE WHEN rtt_micks_laudite_asr > 0 THEN rtt_micks_laudite_asr END)
             FROM telemetry
             WHERE timestamp >= datetime('now', '-24 hours')
         ''')
@@ -605,14 +613,18 @@ def get_traffic_stats():
                 "lp_micks_max": row_rtt_peaks[10] or 0.0, "lp_micks_min": row_rtt_peaks[11] or 0.0,
                 
                 "ld_vivo_max": row_rtt_peaks[12] or 0.0, "ld_vivo_min": row_rtt_peaks[13] or 0.0,
-                "ld_micks_max": row_rtt_peaks[14] or 0.0, "ld_micks_min": row_rtt_peaks[15] or 0.0
+                "ld_micks_max": row_rtt_peaks[14] or 0.0, "ld_micks_min": row_rtt_peaks[15] or 0.0,
+                
+                "lda_vivo_max": row_rtt_peaks[16] or 0.0, "lda_vivo_min": row_rtt_peaks[17] or 0.0,
+                "lda_micks_max": row_rtt_peaks[18] or 0.0, "lda_micks_min": row_rtt_peaks[19] or 0.0
             }
         else:
             rtt_peaks = {
                 "mm_vivo_max": 0.0, "mm_vivo_min": 0.0, "mm_micks_max": 0.0, "mm_micks_min": 0.0,
                 "lf_vivo_max": 0.0, "lf_vivo_min": 0.0, "lf_micks_max": 0.0, "lf_micks_min": 0.0,
                 "lp_vivo_max": 0.0, "lp_vivo_min": 0.0, "lp_micks_max": 0.0, "lp_micks_min": 0.0,
-                "ld_vivo_max": 0.0, "ld_vivo_min": 0.0, "ld_micks_max": 0.0, "ld_micks_min": 0.0
+                "ld_vivo_max": 0.0, "ld_vivo_min": 0.0, "ld_micks_max": 0.0, "ld_micks_min": 0.0,
+                "lda_vivo_max": 0.0, "lda_vivo_min": 0.0, "lda_micks_max": 0.0, "lda_micks_min": 0.0
             }
 
         return jsonify({
