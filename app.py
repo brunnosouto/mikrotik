@@ -242,7 +242,8 @@ def receive_traffic():
             ''', (key, str(current_val)))
 
         # 3. Accumulate deltas for today's date
-        today = datetime.date.today().isoformat()
+        tz_gmt3 = datetime.timezone(datetime.timedelta(hours=-3))
+        today = datetime.datetime.now(tz_gmt3).date().isoformat()
         cursor.execute('''
             INSERT OR IGNORE INTO traffic_accumulation (date, vivo_rx, vivo_tx, micks_rx, micks_tx)
             VALUES (?, 0, 0, 0, 0)
@@ -502,7 +503,8 @@ def get_incidents():
 @app.route('/api/traffic/stats', methods=['GET'])
 def get_traffic_stats():
     try:
-        today = datetime.date.today().isoformat()
+        tz_gmt3 = datetime.timezone(datetime.timedelta(hours=-3))
+        today = datetime.datetime.now(tz_gmt3).date().isoformat()
         current_month_prefix = today[:7] + '%' # e.g. '2026-06%'
         
         conn = sqlite3.connect(DB_PATH)
