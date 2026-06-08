@@ -1087,33 +1087,6 @@
                 // Fetch incident log
                 fetchIncidents();
 
-                // Update RouterOS System Logs (Chaveamentos de Link - 7 dias)
-                const logContainer = document.getElementById('router-logs-container');
-                const switchEvents = window.cachedIncidents.filter(inc => inc.type === 'SWITCH');
-                if (switchEvents.length > 0) {
-                    let logHtml = '';
-                    switchEvents.forEach(inc => {
-                        let color = "var(--accent-orange)";
-                        let prefix = "🟡 ";
-                        if (inc.severity === 'danger') {
-                            color = "var(--accent-red)";
-                            prefix = "🔴 ";
-                        } else if (inc.severity === 'success') {
-                            color = "var(--accent-green)";
-                            prefix = "🟢 ";
-                        }
-                        const eventTime = new Date(inc.timestamp.replace(' ', 'T')).toLocaleString('pt-BR');
-                        logHtml += `
-                        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); padding: 0.5rem 0.8rem; border-radius: 8px; font-size: 0.82rem; color: ${color}; text-align: left; line-height: 1.3; margin-bottom: 0.4rem;">
-                            <span style="color: var(--text-muted); font-size: 0.75rem; display: block; margin-bottom: 0.15rem;">[${eventTime}]</span>
-                            ${prefix}${inc.message}
-                        </div>
-                        `;
-                    });
-                    logContainer.innerHTML = logHtml;
-                } else {
-                    logContainer.innerHTML = '<div style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 2rem;">Nenhum chaveamento de link registrado nos últimos 7 dias.</div>';
-                }
 
                 // Fetch daily and monthly traffic totals
                 fetchTrafficStats();
@@ -1312,8 +1285,11 @@
                 window.cachedIncidents = incidents;
                 
                 const container = document.getElementById('incidents-container');
+                const logContainer = document.getElementById('router-logs-container');
+                
                 if (incidents.length === 0) {
                     container.innerHTML = '<div style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 2rem;">Nenhuma falha ou oscilação registrada nos últimos 7 dias.</div>';
+                    logContainer.innerHTML = '<div style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 2rem;">Nenhum chaveamento de link registrado nos últimos 7 dias.</div>';
                     return;
                 }
                 
@@ -1349,6 +1325,33 @@
                     `;
                 });
                 container.innerHTML = html;
+
+                // Render RouterOS System Logs (Chaveamentos de Link - 7 dias)
+                const switchEvents = incidents.filter(inc => inc.type === 'SWITCH');
+                if (switchEvents.length > 0) {
+                    let logHtml = '';
+                    switchEvents.forEach(inc => {
+                        let color = "var(--accent-orange)";
+                        let prefix = "🟡 ";
+                        if (inc.severity === 'danger') {
+                            color = "var(--accent-red)";
+                            prefix = "🔴 ";
+                        } else if (inc.severity === 'success') {
+                            color = "var(--accent-green)";
+                            prefix = "🟢 ";
+                        }
+                        const eventTime = new Date(inc.timestamp.replace(' ', 'T')).toLocaleString('pt-BR');
+                        logHtml += `
+                        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); padding: 0.5rem 0.8rem; border-radius: 8px; font-size: 0.82rem; color: ${color}; text-align: left; line-height: 1.3; margin-bottom: 0.4rem;">
+                            <span style="color: var(--text-muted); font-size: 0.75rem; display: block; margin-bottom: 0.15rem;">[${eventTime}]</span>
+                            ${prefix}${inc.message}
+                        </div>
+                        `;
+                    });
+                    logContainer.innerHTML = logHtml;
+                } else {
+                    logContainer.innerHTML = '<div style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 2rem;">Nenhum chaveamento de link registrado nos últimos 7 dias.</div>';
+                }
             } catch (err) {
                 console.error("Failed to load incidents:", err);
             }
