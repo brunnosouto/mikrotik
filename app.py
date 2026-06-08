@@ -397,9 +397,15 @@ def get_incidents():
     }
 
     def check_dest_state(rtt, limit):
-        if rtt == 0.0:
+        if rtt is None:
             return 'OFFLINE'
-        elif rtt > limit:
+        try:
+            rtt_val = float(rtt)
+        except:
+            return 'OFFLINE'
+        if rtt_val == 0.0:
+            return 'OFFLINE'
+        elif rtt_val > limit:
             return 'HIGH_LATENCY'
         return 'OK'
 
@@ -421,17 +427,22 @@ def get_incidents():
                 # VIVO to MICKS switch
                 micks_start_time = datetime.datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
                 reasons = []
-                if row['rtt_vivo_mm'] == 0.0 or row['rtt_vivo_mm'] > limits['MM']:
-                    status = "OFFLINE" if row['rtt_vivo_mm'] == 0.0 else f"RTT {row['rtt_vivo_mm']}ms (Limite {limits['MM']}ms)"
+                r_mm = parse_float(row['rtt_vivo_mm'])
+                r_lf = parse_float(row['rtt_vivo_lf'])
+                r_lp = parse_float(row['rtt_vivo_lp'])
+                r_rbd = parse_float(row.get('rtt_vivo_rbd', 0.0))
+                
+                if r_mm == 0.0 or r_mm > limits['MM']:
+                    status = "OFFLINE" if r_mm == 0.0 else f"RTT {r_mm}ms (Limite {limits['MM']}ms)"
                     reasons.append(f"MobileMed {status}")
-                if row['rtt_vivo_lf'] == 0.0 or row['rtt_vivo_lf'] > limits['LF']:
-                    status = "OFFLINE" if row['rtt_vivo_lf'] == 0.0 else f"RTT {row['rtt_vivo_lf']}ms (Limite {limits['LF']}ms)"
+                if r_lf == 0.0 or r_lf > limits['LF']:
+                    status = "OFFLINE" if r_lf == 0.0 else f"RTT {r_lf}ms (Limite {limits['LF']}ms)"
                     reasons.append(f"LifeFocus {status}")
-                if row['rtt_vivo_lp'] == 0.0 or row['rtt_vivo_lp'] > limits['LP']:
-                    status = "OFFLINE" if row['rtt_vivo_lp'] == 0.0 else f"RTT {row['rtt_vivo_lp']}ms (Limite {limits['LP']}ms)"
+                if r_lp == 0.0 or r_lp > limits['LP']:
+                    status = "OFFLINE" if r_lp == 0.0 else f"RTT {r_lp}ms (Limite {limits['LP']}ms)"
                     reasons.append(f"LifePlus {status}")
-                if row.get('rtt_vivo_rbd', 0.0) == 0.0 or row.get('rtt_vivo_rbd', 0.0) > limits['RBD']:
-                    status = "OFFLINE" if row.get('rtt_vivo_rbd', 0.0) == 0.0 else f"RTT {row.get('rtt_vivo_rbd', 0.0)}ms (Limite {limits['RBD']}ms)"
+                if r_rbd == 0.0 or r_rbd > limits['RBD']:
+                    status = "OFFLINE" if r_rbd == 0.0 else f"RTT {r_rbd}ms (Limite {limits['RBD']}ms)"
                     reasons.append(f"RBD PACS {status}")
                 
                 reason_str = ", ".join(reasons) if reasons else "Mudança preventiva ou manual"
@@ -453,14 +464,19 @@ def get_incidents():
                     micks_start_time = None
                 
                 reasons = []
-                if row['rtt_vivo_mm'] > 0.0 and row['rtt_vivo_mm'] <= limits['MM']:
-                    reasons.append(f"MobileMed {row['rtt_vivo_mm']}ms")
-                if row['rtt_vivo_lf'] > 0.0 and row['rtt_vivo_lf'] <= limits['LF']:
-                    reasons.append(f"LifeFocus {row['rtt_vivo_lf']}ms")
-                if row['rtt_vivo_lp'] > 0.0 and row['rtt_vivo_lp'] <= limits['LP']:
-                    reasons.append(f"LifePlus {row['rtt_vivo_lp']}ms")
-                if row.get('rtt_vivo_rbd', 0.0) > 0.0 and row.get('rtt_vivo_rbd', 0.0) <= limits['RBD']:
-                    reasons.append(f"RBD PACS {row['rtt_vivo_rbd']}ms")
+                r_mm = parse_float(row['rtt_vivo_mm'])
+                r_lf = parse_float(row['rtt_vivo_lf'])
+                r_lp = parse_float(row['rtt_vivo_lp'])
+                r_rbd = parse_float(row.get('rtt_vivo_rbd', 0.0))
+                
+                if r_mm > 0.0 and r_mm <= limits['MM']:
+                    reasons.append(f"MobileMed {r_mm}ms")
+                if r_lf > 0.0 and r_lf <= limits['LF']:
+                    reasons.append(f"LifeFocus {r_lf}ms")
+                if r_lp > 0.0 and r_lp <= limits['LP']:
+                    reasons.append(f"LifePlus {r_lp}ms")
+                if r_rbd > 0.0 and r_rbd <= limits['RBD']:
+                    reasons.append(f"RBD PACS {r_rbd}ms")
                 
                 reason_str = ", ".join(reasons) if reasons else "Restabelecimento de SLA"
                 msg = f"✅ RETORNO: VIVO restabelecida. Motivo: Normalização de {reason_str}{duration_str}"
