@@ -1008,7 +1008,7 @@
 
                 // Update charts data
                 const labels = data.map(item => {
-                    const t = new Date(item.timestamp.replace(' ', 'T') + 'Z');
+                    const t = new Date(item.timestamp.replace(' ', 'T'));
                     return t.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
                 });
 

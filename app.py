@@ -280,11 +280,16 @@ def receive_telemetry():
         if not data:
             return jsonify({"status": "error", "message": "No data received"}), 400
 
+        import datetime
+        tz_gmt3 = datetime.timezone(datetime.timedelta(hours=-3))
+        now_gmt3 = datetime.datetime.now(tz_gmt3)
+        timestamp_str = now_gmt3.strftime('%Y-%m-%d %H:%M:%S')
+
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         cursor.execute('''
             INSERT INTO telemetry (
-                link_ativo, rtt_vivo_mm, rtt_vivo_lf, rtt_vivo_lp,
+                timestamp, link_ativo, rtt_vivo_mm, rtt_vivo_lf, rtt_vivo_lp,
                 rtt_micks_mm, rtt_micks_lf, rtt_micks_lp,
                 cpu, temp, ram, uptime,
                 traffic_vivo_rx, traffic_vivo_tx,
@@ -295,8 +300,9 @@ def receive_telemetry():
                 rtt_vivo_laudite, rtt_micks_laudite,
                 rtt_vivo_laudite_asr, rtt_micks_laudite_asr,
                 rtt_vivo_rbd, rtt_micks_rbd
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
+            timestamp_str,
             data.get('link_ativo', 'VIVO'),
             parse_rtt(data.get('rtt_vivo_mm', data.get('MONITOR_VIVO_MOBILEMED', 0))),
             parse_rtt(data.get('rtt_vivo_lf', data.get('MONITOR_VIVO_LIFEFOCUS', 0))),
