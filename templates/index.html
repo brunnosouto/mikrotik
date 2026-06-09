@@ -399,6 +399,17 @@
             </div>
         </div>
         <div class="status-badge-container">
+            <!-- Janela Temporal Dropdown -->
+            <div class="status-badge" style="gap: 0.5rem; background: rgba(255, 255, 255, 0.05); border-color: var(--border-color);">
+                <i class="fa-solid fa-calendar-alt" style="color: var(--accent-micks);"></i>
+                <span style="color: var(--text-muted); font-size: 0.82rem; font-weight: 500; margin-right: 0.2rem;">Janela:</span>
+                <select id="time-range-select" onchange="window.currentTimeRange = this.value; fetchAndUpdate();" style="background: transparent; color: var(--text-main); border: none; font-size: 0.85rem; font-weight: 600; cursor: pointer; outline: none; font-family: inherit;">
+                    <option value="1h" selected style="background: #14161e; color: #f5f6fa;">Última 1h</option>
+                    <option value="12h" style="background: #14161e; color: #f5f6fa;">Últimas 12h</option>
+                    <option value="24h" style="background: #14161e; color: #f5f6fa;">Últimas 24h</option>
+                    <option value="7d" style="background: #14161e; color: #f5f6fa;">Últimos 7 dias</option>
+                </select>
+            </div>
             <div class="status-badge" id="router-uptime-badge">
                 <i class="fa-solid fa-clock text-muted"></i>
                 <span id="router-uptime">--:--:--</span>
@@ -715,6 +726,7 @@
 
     <!-- Dashboard Scripts -->
     <script>
+        window.currentTimeRange = '1h';
         // Charts Initialization
         const segmentStyle = {
             borderColor: ctx => {
@@ -941,7 +953,12 @@
 
         async function fetchAndUpdate() {
             try {
-                const response = await fetch('/api/data?limit=30');
+                let hours = 1;
+                if (window.currentTimeRange === '12h') hours = 12;
+                else if (window.currentTimeRange === '24h') hours = 24;
+                else if (window.currentTimeRange === '7d') hours = 168;
+
+                const response = await fetch(`/api/data?hours=${hours}`);
                 if (!response.ok) throw new Error("API error");
                 const data = await response.json();
                 
@@ -1009,6 +1026,9 @@
                 // Update charts data
                 const labels = data.map(item => {
                     const t = new Date(item.timestamp.replace(' ', 'T'));
+                    if (window.currentTimeRange === '24h' || window.currentTimeRange === '7d') {
+                        return t.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ' ' + t.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                    }
                     return t.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
                 });
 

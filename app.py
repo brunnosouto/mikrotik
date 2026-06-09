@@ -343,31 +343,71 @@ def receive_telemetry():
 
 @app.route('/api/data', methods=['GET'])
 def get_data():
-    limit = request.args.get('limit', 50, type=int)
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM telemetry ORDER BY id DESC LIMIT ?', (limit,))
-    rows = cursor.fetchall()
-    conn.close()
+    hours = request.args.get('hours', 1.0, type=float)
     
-    raw_result = []
-    for row in reversed(rows):
-        raw_result.append(dict(row))
-        
-    # Filter out telemetry records that are older than 1 hour (3600 seconds) from current Brasília time (GMT-3)
     import datetime
     tz_gmt3 = datetime.timezone(datetime.timedelta(hours=-3))
     now_local = datetime.datetime.now(tz_gmt3)
+    time_limit = now_local - datetime.timedelta(hours=hours)
+    time_limit_str = time_limit.strftime('%Y-%m-%d %H:%M:%S')
     
-    result = []
-    for item in raw_result:
-        try:
-            item_time = datetime.datetime.strptime(item['timestamp'], '%Y-%m-%d %H:%M:%S').replace(tzinfo=tz_gmt3)
-            if (now_local - item_time).total_seconds() <= 3600:
-                result.append(item)
-        except Exception:
-            result.append(item)
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM telemetry WHERE timestamp >= ? ORDER BY id ASC', (time_limit_str,))
+    rows = cursor.fetchall()
+    conn.close()
+    
+    raw_result = [dict(row) for row in rows]
+    
+    # Determine downsampling interval based on the range (hours) requested
+    interval_minutes = 1
+    if hours > 1.5 and hours <= 12:
+        interval_minutes = 5
+    elif hours > 12 and hours <= 24:
+        interval_minutes = 10
+    elif hours > 24 and hours <= 168:
+        interval_minutes = 60
+    elif hours > 168:
+        interval_minutes = 120
+        
+    result = raw_result
+    if interval_minutes > 1 and len(raw_result) > 100:
+        grouped = {}
+        for item in raw_result:
+            try:
+                dt = datetime.datetime.strptime(item['timestamp'], '%Y-%m-%d %H:%M:%S')
+                bucket_minute = (dt.minute // interval_minutes) * interval_minutes
+                bucket_time = dt.replace(minute=bucket_minute, second=0, microsecond=0)
+                bucket_key = bucket_time.strftime('%Y-%m-%d %H:%M')
+                
+                if bucket_key not in grouped:
+                    grouped[bucket_key] = []
+                grouped[bucket_key].append(item)
+            except Exception:
+                continue
+                
+        result = []
+        for bucket_key in sorted(grouped.keys()):
+            items = grouped[bucket_key]
+            representative = {}
+            for key in items[0].keys():
+                if key == 'id':
+                    representative[key] = items[0][key]
+                elif key == 'timestamp':
+                    representative[key] = bucket_key + ":00"
+                elif key == 'link_ativo':
+                    links = [x['link_ativo'] for x in items]
+                    representative[key] = max(set(links), key=links.count)
+                elif key in ['uptime', 'eth1_speed', 'eth2_speed', 'logs']:
+                    representative[key] = items[-1][key]
+                else:
+                    vals = [x[key] for x in items if x[key] is not None]
+                    if vals:
+                        representative[key] = round(sum(vals) / len(vals), 1)
+                    else:
+                        representative[key] = 0.0
+            result.append(representative)
             
     # Override the latest element's traffic rates with the in-memory 5-second real-time values if available
     if result and latest_traffic['timestamp'] is not None:
