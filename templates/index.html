@@ -1135,8 +1135,13 @@
                 const peakMicksRx = stats.peaks_table ? (stats.peaks_table.micks_rx || 0) : 0;
                 const peakMicksTx = stats.peaks_table ? (stats.peaks_table.micks_tx || 0) : 0;
 
-                document.getElementById('vivo-peak').innerText = `${formatBytes(peakVivoRx)} / ${formatBytes(peakVivoTx)}`;
-                document.getElementById('micks-peak').innerText = `${formatBytes(peakMicksRx)} / ${formatBytes(peakMicksTx)}`;
+                const avgVivoRx = stats.peaks_table ? (stats.peaks_table.vivo_rx_avg || 0) : 0;
+                const avgVivoTx = stats.peaks_table ? (stats.peaks_table.vivo_tx_avg || 0) : 0;
+                const avgMicksRx = stats.peaks_table ? (stats.peaks_table.micks_rx_avg || 0) : 0;
+                const avgMicksTx = stats.peaks_table ? (stats.peaks_table.micks_tx_avg || 0) : 0;
+
+                document.getElementById('vivo-peak').innerText = `${formatBytes(peakVivoRx)} / ${formatBytes(peakVivoTx)} (Méd: ${formatBytes(avgVivoRx)} / ${formatBytes(avgVivoTx)})`;
+                document.getElementById('micks-peak').innerText = `${formatBytes(peakMicksRx)} / ${formatBytes(peakMicksTx)} (Méd: ${formatBytes(avgMicksRx)} / ${formatBytes(avgMicksTx)})`;
 
                 // Peaks for the chart (Strictly 24h)
                 const chartPeakVivoRx = stats.peaks ? (stats.peaks.vivo_rx || 0) : 0;

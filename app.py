@@ -572,7 +572,8 @@ def get_traffic_stats():
 
         # 3b. Fetch peak rates of the chosen interval (7 or 30 days) for the table
         cursor.execute('''
-            SELECT MAX(vivo_rx), MAX(vivo_tx), MAX(micks_rx), MAX(micks_tx)
+            SELECT MAX(vivo_rx), MAX(vivo_tx), MAX(micks_rx), MAX(micks_tx),
+                   AVG(vivo_rx), AVG(vivo_tx), AVG(micks_rx), AVG(micks_tx)
             FROM traffic_peaks_log
             WHERE timestamp >= datetime('now', ?)
         ''', (f'-{peak_days} days',))
@@ -627,6 +628,11 @@ def get_traffic_stats():
         db_vivo_tx_table = row_peaks_table[1] if (row_peaks_table and row_peaks_table[1] is not None) else 0.0
         db_micks_rx_table = row_peaks_table[2] if (row_peaks_table and row_peaks_table[2] is not None) else 0.0
         db_micks_tx_table = row_peaks_table[3] if (row_peaks_table and row_peaks_table[3] is not None) else 0.0
+
+        db_vivo_rx_avg = row_peaks_table[4] if (row_peaks_table and row_peaks_table[4] is not None) else 0.0
+        db_vivo_tx_avg = row_peaks_table[5] if (row_peaks_table and row_peaks_table[5] is not None) else 0.0
+        db_micks_rx_avg = row_peaks_table[6] if (row_peaks_table and row_peaks_table[6] is not None) else 0.0
+        db_micks_tx_avg = row_peaks_table[7] if (row_peaks_table and row_peaks_table[7] is not None) else 0.0
 
         # Combine with current minute's peak for absolute realtime peak precision
         peak_vivo_rx_24h = max(db_vivo_rx_24h, current_minute_peaks['vivo_rx'])
@@ -683,7 +689,11 @@ def get_traffic_stats():
                 "vivo_rx": peak_vivo_rx_table,
                 "vivo_tx": peak_vivo_tx_table,
                 "micks_rx": peak_micks_rx_table,
-                "micks_tx": peak_micks_tx_table
+                "micks_tx": peak_micks_tx_table,
+                "vivo_rx_avg": db_vivo_rx_avg,
+                "vivo_tx_avg": db_vivo_tx_avg,
+                "micks_rx_avg": db_micks_rx_avg,
+                "micks_tx_avg": db_micks_tx_avg
             },
             "rtt_peaks": rtt_peaks
         })
