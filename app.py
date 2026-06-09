@@ -351,10 +351,24 @@ def get_data():
     rows = cursor.fetchall()
     conn.close()
     
-    result = []
+    raw_result = []
     for row in reversed(rows):
-        result.append(dict(row))
+        raw_result.append(dict(row))
         
+    # Filter out telemetry records that are older than 1 hour (3600 seconds) from current Brasília time (GMT-3)
+    import datetime
+    tz_gmt3 = datetime.timezone(datetime.timedelta(hours=-3))
+    now_local = datetime.datetime.now(tz_gmt3)
+    
+    result = []
+    for item in raw_result:
+        try:
+            item_time = datetime.datetime.strptime(item['timestamp'], '%Y-%m-%d %H:%M:%S').replace(tzinfo=tz_gmt3)
+            if (now_local - item_time).total_seconds() <= 3600:
+                result.append(item)
+        except Exception:
+            result.append(item)
+            
     # Override the latest element's traffic rates with the in-memory 5-second real-time values if available
     if result and latest_traffic['timestamp'] is not None:
         result[-1]['traffic_vivo_rx'] = latest_traffic['traffic_vivo_rx']
