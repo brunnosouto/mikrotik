@@ -727,7 +727,124 @@
     <!-- Dashboard Scripts -->
     <script>
         window.currentTimeRange = '1h';
-        // Charts Initialization
+        
+        // SLA Target Line Plugin
+        const slaLinePlugin = {
+            id: 'slaLine',
+            afterDraw: (chart) => {
+                const slaVal = chart.options.slaValue;
+                if (!slaVal) return;
+                const ctx = chart.ctx;
+                const yScale = chart.scales.y;
+                const xScale = chart.scales.x;
+                const yPosVal = yScale.getPixelForValue(slaVal);
+                
+                if (yPosVal >= yScale.top && yPosVal <= yScale.bottom) {
+                    ctx.save();
+                    ctx.strokeStyle = 'rgba(255, 77, 77, 0.45)'; // Soft red
+                    ctx.lineWidth = 1.5;
+                    ctx.setLineDash([4, 4]);
+                    ctx.beginPath();
+                    ctx.moveTo(xScale.left, yPosVal);
+                    ctx.lineTo(xScale.right, yPosVal);
+                    ctx.stroke();
+
+                    // Text label
+                    ctx.fillStyle = 'rgba(255, 77, 77, 0.7)';
+                    ctx.font = 'bold 9px Plus Jakarta Sans';
+                    ctx.fillText(`Limite SLA: ${slaVal} ms`, xScale.left + 8, yPosVal - 5);
+                    ctx.restore();
+                }
+            }
+        };
+
+        // Synced Crosshairs Plugin
+        const activeCharts = [];
+        const syncedCrosshairPlugin = {
+            id: 'syncedCrosshair',
+            afterDraw: (chart) => {
+                if (chart.tooltip && chart.tooltip.getActiveElements().length > 0) {
+                    const activeElement = chart.tooltip.getActiveElements()[0];
+                    const ctx = chart.ctx;
+                    const x = activeElement.element.x;
+                    const yScale = chart.scales.y;
+                    
+                    ctx.save();
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash([3, 3]);
+                    ctx.beginPath();
+                    ctx.moveTo(x, yScale.top);
+                    ctx.lineTo(x, yScale.bottom);
+                    ctx.stroke();
+                    ctx.restore();
+                }
+            }
+        };
+
+        const syncedHover = (event, activeElements, chart) => {
+            if (!event.x) return;
+            const index = chart.getElementsAtEventForMode(event, 'index', { intersect: false }, false);
+            if (index.length === 0) {
+                // Clear active tooltips on other charts
+                activeCharts.forEach(otherChart => {
+                    if (otherChart !== chart) {
+                        otherChart.setActiveElements([]);
+                        otherChart.tooltip.setActiveElements([], {x: 0, y: 0});
+                        otherChart.update('none');
+                    }
+                });
+                return;
+            }
+            
+            const dataIndex = index[0].index;
+            
+            activeCharts.forEach(otherChart => {
+                if (otherChart !== chart) {
+                    const meta = otherChart.getDatasetMeta(0);
+                    if (meta.data[dataIndex]) {
+                        const x = meta.data[dataIndex].x;
+                        const y = meta.data[dataIndex].y;
+                        
+                        const elements = [];
+                        for (let i = 0; i < otherChart.data.datasets.length; i++) {
+                            const datasetMeta = otherChart.getDatasetMeta(i);
+                            if (datasetMeta.data[dataIndex]) {
+                                elements.push({
+                                    datasetIndex: i,
+                                    index: dataIndex,
+                                    element: datasetMeta.data[dataIndex]
+                                });
+                            }
+                        }
+                        otherChart.setActiveElements(elements);
+                        otherChart.tooltip.setActiveElements(elements, {x: x, y: y});
+                        otherChart.update('none');
+                    }
+                }
+            });
+        };
+
+        // Gradients for area charts
+        const purpleGradientCallback = context => {
+            const chart = context.chart;
+            const {ctx, chartArea} = chart;
+            if (!chartArea) return null;
+            const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+            gradient.addColorStop(0, 'rgba(111, 66, 193, 0.18)');
+            gradient.addColorStop(1, 'rgba(111, 66, 193, 0.0)');
+            return gradient;
+        };
+        const blueGradientCallback = context => {
+            const chart = context.chart;
+            const {ctx, chartArea} = chart;
+            if (!chartArea) return null;
+            const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+            gradient.addColorStop(0, 'rgba(0, 210, 252, 0.18)');
+            gradient.addColorStop(1, 'rgba(0, 210, 252, 0.0)');
+            return gradient;
+        };
+
         const segmentStyle = {
             borderColor: ctx => {
                 const y0 = ctx.p0.parsed.y;
@@ -744,13 +861,21 @@
         const chartOptions = {
             responsive: true,
             maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            onHover: (event, activeElements, chart) => {
+                syncedHover(event, activeElements, chart);
+            },
             elements: {
                 point: {
                     radius: context => {
                         const index = context.dataIndex;
                         const val = context.dataset.data[index];
-                        return val === 0 ? 5 : 3;
+                        return val === 0 ? 5 : 2;
                     },
+                    hoverRadius: 5,
                     backgroundColor: context => {
                         const index = context.dataIndex;
                         const val = context.dataset.data[index];
@@ -761,6 +886,9 @@
                         const val = context.dataset.data[index];
                         return val === 0 ? '#ff4a5a' : '#ffffff';
                     }
+                },
+                line: {
+                    borderWidth: 2
                 }
             },
             plugins: {
@@ -788,11 +916,15 @@
             data: {
                 labels: [],
                 datasets: [
-                    { label: 'VIVO', data: [], borderColor: '#6f42c1', backgroundColor: 'rgba(111, 66, 193, 0.1)', borderWidth: 2, fill: true, tension: 0.3, segment: segmentStyle },
-                    { label: 'MICKS', data: [], borderColor: '#00d2fc', backgroundColor: 'rgba(0, 210, 252, 0.1)', borderWidth: 2, fill: true, tension: 0.3, segment: segmentStyle }
+                    { label: 'VIVO', data: [], borderColor: '#6f42c1', backgroundColor: purpleGradientCallback, fill: true, tension: 0.3, segment: segmentStyle },
+                    { label: 'MICKS', data: [], borderColor: '#00d2fc', backgroundColor: blueGradientCallback, fill: true, tension: 0.3, segment: segmentStyle }
                 ]
             },
-            options: chartOptions
+            options: {
+                ...chartOptions,
+                slaValue: 150
+            },
+            plugins: [slaLinePlugin, syncedCrosshairPlugin]
         });
 
         const ctxRBD = document.getElementById('chart-rbd').getContext('2d');
@@ -801,11 +933,15 @@
             data: {
                 labels: [],
                 datasets: [
-                    { label: 'VIVO', data: [], borderColor: '#6f42c1', backgroundColor: 'rgba(111, 66, 193, 0.1)', borderWidth: 2, fill: true, tension: 0.3, segment: segmentStyle },
-                    { label: 'MICKS', data: [], borderColor: '#00d2fc', backgroundColor: 'rgba(0, 210, 252, 0.1)', borderWidth: 2, fill: true, tension: 0.3, segment: segmentStyle }
+                    { label: 'VIVO', data: [], borderColor: '#6f42c1', backgroundColor: purpleGradientCallback, fill: true, tension: 0.3, segment: segmentStyle },
+                    { label: 'MICKS', data: [], borderColor: '#00d2fc', backgroundColor: blueGradientCallback, fill: true, tension: 0.3, segment: segmentStyle }
                 ]
             },
-            options: chartOptions
+            options: {
+                ...chartOptions,
+                slaValue: 150
+            },
+            plugins: [slaLinePlugin, syncedCrosshairPlugin]
         });
 
         const ctxLF = document.getElementById('chart-lifefocus').getContext('2d');
@@ -814,11 +950,15 @@
             data: {
                 labels: [],
                 datasets: [
-                    { label: 'VIVO', data: [], borderColor: '#6f42c1', backgroundColor: 'rgba(111, 66, 193, 0.1)', borderWidth: 2, fill: true, tension: 0.3, segment: segmentStyle },
-                    { label: 'MICKS', data: [], borderColor: '#00d2fc', backgroundColor: 'rgba(0, 210, 252, 0.1)', borderWidth: 2, fill: true, tension: 0.3, segment: segmentStyle }
+                    { label: 'VIVO', data: [], borderColor: '#6f42c1', backgroundColor: purpleGradientCallback, fill: true, tension: 0.3, segment: segmentStyle },
+                    { label: 'MICKS', data: [], borderColor: '#00d2fc', backgroundColor: blueGradientCallback, fill: true, tension: 0.3, segment: segmentStyle }
                 ]
             },
-            options: chartOptions
+            options: {
+                ...chartOptions,
+                slaValue: 280
+            },
+            plugins: [slaLinePlugin, syncedCrosshairPlugin]
         });
 
         const ctxLP = document.getElementById('chart-lifeplus').getContext('2d');
@@ -827,11 +967,15 @@
             data: {
                 labels: [],
                 datasets: [
-                    { label: 'VIVO', data: [], borderColor: '#6f42c1', backgroundColor: 'rgba(111, 66, 193, 0.1)', borderWidth: 2, fill: true, tension: 0.3, segment: segmentStyle },
-                    { label: 'MICKS', data: [], borderColor: '#00d2fc', backgroundColor: 'rgba(0, 210, 252, 0.1)', borderWidth: 2, fill: true, tension: 0.3, segment: segmentStyle }
+                    { label: 'VIVO', data: [], borderColor: '#6f42c1', backgroundColor: purpleGradientCallback, fill: true, tension: 0.3, segment: segmentStyle },
+                    { label: 'MICKS', data: [], borderColor: '#00d2fc', backgroundColor: blueGradientCallback, fill: true, tension: 0.3, segment: segmentStyle }
                 ]
             },
-            options: chartOptions
+            options: {
+                ...chartOptions,
+                slaValue: 280
+            },
+            plugins: [slaLinePlugin, syncedCrosshairPlugin]
         });
 
         const ctxLD = document.getElementById('chart-laudite').getContext('2d');
@@ -846,8 +990,15 @@
                     { label: 'MICKS Voz', data: [], borderColor: '#00d2fc', backgroundColor: 'transparent', borderWidth: 2, borderDash: [4, 4], fill: false, tension: 0.3, segment: segmentStyle }
                 ]
             },
-            options: chartOptions
+            options: {
+                ...chartOptions,
+                slaValue: 250
+            },
+            plugins: [slaLinePlugin, syncedCrosshairPlugin]
         });
+
+        // Register charts globally for synced crosshair
+        activeCharts.push(chartMM, chartRBD, chartLF, chartLP, chartLD);
 
         // Custom plugin to draw horizontal peak lines inside bandwidth charts
         const peakLinesPlugin = {
