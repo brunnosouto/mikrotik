@@ -86,7 +86,7 @@
         .status-badge {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
-            backdrop-filter: blur(12px);
+            backdrop-filter: blur(24px);
             padding: 0.6rem 1.2rem;
             border-radius: 12px;
             display: flex;
@@ -94,6 +94,7 @@
             gap: 0.8rem;
             font-size: 0.9rem;
             font-weight: 600;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
         }
 
         .status-dot {
@@ -102,11 +103,41 @@
             border-radius: 50%;
             background-color: var(--accent-green);
             box-shadow: 0 0 10px var(--accent-green);
+            position: relative;
+        }
+
+        .status-dot::after {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            border-radius: 50%;
+            border: 2px solid var(--accent-green);
+            opacity: 0;
+            animation: statusPulse 2s infinite ease-out;
         }
 
         .status-dot.down {
             background-color: var(--accent-red);
             box-shadow: 0 0 10px var(--accent-red);
+        }
+
+        .status-dot.down::after {
+            border-color: var(--accent-red);
+            animation: statusPulse 1.2s infinite ease-out;
+        }
+
+        @keyframes statusPulse {
+            0% {
+                transform: scale(0.8);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(2.2);
+                opacity: 0;
+            }
         }
 
         /* Dashboard Grid */
@@ -120,18 +151,24 @@
         .card {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
-            backdrop-filter: blur(16px);
+            backdrop-filter: blur(24px);
             border-radius: 20px;
             padding: 1.5rem;
             position: relative;
             overflow: hidden;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .card:hover {
             transform: translateY(-5px);
-            border-color: rgba(255, 255, 255, 0.15);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border-color: rgba(111, 66, 193, 0.25);
+            box-shadow: 0 12px 40px rgba(111, 66, 193, 0.12);
+        }
+        
+        #card-route:hover {
+            border-color: rgba(0, 210, 252, 0.25);
+            box-shadow: 0 12px 40px rgba(0, 210, 252, 0.12);
         }
 
         .card-header {
@@ -202,9 +239,16 @@
             grid-column: span 1;
             background: var(--card-bg);
             border: 1px solid var(--border-color);
-            backdrop-filter: blur(16px);
+            backdrop-filter: blur(24px);
             border-radius: 20px;
             padding: 1.5rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .chart-card:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
         }
 
         .chart-title {
@@ -237,12 +281,19 @@
         .hw-card {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
-            backdrop-filter: blur(16px);
+            backdrop-filter: blur(24px);
             border-radius: 20px;
             padding: 1.5rem;
             display: flex;
             flex-direction: column;
             gap: 1.2rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .hw-card:hover {
+            border-color: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
         }
 
         .hw-metric {
@@ -279,35 +330,69 @@
         .traffic-table-card {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
-            backdrop-filter: blur(16px);
+            backdrop-filter: blur(24px);
             border-radius: 20px;
             padding: 1.5rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .traffic-table-card:hover {
+            border-color: rgba(0, 210, 252, 0.15);
+            box-shadow: 0 10px 40px rgba(0, 210, 252, 0.08);
         }
 
         table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0;
             margin-top: 1rem;
             text-align: left;
         }
 
         th {
             color: var(--text-muted);
-            font-weight: 600;
+            font-weight: 700;
             font-size: 0.8rem;
             text-transform: uppercase;
-            padding: 0.8rem 1rem;
-            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 1.2rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        th:first-child {
+            border-top-left-radius: 12px;
+        }
+
+        th:last-child {
+            border-top-right-radius: 12px;
         }
 
         td {
-            padding: 1rem;
+            padding: 1.1rem 1.2rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.03);
             font-size: 0.9rem;
+            transition: background-color 0.2s ease;
+        }
+
+        tr {
+            transition: transform 0.2s ease;
+        }
+
+        tr:hover td {
+            background-color: rgba(255, 255, 255, 0.02);
         }
 
         tr:last-child td {
             border-bottom: none;
+        }
+        
+        tr:last-child td:first-child {
+            border-bottom-left-radius: 12px;
+        }
+        
+        tr:last-child td:last-child {
+            border-bottom-right-radius: 12px;
         }
 
         .interface-name {
@@ -318,19 +403,27 @@
         }
 
         .bandwidth-badge {
-            padding: 0.25rem 0.6rem;
+            padding: 0.3rem 0.7rem;
             border-radius: 8px;
-            font-size: 0.75rem;
+            font-size: 0.78rem;
             font-weight: 700;
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: inline-block;
         }
 
         .rx-badge {
             color: #00d2fc;
+            border-color: rgba(0, 210, 252, 0.2);
+            background: rgba(0, 210, 252, 0.05);
+            text-shadow: 0 0 10px rgba(0, 210, 252, 0.2);
         }
 
         .tx-badge {
             color: #ff007f;
+            border-color: rgba(255, 0, 127, 0.2);
+            background: rgba(255, 0, 127, 0.05);
+            text-shadow: 0 0 10px rgba(255, 0, 127, 0.2);
         }
 
         /* Footer */
@@ -413,6 +506,10 @@
             
             .traffic-table-card tr:last-child {
                 margin-bottom: 0;
+            }
+            
+            .traffic-table-card tr:hover td {
+                background-color: transparent;
             }
             
             .traffic-table-card td {
