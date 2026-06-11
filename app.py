@@ -81,6 +81,17 @@ def init_db():
         )
     ''')
 
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS network_activity (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            src_ip TEXT,
+            hostname TEXT,
+            domain TEXT,
+            hits INTEGER DEFAULT 1
+        )
+    ''')
+
     # Reset command removed to preserve history across restarts
     conn.commit()
     conn.close()
@@ -751,6 +762,92 @@ def get_traffic_stats():
             },
             "rtt_peaks": rtt_peaks
         })
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/network-activity', methods=['POST'])
+def receive_network_activity():
+    try:
+        data = request.get_json(silent=True) or request.form
+        if not data or 'connections' not in data:
+            return jsonify({"status": "error", "message": "Missing connections payload"}), 400
+
+        connections = data.get('connections', [])
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+
+        # Get current GMT-3 timestamp
+        tz_gmt3 = datetime.timezone(datetime.timedelta(hours=-3))
+        now_str = datetime.datetime.now(tz_gmt3).strftime('%Y-%m-%d %H:%M:%S')
+
+        for item in connections:
+            src_ip = item.get('src_ip', '').strip()
+            domain = item.get('domain', '').strip()
+            hostname = item.get('hostname', '').strip()
+
+            if not src_ip or not domain:
+                continue
+
+            # Update if already exists in active connection database within the last 5 minutes, else insert
+            cursor.execute('''
+                SELECT id, hits FROM network_activity 
+                WHERE src_ip = ? AND domain = ? AND timestamp >= datetime('now', '-5 minutes')
+            ''', (src_ip, domain))
+            row = cursor.fetchone()
+
+            if row:
+                conn_id, hits = row
+                cursor.execute('''
+                    UPDATE network_activity 
+                    SET hits = ?, timestamp = ?, hostname = ?
+                    WHERE id = ?
+                ''', (hits + 1, now_str, hostname or src_ip, conn_id))
+            else:
+                cursor.execute('''
+                    INSERT INTO network_activity (timestamp, src_ip, hostname, domain, hits)
+                    VALUES (?, ?, ?, ?, 1)
+                ''', (now_str, src_ip, hostname or src_ip, domain))
+
+        # Clean old records older than 5 minutes
+        cursor.execute("DELETE FROM network_activity WHERE timestamp < datetime('now', '-5 minutes')")
+        conn.commit()
+        conn.close()
+
+        return jsonify({"status": "success", "message": "Network activity updated"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/network-activity', methods=['GET'])
+def get_network_activity():
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        # Clean obsolete entries on retrieve just in case
+        cursor.execute("DELETE FROM network_activity WHERE timestamp < datetime('now', '-5 minutes')")
+        conn.commit()
+
+        # Group connections to show top active devices and destinations
+        cursor.execute('''
+            SELECT src_ip, hostname, domain, SUM(hits) as total_hits, MAX(timestamp) as last_seen
+            FROM network_activity
+            GROUP BY src_ip, domain
+            ORDER BY last_seen DESC, total_hits DESC
+            LIMIT 30
+        ''')
+        rows = cursor.fetchall()
+        conn.close()
+
+        activity = []
+        for r in rows:
+            activity.append({
+                "src_ip": r[0],
+                "hostname": r[1],
+                "domain": r[2],
+                "hits": r[3],
+                "last_seen": r[4]
+            })
+
+        return jsonify(activity)
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
