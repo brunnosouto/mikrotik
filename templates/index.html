@@ -915,33 +915,6 @@
         </div>
     </div>
 
-    <!-- Monitor de Atividade & Destinos da Rede -->
-    <div class="traffic-table-card" style="margin-top: 1.5rem; margin-bottom: 2.5rem;">
-        <h3 style="font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem;">
-            <i class="fa-solid fa-globe" style="color: var(--accent-micks);"></i>
-            <span>Monitor de Atividade & Destinos Ativos (Últimos 5 Minutos)</span>
-        </h3>
-        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">Mapeamento DNS e conexões ativas capturadas de forma otimizada para o hardware.</p>
-        <div class="table-responsive">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Origem (Dispositivo local)</th>
-                        <th>IP Local</th>
-                        <th>Destino Acessado (Domínio)</th>
-                        <th>Hits Recentes</th>
-                        <th>Visto por Último</th>
-                    </tr>
-                </thead>
-                <tbody id="network-activity-tbody">
-                    <tr>
-                        <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2rem;">Aguardando payload DNS do MikroTik...</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
     <footer>
         <p>MikroTik Telemetry Monitor &copy; 2026. Desenvolvido para estabilidade total.</p>
     </footer>
@@ -1755,55 +1728,10 @@
             }
         }
 
-        async function fetchNetworkActivity() {
-            try {
-                const response = await fetch('/api/network-activity');
-                if (!response.ok) throw new Error("Network Activity API error");
-                const data = await response.json();
-                
-                const tbody = document.getElementById('network-activity-tbody');
-                if (!tbody) return;
-
-                if (data.length === 0) {
-                    tbody.innerHTML = `
-                    <tr>
-                        <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2rem;">Nenhum acesso ativo registrado nos últimos 5 minutos.</td>
-                    </tr>
-                    `;
-                    return;
-                }
-
-                let html = '';
-                data.forEach(item => {
-                    const localTime = new Date(item.last_seen.replace(' ', 'T')).toLocaleTimeString('pt-BR');
-                    
-                    // Style badges to match hostnames and domains beautifully
-                    const hostBadge = item.hostname !== item.src_ip 
-                        ? `<span class="bandwidth-badge" style="color: var(--accent-green); background: rgba(0, 255, 135, 0.05); border-color: rgba(0, 255, 135, 0.15); font-weight: 600;">${item.hostname}</span>`
-                        : `<span class="bandwidth-badge" style="color: var(--text-muted); font-weight: 500;">Dispositivo Desconhecido</span>`;
-                        
-                    html += `
-                    <tr>
-                        <td data-label="Dispositivo">${hostBadge}</td>
-                        <td data-label="IP Local"><code style="color: var(--accent-micks); font-size: 0.85rem; font-weight: 600;">${item.src_ip}</code></td>
-                        <td data-label="Destino Acessado"><span style="font-weight: 600; color: var(--text-main); font-family: monospace; word-break: break-all;">${item.domain}</span></td>
-                        <td data-label="Hits Recentes"><span class="bandwidth-badge" style="font-weight: 700; background: rgba(255, 255, 255, 0.05); color: var(--text-main); border: none;">${item.hits}</span></td>
-                        <td data-label="Visto por Último"><span style="color: var(--text-muted); font-size: 0.82rem;">${localTime}</span></td>
-                    </tr>
-                    `;
-                });
-                tbody.innerHTML = html;
-            } catch (err) {
-                console.error("Failed to load network activity:", err);
-            }
-        }
-
         // Fetch every 1s for high responsiveness on open tab
         fetchAndUpdate();
-        fetchNetworkActivity();
         
         setInterval(fetchAndUpdate, 1000);
-        setInterval(fetchNetworkActivity, 5000); // Poll network activity every 5 seconds (more relaxed than real-time telemetries to save CPU)
     </script>
 </body>
 </html>
