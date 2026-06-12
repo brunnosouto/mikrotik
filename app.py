@@ -778,7 +778,9 @@ def receive_network_activity():
 
         # Get current GMT-3 timestamp
         tz_gmt3 = datetime.timezone(datetime.timedelta(hours=-3))
-        now_str = datetime.datetime.now(tz_gmt3).strftime('%Y-%m-%d %H:%M:%S')
+        now_dt = datetime.datetime.now(tz_gmt3)
+        now_str = now_dt.strftime('%Y-%m-%d %H:%M:%S')
+        five_min_ago = (now_dt - datetime.timedelta(minutes=5)).strftime('%Y-%m-%d %H:%M:%S')
 
         for item in connections:
             src_ip = item.get('src_ip', '').strip()
@@ -791,8 +793,8 @@ def receive_network_activity():
             # Update if already exists in active connection database within the last 5 minutes, else insert
             cursor.execute('''
                 SELECT id, hits FROM network_activity 
-                WHERE src_ip = ? AND domain = ? AND timestamp >= datetime('now', '-5 minutes')
-            ''', (src_ip, domain))
+                WHERE src_ip = ? AND domain = ? AND timestamp >= ?
+            ''', (src_ip, domain, five_min_ago))
             row = cursor.fetchone()
 
             if row:
@@ -809,7 +811,7 @@ def receive_network_activity():
                 ''', (now_str, src_ip, hostname or src_ip, domain))
 
         # Clean old records older than 5 minutes
-        cursor.execute("DELETE FROM network_activity WHERE timestamp < datetime('now', '-5 minutes')")
+        cursor.execute("DELETE FROM network_activity WHERE timestamp < ?", (five_min_ago,))
         conn.commit()
         conn.close()
 
@@ -822,8 +824,12 @@ def get_network_activity():
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
-        # Clean obsolete entries on retrieve just in case
-        cursor.execute("DELETE FROM network_activity WHERE timestamp < datetime('now', '-5 minutes')")
+        
+        # Clean obsolete entries on retrieve using python local time
+        tz_gmt3 = datetime.timezone(datetime.timedelta(hours=-3))
+        five_min_ago = (datetime.datetime.now(tz_gmt3) - datetime.timedelta(minutes=5)).strftime('%Y-%m-%d %H:%M:%S')
+        
+        cursor.execute("DELETE FROM network_activity WHERE timestamp < ?", (five_min_ago,))
         conn.commit()
 
         # Group connections to show top active devices and destinations
