@@ -655,6 +655,66 @@
         </div>
     </div>
 
+    <!-- SLA & Uptime Availability Grid -->
+    <div class="card" style="margin-bottom: 2rem; padding: 1.5rem;">
+        <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1.2rem; display: flex; align-items: center; gap: 0.6rem;">
+            <i class="fa-solid fa-clock-rotate-left" style="color: var(--accent-vivo);"></i>
+            <span>Disponibilidade Física & Conformidade de SLA (Uptime)</span>
+        </h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+            <!-- VIVO Card -->
+            <div style="background: rgba(111, 66, 193, 0.03); border: 1px solid rgba(111, 66, 193, 0.15); padding: 1.2rem; border-radius: 16px; display: flex; flex-direction: column; gap: 1rem;">
+                <div style="display: flex; align-items: center; gap: 0.8rem; border-bottom: 1px solid rgba(111, 66, 193, 0.15); padding-bottom: 0.6rem;">
+                    <i class="fa-solid fa-server" style="color: var(--accent-vivo); font-size: 1.2rem;"></i>
+                    <span style="font-weight: 700; font-size: 1rem; color: var(--accent-vivo);">VIVO FIBRA (Link Principal)</span>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                    <div>
+                        <span style="font-size: 0.75rem; color: var(--text-muted); display: block; font-weight: 600; text-transform: uppercase;">Uptime (7d)</span>
+                        <span id="vivo-uptime-7d" style="font-size: 1.5rem; font-weight: 800; color: var(--accent-green);">--%</span>
+                    </div>
+                    <div>
+                        <span style="font-size: 0.75rem; color: var(--text-muted); display: block; font-weight: 600; text-transform: uppercase;">Conformidade SLA (7d)</span>
+                        <span id="vivo-sla-7d" style="font-size: 1.5rem; font-weight: 800; color: var(--accent-green);">--%</span>
+                    </div>
+                    <div>
+                        <span style="font-size: 0.75rem; color: var(--text-muted); display: block; font-weight: 600; text-transform: uppercase;">Uptime (30d)</span>
+                        <span id="vivo-uptime-30d" style="font-size: 1.5rem; font-weight: 800; color: var(--accent-green);">--%</span>
+                    </div>
+                    <div>
+                        <span style="font-size: 0.75rem; color: var(--text-muted); display: block; font-weight: 600; text-transform: uppercase;">Conformidade SLA (30d)</span>
+                        <span id="vivo-sla-30d" style="font-size: 1.5rem; font-weight: 800; color: var(--accent-green);">--%</span>
+                    </div>
+                </div>
+            </div>
+            <!-- MICKS Card -->
+            <div style="background: rgba(0, 210, 252, 0.03); border: 1px solid rgba(0, 210, 252, 0.15); padding: 1.2rem; border-radius: 16px; display: flex; flex-direction: column; gap: 1rem;">
+                <div style="display: flex; align-items: center; gap: 0.8rem; border-bottom: 1px solid rgba(0, 210, 252, 0.15); padding-bottom: 0.6rem;">
+                    <i class="fa-solid fa-server" style="color: var(--accent-micks); font-size: 1.2rem;"></i>
+                    <span style="font-weight: 700; font-size: 1rem; color: var(--accent-micks);">MICKS TELECOM (Link Backup)</span>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                    <div>
+                        <span style="font-size: 0.75rem; color: var(--text-muted); display: block; font-weight: 600; text-transform: uppercase;">Uptime (7d)</span>
+                        <span id="micks-uptime-7d" style="font-size: 1.5rem; font-weight: 800; color: var(--accent-micks);">--%</span>
+                    </div>
+                    <div>
+                        <span style="font-size: 0.75rem; color: var(--text-muted); display: block; font-weight: 600; text-transform: uppercase;">Conformidade SLA (7d)</span>
+                        <span id="micks-sla-7d" style="font-size: 1.5rem; font-weight: 800; color: var(--accent-micks);">--%</span>
+                    </div>
+                    <div>
+                        <span style="font-size: 0.75rem; color: var(--text-muted); display: block; font-weight: 600; text-transform: uppercase;">Uptime (30d)</span>
+                        <span id="micks-uptime-30d" style="font-size: 1.5rem; font-weight: 800; color: var(--accent-micks);">--%</span>
+                    </div>
+                    <div>
+                        <span style="font-size: 0.75rem; color: var(--text-muted); display: block; font-weight: 600; text-transform: uppercase;">Conformidade SLA (30d)</span>
+                        <span id="micks-sla-30d" style="font-size: 1.5rem; font-weight: 800; color: var(--accent-micks);">--%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bandwidth Chart Section -->
     <div class="two-col-grid" style="margin-top: 1.5rem; margin-bottom: 2rem;">
         <div class="chart-card">
@@ -745,6 +805,104 @@
                         <td data-label="Pico"><span class="bandwidth-badge" style="font-weight: 600; color: var(--text-muted);">--</span></td>
                         <td data-label="Download (RX)"><span class="bandwidth-badge rx-badge" id="lan-rx">0.00 Mbps</span></td>
                         <td data-label="Upload (TX)"><span class="bandwidth-badge tx-badge" id="lan-tx">0.00 Mbps</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- SLA Quality & Stability Table -->
+    <div class="traffic-table-card" style="margin-bottom: 2rem;">
+        <h3 style="font-size: 1rem; font-weight: 600;"><i class="fa-solid fa-sliders" style="color: var(--accent-micks); margin-right: 0.5rem;"></i>Comparativo de Estabilidade & Qualidade de SLA (Lado a Lado)</h3>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Destino</th>
+                        <th style="color: var(--accent-vivo); text-align: center;">VIVO - RTT Médio</th>
+                        <th style="color: var(--accent-vivo); text-align: center;">VIVO - Jitter</th>
+                        <th style="color: var(--accent-vivo); text-align: center;">VIVO - Perda</th>
+                        <th style="color: var(--accent-micks); text-align: center;">MICKS - RTT Médio</th>
+                        <th style="color: var(--accent-micks); text-align: center;">MICKS - Jitter</th>
+                        <th style="color: var(--accent-micks); text-align: center;">MICKS - Perda</th>
+                        <th style="text-align: center;">Status SLA</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr id="sla-row-mm">
+                        <td data-label="Destino">
+                            <div class="interface-name">
+                                <i class="fa-solid fa-server" style="color: var(--text-muted);"></i>
+                                <span>MobileMed (SLA: 150ms)</span>
+                            </div>
+                        </td>
+                        <td data-label="VIVO RTT" style="text-align: center;" id="sla-vivo-rtt-mm">-- ms</td>
+                        <td data-label="VIVO Jitter" style="text-align: center;" id="sla-vivo-jitter-mm">-- ms</td>
+                        <td data-label="VIVO Perda" style="text-align: center;" id="sla-vivo-loss-mm">--%</td>
+                        <td data-label="MICKS RTT" style="text-align: center;" id="sla-micks-rtt-mm">-- ms</td>
+                        <td data-label="MICKS Jitter" style="text-align: center;" id="sla-micks-jitter-mm">-- ms</td>
+                        <td data-label="MICKS Perda" style="text-align: center;" id="sla-micks-loss-mm">--%</td>
+                        <td data-label="Status SLA" style="text-align: center;" id="sla-status-mm">--</td>
+                    </tr>
+                    <tr id="sla-row-rbd">
+                        <td data-label="Destino">
+                            <div class="interface-name">
+                                <i class="fa-solid fa-server" style="color: var(--text-muted);"></i>
+                                <span>RBD PACS (SLA: 150ms)</span>
+                            </div>
+                        </td>
+                        <td data-label="VIVO RTT" style="text-align: center;" id="sla-vivo-rtt-rbd">-- ms</td>
+                        <td data-label="VIVO Jitter" style="text-align: center;" id="sla-vivo-jitter-rbd">-- ms</td>
+                        <td data-label="VIVO Perda" style="text-align: center;" id="sla-vivo-loss-rbd">--%</td>
+                        <td data-label="MICKS RTT" style="text-align: center;" id="sla-micks-rtt-rbd">-- ms</td>
+                        <td data-label="MICKS Jitter" style="text-align: center;" id="sla-micks-jitter-rbd">-- ms</td>
+                        <td data-label="MICKS Perda" style="text-align: center;" id="sla-micks-loss-rbd">--%</td>
+                        <td data-label="Status SLA" style="text-align: center;" id="sla-status-rbd">--</td>
+                    </tr>
+                    <tr id="sla-row-lf">
+                        <td data-label="Destino">
+                            <div class="interface-name">
+                                <i class="fa-solid fa-server" style="color: var(--text-muted);"></i>
+                                <span>LifeFocus (SLA: 280ms)</span>
+                            </div>
+                        </td>
+                        <td data-label="VIVO RTT" style="text-align: center;" id="sla-vivo-rtt-lf">-- ms</td>
+                        <td data-label="VIVO Jitter" style="text-align: center;" id="sla-vivo-jitter-lf">-- ms</td>
+                        <td data-label="VIVO Perda" style="text-align: center;" id="sla-vivo-loss-lf">--%</td>
+                        <td data-label="MICKS RTT" style="text-align: center;" id="sla-micks-rtt-lf">-- ms</td>
+                        <td data-label="MICKS Jitter" style="text-align: center;" id="sla-micks-jitter-lf">-- ms</td>
+                        <td data-label="MICKS Perda" style="text-align: center;" id="sla-micks-loss-lf">--%</td>
+                        <td data-label="Status SLA" style="text-align: center;" id="sla-status-lf">--</td>
+                    </tr>
+                    <tr id="sla-row-lp">
+                        <td data-label="Destino">
+                            <div class="interface-name">
+                                <i class="fa-solid fa-server" style="color: var(--text-muted);"></i>
+                                <span>LifePlus (SLA: 280ms)</span>
+                            </div>
+                        </td>
+                        <td data-label="VIVO RTT" style="text-align: center;" id="sla-vivo-rtt-lp">-- ms</td>
+                        <td data-label="VIVO Jitter" style="text-align: center;" id="sla-vivo-jitter-lp">-- ms</td>
+                        <td data-label="VIVO Perda" style="text-align: center;" id="sla-vivo-loss-lp">--%</td>
+                        <td data-label="MICKS RTT" style="text-align: center;" id="sla-micks-rtt-lp">-- ms</td>
+                        <td data-label="MICKS Jitter" style="text-align: center;" id="sla-micks-jitter-lp">-- ms</td>
+                        <td data-label="MICKS Perda" style="text-align: center;" id="sla-micks-loss-lp">--%</td>
+                        <td data-label="Status SLA" style="text-align: center;" id="sla-status-lp">--</td>
+                    </tr>
+                    <tr id="sla-row-ld">
+                        <td data-label="Destino">
+                            <div class="interface-name">
+                                <i class="fa-solid fa-server" style="color: var(--text-muted);"></i>
+                                <span>Laudite Portal (SLA: 250ms)</span>
+                            </div>
+                        </td>
+                        <td data-label="VIVO RTT" style="text-align: center;" id="sla-vivo-rtt-ld">-- ms</td>
+                        <td data-label="VIVO Jitter" style="text-align: center;" id="sla-vivo-jitter-ld">-- ms</td>
+                        <td data-label="VIVO Perda" style="text-align: center;" id="sla-vivo-loss-ld">--%</td>
+                        <td data-label="MICKS RTT" style="text-align: center;" id="sla-micks-rtt-ld">-- ms</td>
+                        <td data-label="MICKS Jitter" style="text-align: center;" id="sla-micks-jitter-ld">-- ms</td>
+                        <td data-label="MICKS Perda" style="text-align: center;" id="sla-micks-loss-ld">--%</td>
+                        <td data-label="Status SLA" style="text-align: center;" id="sla-status-ld">--</td>
                     </tr>
                 </tbody>
             </table>
@@ -1450,9 +1608,15 @@
                 updateJitterAndLoss('jitter-lp', 'loss-lp', lpRtts);
                 updateJitterAndLoss('jitter-ld', 'loss-ld', ldRtts);
 
+                // Update SLA Side-by-Side Table
+                calculateSLAQuality(data, 'rtt_vivo_mm', 'rtt_micks_mm', 150.0, 'sla-vivo-rtt-mm', 'sla-vivo-jitter-mm', 'sla-vivo-loss-mm', 'sla-micks-rtt-mm', 'sla-micks-jitter-mm', 'sla-micks-loss-mm', 'sla-status-mm');
+                calculateSLAQuality(data, 'rtt_vivo_rbd', 'rtt_micks_rbd', 150.0, 'sla-vivo-rtt-rbd', 'sla-vivo-jitter-rbd', 'sla-vivo-loss-rbd', 'sla-micks-rtt-rbd', 'sla-micks-jitter-rbd', 'sla-micks-loss-rbd', 'sla-status-rbd');
+                calculateSLAQuality(data, 'rtt_vivo_lf', 'rtt_micks_lf', 280.0, 'sla-vivo-rtt-lf', 'sla-vivo-jitter-lf', 'sla-vivo-loss-lf', 'sla-micks-rtt-lf', 'sla-micks-jitter-lf', 'sla-micks-loss-lf', 'sla-status-lf');
+                calculateSLAQuality(data, 'rtt_vivo_lp', 'rtt_micks_lp', 280.0, 'sla-vivo-rtt-lp', 'sla-vivo-jitter-lp', 'sla-vivo-loss-lp', 'sla-micks-rtt-lp', 'sla-micks-jitter-lp', 'sla-micks-loss-lp', 'sla-status-lp');
+                calculateSLAQuality(data, 'rtt_vivo_laudite', 'rtt_micks_laudite', 250.0, 'sla-vivo-rtt-ld', 'sla-vivo-jitter-ld', 'sla-vivo-loss-ld', 'sla-micks-rtt-ld', 'sla-micks-jitter-ld', 'sla-micks-loss-ld', 'sla-status-ld');
+
                 // Fetch incident log
                 fetchIncidents();
-
 
                 // Fetch daily and monthly traffic totals
                 fetchTrafficStats();
@@ -1494,6 +1658,33 @@
                 
                 document.getElementById('micks-today').innerText = `${formatBytesToGB(micksRxToday)} / ${formatBytesToGB(micksTxToday)}`;
                 document.getElementById('micks-month').innerText = `${formatBytesToGB(micksRxMonth)} / ${formatBytesToGB(micksTxMonth)}`;
+
+                // Uptime & SLA reports
+                if (stats.uptime_report) {
+                    const up = stats.uptime_report;
+                    if (up['7d']) {
+                        document.getElementById('vivo-uptime-7d').innerText = up['7d'].vivo_uptime.toFixed(2) + '%';
+                        document.getElementById('vivo-sla-7d').innerText = up['7d'].vivo_sla.toFixed(2) + '%';
+                        document.getElementById('micks-uptime-7d').innerText = up['7d'].micks_uptime.toFixed(2) + '%';
+                        document.getElementById('micks-sla-7d').innerText = up['7d'].micks_sla.toFixed(2) + '%';
+                        
+                        setColorByValue('vivo-uptime-7d', up['7d'].vivo_uptime);
+                        setColorByValue('vivo-sla-7d', up['7d'].vivo_sla);
+                        setColorByValue('micks-uptime-7d', up['7d'].micks_uptime);
+                        setColorByValue('micks-sla-7d', up['7d'].micks_sla);
+                    }
+                    if (up['30d']) {
+                        document.getElementById('vivo-uptime-30d').innerText = up['30d'].vivo_uptime.toFixed(2) + '%';
+                        document.getElementById('vivo-sla-30d').innerText = up['30d'].vivo_sla.toFixed(2) + '%';
+                        document.getElementById('micks-uptime-30d').innerText = up['30d'].micks_uptime.toFixed(2) + '%';
+                        document.getElementById('micks-sla-30d').innerText = up['30d'].micks_sla.toFixed(2) + '%';
+                        
+                        setColorByValue('vivo-uptime-30d', up['30d'].vivo_uptime);
+                        setColorByValue('vivo-sla-30d', up['30d'].vivo_sla);
+                        setColorByValue('micks-uptime-30d', up['30d'].micks_uptime);
+                        setColorByValue('micks-sla-30d', up['30d'].micks_sla);
+                    }
+                }
 
                 // Peaks for the table (Chosen interval: 7 or 30 days)
                 const peakVivoRx = stats.peaks_table ? (stats.peaks_table.vivo_rx || 0) : 0;
@@ -1645,6 +1836,105 @@
             }
         }
 
+        // Helper functions for SLA Quality Table and Uptime Coloring
+        function calculateSLAQuality(data, keyVivo, keyMicks, targetLimit, rttElVivo, jitterElVivo, lossElVivo, rttElMicks, jitterElMicks, lossElMicks, statusEl) {
+            const rttsVivo = data.map(item => item[keyVivo] || 0);
+            const rttsMicks = data.map(item => item[keyMicks] || 0);
+            
+            const statsVivo = computeRttStats(rttsVivo);
+            const statsMicks = computeRttStats(rttsMicks);
+            
+            document.getElementById(rttElVivo).innerText = statsVivo.avg > 0 ? `${statsVivo.avg.toFixed(1)} ms` : '--';
+            document.getElementById(jitterElVivo).innerText = statsVivo.jitter > 0 ? `${statsVivo.jitter.toFixed(1)} ms` : '--';
+            document.getElementById(lossElVivo).innerText = `${statsVivo.loss.toFixed(0)}%`;
+            setLossColor(lossElVivo, statsVivo.loss);
+            
+            document.getElementById(rttElMicks).innerText = statsMicks.avg > 0 ? `${statsMicks.avg.toFixed(1)} ms` : '--';
+            document.getElementById(jitterElMicks).innerText = statsMicks.jitter > 0 ? `${statsMicks.jitter.toFixed(1)} ms` : '--';
+            document.getElementById(lossElMicks).innerText = `${statsMicks.loss.toFixed(0)}%`;
+            setLossColor(lossElMicks, statsMicks.loss);
+            
+            let statusHtml = '';
+            const vivoComplies = statsVivo.avg > 0 && statsVivo.avg <= targetLimit && statsVivo.loss < 5.0;
+            const micksComplies = statsMicks.avg > 0 && statsMicks.avg <= targetLimit && statsMicks.loss < 5.0;
+            
+            if (vivoComplies && micksComplies) {
+                if (statsVivo.avg < statsMicks.avg) {
+                    statusHtml = `<span class="bandwidth-badge rx-badge" style="font-weight: 700; color: var(--accent-green); background: rgba(0, 255, 135, 0.08); border-color: rgba(0, 255, 135, 0.2);">VIVO Melhor</span>`;
+                } else {
+                    statusHtml = `<span class="bandwidth-badge tx-badge" style="font-weight: 700; color: var(--accent-micks); background: rgba(0, 210, 252, 0.08); border-color: rgba(0, 210, 252, 0.2);">MICKS Melhor</span>`;
+                }
+            } else if (vivoComplies) {
+                statusHtml = `<span class="bandwidth-badge rx-badge" style="font-weight: 700; color: var(--accent-green); background: rgba(0, 255, 135, 0.08); border-color: rgba(0, 255, 135, 0.2);">VIVO Conforme</span>`;
+            } else if (micksComplies) {
+                statusHtml = `<span class="bandwidth-badge tx-badge" style="font-weight: 700; color: var(--accent-micks); background: rgba(0, 210, 252, 0.08); border-color: rgba(0, 210, 252, 0.2);">MICKS Conforme</span>`;
+            } else {
+                statusHtml = `<span class="bandwidth-badge" style="font-weight: 700; color: var(--accent-red); background: rgba(255, 77, 77, 0.08); border-color: rgba(255, 77, 77, 0.2);">Fora do SLA</span>`;
+            }
+            
+            document.getElementById(statusEl).innerHTML = statusHtml;
+        }
+
+        function computeRttStats(rttList) {
+            if (!rttList || rttList.length === 0) {
+                return { avg: 0, jitter: 0, loss: 0 };
+            }
+            
+            let lossCount = 0;
+            let validRtts = [];
+            let sum = 0;
+            
+            rttList.forEach(rtt => {
+                if (rtt === 0 || rtt === null) {
+                    lossCount++;
+                } else {
+                    validRtts.push(rtt);
+                    sum += rtt;
+                }
+            });
+            
+            const loss = (lossCount / rttList.length) * 100;
+            const avg = validRtts.length > 0 ? (sum / validRtts.length) : 0;
+            
+            let jitter = 0;
+            if (validRtts.length > 1) {
+                let sumDiff = 0;
+                for (let i = 0; i < validRtts.length - 1; i++) {
+                    sumDiff += Math.abs(validRtts[i+1] - validRtts[i]);
+                }
+                jitter = sumDiff / (validRtts.length - 1);
+            }
+            
+            return { avg, jitter, loss };
+        }
+
+        function setLossColor(elementId, lossPercent) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            if (lossPercent > 10) {
+                el.style.color = "var(--accent-red)";
+                el.style.fontWeight = "bold";
+            } else if (lossPercent > 0) {
+                el.style.color = "var(--accent-orange)";
+                el.style.fontWeight = "bold";
+            } else {
+                el.style.color = "var(--text-muted)";
+                el.style.fontWeight = "normal";
+            }
+        }
+
+        function setColorByValue(elementId, val) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            if (val >= 99.5) {
+                el.style.color = 'var(--accent-green)';
+            } else if (val >= 97.0) {
+                el.style.color = 'var(--accent-orange)';
+            } else {
+                el.style.color = 'var(--accent-red)';
+            }
+        }
+
         // Global store to hold incidents data for log rendering
         window.cachedIncidents = [];
 
@@ -1682,16 +1972,29 @@
                         bgColor = 'rgba(0, 255, 135, 0.06)';
                         borderColor = 'rgba(0, 255, 135, 0.15)';
                     }
+
+                    let rcaHtml = '';
+                    if (inc.rca) {
+                        rcaHtml = `
+                        <div style="margin-top: 0.4rem; padding-left: 1.85rem; font-size: 0.82rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.4rem;">
+                            <i class="fa-solid fa-circle-info" style="color: var(--accent-micks); font-size: 0.8rem;"></i>
+                            <span><strong>Causa Raiz (RCA):</strong> ${inc.rca}</span>
+                        </div>
+                        `;
+                    }
                     
                     const localTime = new Date(inc.timestamp.replace(' ', 'T')).toLocaleString('pt-BR');
                     
                     html += `
-                    <div style="display: flex; justify-content: space-between; align-items: center; background: ${bgColor}; border: 1px solid ${borderColor}; padding: 0.8rem 1.2rem; border-radius: 12px; font-size: 0.9rem; transition: all 0.2s;">
-                        <div style="display: flex; align-items: center; gap: 0.8rem; color: var(--text-main);">
-                            <i class="fa-solid ${icon}" style="color: ${severityColor}; font-size: 1.05rem;"></i>
-                            <span>${inc.message}</span>
+                    <div style="background: ${bgColor}; border: 1px solid ${borderColor}; padding: 0.8rem 1.2rem; border-radius: 12px; font-size: 0.9rem; transition: all 0.2s; display: flex; flex-direction: column;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <div style="display: flex; align-items: center; gap: 0.8rem; color: var(--text-main);">
+                                <i class="fa-solid ${icon}" style="color: ${severityColor}; font-size: 1.05rem;"></i>
+                                <span>${inc.message}</span>
+                            </div>
+                            <div style="color: var(--text-muted); font-size: 0.8rem; font-weight: 500; margin-left: 1rem; flex-shrink: 0;">${localTime}</div>
                         </div>
-                        <div style="color: var(--text-muted); font-size: 0.8rem; font-weight: 500;">${localTime}</div>
+                        ${rcaHtml}
                     </div>
                     `;
                 });
@@ -1712,10 +2015,20 @@
                             prefix = "🟢 ";
                         }
                         const eventTime = new Date(inc.timestamp.replace(' ', 'T')).toLocaleString('pt-BR');
+                        let rcaLogHtml = '';
+                        if (inc.rca) {
+                            rcaLogHtml = `
+                            <span style="display: block; margin-top: 0.35rem; font-size: 0.76rem; color: var(--text-muted); font-family: 'Plus Jakarta Sans', sans-serif;">
+                                <i class="fa-solid fa-magnifying-glass-chart" style="color: var(--accent-micks); margin-right: 0.2rem;"></i>
+                                <strong>RCA:</strong> ${inc.rca}
+                            </span>
+                            `;
+                        }
                         logHtml += `
                         <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); padding: 0.5rem 0.8rem; border-radius: 8px; font-size: 0.82rem; color: ${color}; text-align: left; line-height: 1.3; margin-bottom: 0.4rem;">
                             <span style="color: var(--text-muted); font-size: 0.75rem; display: block; margin-bottom: 0.15rem;">[${eventTime}]</span>
-                            ${prefix}${inc.message}
+                            <div style="font-family: inherit;">${prefix}${inc.message}</div>
+                            ${rcaLogHtml}
                         </div>
                         `;
                     });

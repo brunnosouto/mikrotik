@@ -489,6 +489,7 @@ def get_incidents():
         # 1. Detect link switch
         if current_link != prev_link:
             severity = "warning"
+            rca_msg = ""
             if current_link == "MICKS":
                 # VIVO to MICKS switch
                 micks_start_time = datetime.datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
@@ -514,6 +515,30 @@ def get_incidents():
                 reason_str = ", ".join(reasons) if reasons else "Mudança preventiva ou manual"
                 msg = f"⚠️ ROTA ALTERADA: VIVO -> MICKS. Motivo: Instabilidade em {reason_str}"
                 severity = "danger"
+
+                # RCA Core
+                rca_list = []
+                cpu_load = parse_int(row.get('cpu', 0))
+                lan_rx = parse_float(row.get('traffic_lan_rx', 0))
+                lan_tx = parse_float(row.get('traffic_lan_tx', 0))
+                lan_mbps = (lan_rx + lan_tx) / 1000000.0
+                if cpu_load > 85:
+                    rca_list.append(f"Carga CPU elevada ({cpu_load}%)")
+                if lan_mbps > 50.0:
+                    rca_list.append(f"Saturação/Tráfego local alto ({lan_mbps:.1f} Mbps)")
+                
+                vivo_failures = []
+                if r_mm == 0.0: vivo_failures.append("MobileMed")
+                if r_lf == 0.0: vivo_failures.append("LifeFocus")
+                if r_lp == 0.0: vivo_failures.append("LifePlus")
+                if r_rbd == 0.0: vivo_failures.append("RBD PACS")
+                
+                if len(vivo_failures) == 4:
+                    rca_list.append("Queda física total do link VIVO")
+                elif len(vivo_failures) > 0:
+                    rca_list.append(f"Falha de rota parcial em VIVO ({', '.join(vivo_failures)})")
+                
+                rca_msg = " | ".join(rca_list) if rca_list else "Instabilidade externa de roteamento da operadora"
             else:
                 # MICKS to VIVO switch
                 duration_str = ""
@@ -548,11 +573,20 @@ def get_incidents():
                 msg = f"✅ RETORNO: VIVO restabelecida. Motivo: Normalização de {reason_str}{duration_str}"
                 severity = "success"
 
+                # RCA Core
+                rca_list = []
+                if r_mm > 0.0 and r_mm <= limits['MM']: rca_list.append(f"MobileMed OK ({r_mm:.0f}ms)")
+                if r_lf > 0.0 and r_lf <= limits['LF']: rca_list.append(f"LifeFocus OK ({r_lf:.0f}ms)")
+                if r_lp > 0.0 and r_lp <= limits['LP']: rca_list.append(f"LifePlus OK ({r_lp:.0f}ms)")
+                if r_rbd > 0.0 and r_rbd <= limits['RBD']: rca_list.append(f"RBD PACS OK ({r_rbd:.0f}ms)")
+                rca_msg = "Normalização de: " + ", ".join(rca_list) if rca_list else "Normalização dos parâmetros de SLA da operadora"
+
             incidents.append({
                 "timestamp": timestamp,
                 "type": "SWITCH",
                 "severity": severity,
-                "message": msg
+                "message": msg,
+                "rca": rca_msg
             })
             prev_link = current_link
 
@@ -580,21 +614,24 @@ def get_incidents():
                         "timestamp": timestamp,
                         "type": "OFFLINE",
                         "severity": "danger",
-                        "message": f"{display_name} ficou OFFLINE (Sem resposta do Netwatch)"
+                        "message": f"{display_name} ficou OFFLINE (Sem resposta do Netwatch)",
+                        "rca": "Perda total de comunicação (ICMP Request Timeout)"
                     })
                 elif new_state == 'HIGH_LATENCY':
                     incidents.append({
                         "timestamp": timestamp,
                         "type": "SLA_BREACH",
                         "severity": "warning",
-                        "message": f"{display_name} RTT elevado: {rtt} ms (Limite: {limit} ms)"
+                        "message": f"{display_name} RTT elevado: {rtt} ms (Limite: {limit} ms)",
+                        "rca": f"Degradação de latência na rota da operadora (> {limit:.0f}ms)"
                     })
                 elif new_state == 'OK':
                     incidents.append({
                         "timestamp": timestamp,
                         "type": "RECOVERY",
                         "severity": "success",
-                        "message": f"{display_name} normalizado"
+                        "message": f"{display_name} normalizado",
+                        "rca": f"RTT restabelecido abaixo de {limit:.0f}ms"
                     })
                 dest_states[key] = new_state
 
@@ -669,6 +706,38 @@ def get_traffic_stats():
             WHERE timestamp >= datetime('now', '-24 hours')
         ''')
         row_rtt_peaks = cursor.fetchone()
+
+        # 5. Fetch Uptime and SLA Compliance (7d & 30d)
+        uptime_report = {}
+        for name, days_limit in [('7d', 7), ('30d', 30)]:
+            since_date = (datetime.datetime.now(tz_gmt3) - datetime.timedelta(days=days_limit)).strftime('%Y-%m-%d %H:%M:%S')
+            cursor.execute('''
+                SELECT 
+                    COUNT(*),
+                    SUM(CASE WHEN rtt_vivo_mm > 0.0 OR rtt_vivo_lf > 0.0 OR rtt_vivo_lp > 0.0 OR (rtt_vivo_rbd > 0.0 AND rtt_vivo_rbd IS NOT NULL) THEN 1 ELSE 0 END),
+                    SUM(CASE WHEN rtt_micks_mm > 0.0 OR rtt_micks_lf > 0.0 OR rtt_micks_lp > 0.0 OR (rtt_micks_rbd > 0.0 AND rtt_micks_rbd IS NOT NULL) THEN 1 ELSE 0 END),
+                    SUM(CASE WHEN (rtt_vivo_mm > 0.0 AND rtt_vivo_mm <= 150.0) AND (rtt_vivo_rbd > 0.0 AND rtt_vivo_rbd <= 150.0) THEN 1 ELSE 0 END),
+                    SUM(CASE WHEN (rtt_micks_mm > 0.0 AND rtt_micks_mm <= 250.0) AND (rtt_micks_rbd > 0.0 AND rtt_micks_rbd <= 250.0) THEN 1 ELSE 0 END)
+                FROM telemetry
+                WHERE timestamp >= ?
+            ''', (since_date,))
+            row_up = cursor.fetchone()
+            
+            if row_up and row_up[0] > 0:
+                total = row_up[0]
+                v_up = (row_up[1] / total) * 100.0
+                m_up = (row_up[2] / total) * 100.0
+                v_sla = (row_up[3] / total) * 100.0
+                m_sla = (row_up[4] / total) * 100.0
+            else:
+                v_up, m_up, v_sla, m_sla = 100.0, 100.0, 100.0, 100.0
+                
+            uptime_report[name] = {
+                "vivo_uptime": round(v_up, 2),
+                "micks_uptime": round(m_up, 2),
+                "vivo_sla": round(v_sla, 2),
+                "micks_sla": round(m_sla, 2)
+            }
 
         conn.close()
 
@@ -760,7 +829,8 @@ def get_traffic_stats():
                 "micks_rx_avg": db_micks_rx_avg,
                 "micks_tx_avg": db_micks_tx_avg
             },
-            "rtt_peaks": rtt_peaks
+            "rtt_peaks": rtt_peaks,
+            "uptime_report": uptime_report
         })
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
