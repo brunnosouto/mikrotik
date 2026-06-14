@@ -11,20 +11,49 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --bg-color: #08090c;
-            --card-bg: rgba(15, 18, 25, 0.7);
-            --card-glow-vivo: rgba(139, 92, 246, 0.12);
-            --card-glow-micks: rgba(0, 210, 252, 0.1);
-            --border-color: rgba(255, 255, 255, 0.08);
-            --text-main: #f5f6fa;
-            --text-muted: #8595ae;
-            --accent-vivo: #8b5cf6; /* Modern Purple */
-            --accent-micks: #00d2fc; /* Neon Cyan */
-            --accent-green: #00e676; /* Vibrant green */
-            --accent-orange: #ffab40;
-            --accent-red: #ff5252;
-            --glow-green: rgba(0, 230, 118, 0.35);
-            --glow-red: rgba(255, 82, 82, 0.35);
+            --bg-color: #000000;
+            --card-bg: #0c0d12;
+            --card-glow-vivo: rgba(139, 92, 246, 0.06);
+            --card-glow-micks: rgba(0, 210, 252, 0.05);
+            --border-color: rgba(255, 255, 255, 0.06);
+            --text-main: #ffffff;
+            --text-muted: #868e96;
+            --accent-vivo: #8b5cf6;
+            --accent-micks: #00d2fc;
+            --accent-green: #34c759; /* Apple iOS Green */
+            --accent-orange: #ff9500; /* Apple iOS Orange */
+            --accent-red: #ff3b30; /* Apple iOS Red */
+            --glow-green: rgba(52, 199, 89, 0.2);
+            --glow-red: rgba(255, 59, 48, 0.2);
+        }
+
+        /* Apple style segmented control */
+        .segmented-control {
+            display: inline-flex;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            padding: 3px;
+            gap: 2px;
+            margin-bottom: 1.2rem;
+        }
+        .segment-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 0.35rem 1rem;
+            border-radius: 7px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            outline: none;
+            font-family: inherit;
+        }
+        .segment-btn.active {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-main);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
         }
 
         /* Tooltip Style */
@@ -1080,115 +1109,49 @@
     </div>
 
     <!-- Charts Section -->
-    <div class="sla-grid">
-        <div class="chart-card">
-            <div class="chart-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
-                <div>
-                    <i class="fa-solid fa-heart-pulse"></i>
-                    <span>MobileMed SLA (150ms)</span>
-                </div>
-                <div style="display: flex; gap: 0.4rem; align-items: center;">
-                    <span class="bandwidth-badge" id="jitter-mm" style="font-size: 0.68rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.15rem 0.4rem; border-radius: 4px; color: var(--text-muted);">Jitter: -- ms</span>
-                    <span class="bandwidth-badge" id="loss-mm" style="font-size: 0.68rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.15rem 0.4rem; border-radius: 4px; color: var(--text-muted);">Perda: --%</span>
-                    <span class="bandwidth-badge" id="delta-mm" style="font-size: 0.68rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.15rem 0.4rem; border-radius: 4px;">Δt: -- ms</span>
-                </div>
+    <div class="chart-card" style="margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1rem;">
+            <div>
+                <h3 style="font-size: 1.1rem; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fa-solid fa-heart-pulse" style="color: var(--accent-vivo);"></i>
+                    <span id="master-chart-title">MobileMed SLA (150ms)</span>
+                </h3>
+                <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0.2rem 0 0 0;">Latência de ida e volta (RTT) das rotas de conexão</p>
             </div>
-            <!-- Subtitle for 24h High/Low Peaks -->
-            <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-muted); background: rgba(255,255,255,0.02); padding: 0.35rem 0.6rem; border-radius: 6px; margin-bottom: 0.8rem; border: 1px solid rgba(255,255,255,0.03);">
-                <div>VIVO 24h: <span id="rtt-mm-v-peaks" style="color: var(--accent-green); font-weight: 600;">-- / -- ms</span></div>
-                <div>MICKS 24h: <span id="rtt-mm-m-peaks" style="color: var(--accent-micks); font-weight: 600;">-- / -- ms</span></div>
-            </div>
-            <div class="chart-container">
-                <canvas id="chart-mobilemed"></canvas>
+            
+            <!-- Apple style segmented control for active destination -->
+            <div class="segmented-control">
+                <button class="segment-btn active" onclick="setActiveDestination('mm')">MobileMed</button>
+                <button class="segment-btn" onclick="setActiveDestination('rbd')">RBD PACS</button>
+                <button class="segment-btn" onclick="setActiveDestination('lf')">LifeFocus</button>
+                <button class="segment-btn" onclick="setActiveDestination('lp')">LifePlus</button>
+                <button class="segment-btn" onclick="setActiveDestination('ld')">Laudite</button>
             </div>
         </div>
 
-        <div class="chart-card">
-            <div class="chart-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
-                <div>
-                    <i class="fa-solid fa-heart-pulse"></i>
-                    <span>RBD PACS SLA (150ms)</span>
-                </div>
-                <div style="display: flex; gap: 0.4rem; align-items: center;">
-                    <span class="bandwidth-badge" id="jitter-rbd" style="font-size: 0.68rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.15rem 0.4rem; border-radius: 4px; color: var(--text-muted);">Jitter: -- ms</span>
-                    <span class="bandwidth-badge" id="loss-rbd" style="font-size: 0.68rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.15rem 0.4rem; border-radius: 4px; color: var(--text-muted);">Perda: --%</span>
-                    <span class="bandwidth-badge" id="delta-rbd" style="font-size: 0.68rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.15rem 0.4rem; border-radius: 4px;">Δt: -- ms</span>
-                </div>
-            </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1.2rem;">
             <!-- Subtitle for 24h High/Low Peaks -->
-            <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-muted); background: rgba(255,255,255,0.02); padding: 0.35rem 0.6rem; border-radius: 6px; margin-bottom: 0.8rem; border: 1px solid rgba(255,255,255,0.03);">
-                <div>VIVO 24h: <span id="rtt-rbd-v-peaks" style="color: var(--accent-green); font-weight: 600;">-- / -- ms</span></div>
-                <div>MICKS 24h: <span id="rtt-rbd-m-peaks" style="color: var(--accent-micks); font-weight: 600;">-- / -- ms</span></div>
+            <!-- Standard destinations peaks -->
+            <div id="peaks-standard" style="display: flex; gap: 1.5rem; font-size: 0.78rem; color: var(--text-muted); background: rgba(255,255,255,0.02); padding: 0.5rem 0.8rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03);">
+                <div>VIVO 24h: <span id="master-rtt-v-peaks" style="color: var(--accent-green); font-weight: 600;">-- / -- ms</span></div>
+                <div>MICKS 24h: <span id="master-rtt-m-peaks" style="color: var(--accent-micks); font-weight: 600;">-- / -- ms</span></div>
             </div>
-            <div class="chart-container">
-                <canvas id="chart-rbd"></canvas>
+            <!-- Laudite destination peaks -->
+            <div id="peaks-laudite" style="display: none; gap: 1.5rem; font-size: 0.78rem; color: var(--text-muted); background: rgba(255,255,255,0.02); padding: 0.5rem 0.8rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03); flex-wrap: wrap;">
+                <div>VIVO: Portal <span id="master-rtt-ld-v-peaks" style="color: var(--accent-green); font-weight: 600;">-- ms</span> | Voz <span id="master-rtt-lda-v-peaks" style="color: var(--accent-green); font-weight: 600;">-- ms</span></div>
+                <div>MICKS: Portal <span id="master-rtt-ld-m-peaks" style="color: var(--accent-micks); font-weight: 600;">-- ms</span> | Voz <span id="master-rtt-lda-m-peaks" style="color: var(--accent-micks); font-weight: 600;">-- ms</span></div>
+            </div>
+
+            <!-- Instantaneous badges for active destination -->
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <span class="bandwidth-badge" id="master-jitter" style="font-size: 0.72rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.25rem 0.6rem; border-radius: 6px; color: var(--text-muted);">Jitter: -- ms</span>
+                <span class="bandwidth-badge" id="master-loss" style="font-size: 0.72rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.25rem 0.6rem; border-radius: 6px; color: var(--text-muted);">Perda: --%</span>
+                <span class="bandwidth-badge" id="master-delta" style="font-size: 0.72rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.25rem 0.6rem; border-radius: 6px;">Δt: -- ms</span>
             </div>
         </div>
 
-        <div class="chart-card">
-            <div class="chart-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
-                <div>
-                    <i class="fa-solid fa-heart-pulse"></i>
-                    <span>LifeFocus SLA (280ms)</span>
-                </div>
-                <div style="display: flex; gap: 0.4rem; align-items: center;">
-                    <span class="bandwidth-badge" id="jitter-lf" style="font-size: 0.68rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.15rem 0.4rem; border-radius: 4px; color: var(--text-muted);">Jitter: -- ms</span>
-                    <span class="bandwidth-badge" id="loss-lf" style="font-size: 0.68rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.15rem 0.4rem; border-radius: 4px; color: var(--text-muted);">Perda: --%</span>
-                    <span class="bandwidth-badge" id="delta-lf" style="font-size: 0.68rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.15rem 0.4rem; border-radius: 4px;">Δt: -- ms</span>
-                </div>
-            </div>
-            <!-- Subtitle for 24h High/Low Peaks -->
-            <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-muted); background: rgba(255,255,255,0.02); padding: 0.35rem 0.6rem; border-radius: 6px; margin-bottom: 0.8rem; border: 1px solid rgba(255,255,255,0.03);">
-                <div>VIVO 24h: <span id="rtt-lf-v-peaks" style="color: var(--accent-green); font-weight: 600;">-- / -- ms</span></div>
-                <div>MICKS 24h: <span id="rtt-lf-m-peaks" style="color: var(--accent-micks); font-weight: 600;">-- / -- ms</span></div>
-            </div>
-            <div class="chart-container">
-                <canvas id="chart-lifefocus"></canvas>
-            </div>
-        </div>
-
-        <div class="chart-card">
-            <div class="chart-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
-                <div>
-                    <i class="fa-solid fa-heart-pulse"></i>
-                    <span>LifePlus SLA (280ms)</span>
-                </div>
-                <div style="display: flex; gap: 0.4rem; align-items: center;">
-                    <span class="bandwidth-badge" id="jitter-lp" style="font-size: 0.68rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.15rem 0.4rem; border-radius: 4px; color: var(--text-muted);">Jitter: -- ms</span>
-                    <span class="bandwidth-badge" id="loss-lp" style="font-size: 0.68rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.15rem 0.4rem; border-radius: 4px; color: var(--text-muted);">Perda: --%</span>
-                    <span class="bandwidth-badge" id="delta-lp" style="font-size: 0.68rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.15rem 0.4rem; border-radius: 4px;">Δt: -- ms</span>
-                </div>
-            </div>
-            <!-- Subtitle for 24h High/Low Peaks -->
-            <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-muted); background: rgba(255,255,255,0.02); padding: 0.35rem 0.6rem; border-radius: 6px; margin-bottom: 0.8rem; border: 1px solid rgba(255,255,255,0.03);">
-                <div>VIVO 24h: <span id="rtt-lp-v-peaks" style="color: var(--accent-green); font-weight: 600;">-- / -- ms</span></div>
-                <div>MICKS 24h: <span id="rtt-lp-m-peaks" style="color: var(--accent-micks); font-weight: 600;">-- / -- ms</span></div>
-            </div>
-            <div class="chart-container">
-                <canvas id="chart-lifeplus"></canvas>
-            </div>
-        </div>
-
-        <div class="chart-card">
-            <div class="chart-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
-                <div>
-                    <i class="fa-solid fa-heart-pulse"></i>
-                    <span>Laudite SLA (250ms)</span>
-                </div>
-                <div style="display: flex; gap: 0.4rem; align-items: center;">
-                    <span class="bandwidth-badge" id="jitter-ld" style="font-size: 0.68rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.15rem 0.4rem; border-radius: 4px; color: var(--text-muted);">Jitter: -- ms</span>
-                    <span class="bandwidth-badge" id="loss-ld" style="font-size: 0.68rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.15rem 0.4rem; border-radius: 4px; color: var(--text-muted);">Perda: --%</span>
-                    <span class="bandwidth-badge" id="delta-ld" style="font-size: 0.68rem; font-weight: 600; background: rgba(255,255,255,0.04); padding: 0.15rem 0.4rem; border-radius: 4px;">Δt: -- ms</span>
-                </div>
-            </div>
-            <!-- Subtitle for 24h High/Low Peaks -->
-            <div style="display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--text-muted); background: rgba(255,255,255,0.02); padding: 0.35rem 0.6rem; border-radius: 6px; margin-bottom: 0.8rem; border: 1px solid rgba(255,255,255,0.03); flex-wrap: wrap; gap: 0.3rem;">
-                <div>VIVO: Portal <span id="rtt-ld-v-peaks" style="color: var(--accent-green); font-weight: 600;">-- ms</span> | Voz <span id="rtt-lda-v-peaks" style="color: var(--accent-green); font-weight: 600;">-- ms</span></div>
-                <div>MICKS: Portal <span id="rtt-ld-m-peaks" style="color: var(--accent-micks); font-weight: 600;">-- ms</span> | Voz <span id="rtt-lda-m-peaks" style="color: var(--accent-micks); font-weight: 600;">-- ms</span></div>
-            </div>
-            <div class="chart-container">
-                <canvas id="chart-laudite"></canvas>
-            </div>
+        <div class="chart-container" style="height: 320px; position: relative;">
+            <canvas id="chart-master-latency"></canvas>
         </div>
     </div>
 
@@ -1250,6 +1213,9 @@
     <!-- Dashboard Scripts -->
     <script>
         window.currentTimeRange = '1h';
+        window.telemetryHistory = [];
+        window.activeDestination = 'mm';
+        window.currentRttPeaks = null;
         
         // SLA Target Line Plugin
         const slaLinePlugin = {
@@ -1433,13 +1399,13 @@
             }
         };
 
-        const ctxMM = document.getElementById('chart-mobilemed').getContext('2d');
-        const chartMM = new Chart(ctxMM, {
+        const ctxMaster = document.getElementById('chart-master-latency').getContext('2d');
+        const chartMasterLatency = new Chart(ctxMaster, {
             type: 'line',
             data: {
                 labels: [],
                 datasets: [
-                    { label: 'VIVO', data: [], borderColor: '#6f42c1', backgroundColor: purpleGradientCallback, fill: true, tension: 0.3, segment: segmentStyle },
+                    { label: 'VIVO', data: [], borderColor: '#8b5cf6', backgroundColor: purpleGradientCallback, fill: true, tension: 0.3, segment: segmentStyle },
                     { label: 'MICKS', data: [], borderColor: '#00d2fc', backgroundColor: blueGradientCallback, fill: true, tension: 0.3, segment: segmentStyle }
                 ]
             },
@@ -1450,78 +1416,8 @@
             plugins: [slaLinePlugin, syncedCrosshairPlugin]
         });
 
-        const ctxRBD = document.getElementById('chart-rbd').getContext('2d');
-        const chartRBD = new Chart(ctxRBD, {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [
-                    { label: 'VIVO', data: [], borderColor: '#6f42c1', backgroundColor: purpleGradientCallback, fill: true, tension: 0.3, segment: segmentStyle },
-                    { label: 'MICKS', data: [], borderColor: '#00d2fc', backgroundColor: blueGradientCallback, fill: true, tension: 0.3, segment: segmentStyle }
-                ]
-            },
-            options: {
-                ...chartOptions,
-                slaValue: 150
-            },
-            plugins: [slaLinePlugin, syncedCrosshairPlugin]
-        });
-
-        const ctxLF = document.getElementById('chart-lifefocus').getContext('2d');
-        const chartLF = new Chart(ctxLF, {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [
-                    { label: 'VIVO', data: [], borderColor: '#6f42c1', backgroundColor: purpleGradientCallback, fill: true, tension: 0.3, segment: segmentStyle },
-                    { label: 'MICKS', data: [], borderColor: '#00d2fc', backgroundColor: blueGradientCallback, fill: true, tension: 0.3, segment: segmentStyle }
-                ]
-            },
-            options: {
-                ...chartOptions,
-                slaValue: 280
-            },
-            plugins: [slaLinePlugin, syncedCrosshairPlugin]
-        });
-
-        const ctxLP = document.getElementById('chart-lifeplus').getContext('2d');
-        const chartLP = new Chart(ctxLP, {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [
-                    { label: 'VIVO', data: [], borderColor: '#6f42c1', backgroundColor: purpleGradientCallback, fill: true, tension: 0.3, segment: segmentStyle },
-                    { label: 'MICKS', data: [], borderColor: '#00d2fc', backgroundColor: blueGradientCallback, fill: true, tension: 0.3, segment: segmentStyle }
-                ]
-            },
-            options: {
-                ...chartOptions,
-                slaValue: 280
-            },
-            plugins: [slaLinePlugin, syncedCrosshairPlugin]
-        });
-
-        const ctxLD = document.getElementById('chart-laudite').getContext('2d');
-        const chartLD = new Chart(ctxLD, {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [
-                    { label: 'VIVO Portal', data: [], borderColor: '#6f42c1', backgroundColor: 'transparent', borderWidth: 2, fill: false, tension: 0.3, segment: segmentStyle },
-                    { label: 'MICKS Portal', data: [], borderColor: '#00d2fc', backgroundColor: 'transparent', borderWidth: 2, fill: false, tension: 0.3, segment: segmentStyle },
-                    { label: 'VIVO Voz', data: [], borderColor: '#6f42c1', backgroundColor: 'transparent', borderWidth: 2, borderDash: [4, 4], fill: false, tension: 0.3, segment: segmentStyle },
-                    { label: 'MICKS Voz', data: [], borderColor: '#00d2fc', backgroundColor: 'transparent', borderWidth: 2, borderDash: [4, 4], fill: false, tension: 0.3, segment: segmentStyle }
-                ]
-            },
-            options: {
-                ...chartOptions,
-                slaValue: 250
-            },
-            plugins: [slaLinePlugin, syncedCrosshairPlugin]
-        });
-
-        // Register charts globally for synced crosshair
-        activeCharts.push(chartMM, chartRBD, chartLF, chartLP, chartLD);
+        // Register master chart globally for synced crosshair
+        activeCharts.push(chartMasterLatency);
 
         // Custom plugin to draw horizontal peak lines inside bandwidth charts
         const peakLinesPlugin = {
@@ -1620,28 +1516,281 @@
             plugins: [peakLinesPlugin]
         });
 
+        // Register bandwidth charts globally for synced crosshair after creation
+        activeCharts.push(chartBwVivo, chartBwMicks);
+
         function formatBytes(bits) {
             const mbps = bits / 1000000;
             return mbps.toFixed(2) + " Mbps";
         }
 
-        async function fetchAndUpdate() {
+        function setActiveDestination(dest) {
+            window.activeDestination = dest;
+            
+            // Update button active classes in the UI
+            const buttons = document.querySelectorAll('.segment-btn');
+            buttons.forEach(btn => {
+                if (btn.getAttribute('onclick').includes(`'${dest}'`)) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            // Update title text and SLA line threshold
+            let title = "MobileMed SLA (150ms)";
+            let slaVal = 150;
+            
+            if (dest === 'mm') {
+                title = "MobileMed SLA (150ms)";
+                slaVal = 150;
+            } else if (dest === 'rbd') {
+                title = "RBD PACS SLA (150ms)";
+                slaVal = 150;
+            } else if (dest === 'lf') {
+                title = "LifeFocus SLA (280ms)";
+                slaVal = 280;
+            } else if (dest === 'lp') {
+                title = "LifePlus SLA (280ms)";
+                slaVal = 280;
+            } else if (dest === 'ld') {
+                title = "Laudite SLA (250ms)";
+                slaVal = 250;
+            }
+            
+            document.getElementById('master-chart-title').innerText = title;
+            chartMasterLatency.options.slaValue = slaVal;
+
+            // Define segment border details
+            const segmentStyle = {
+                borderColor: ctx => {
+                    const y0 = ctx.p0.parsed.y;
+                    const y1 = ctx.p1.parsed.y;
+                    return (y0 === 0 || y1 === 0) ? '#ff4a5a' : undefined;
+                },
+                borderDash: ctx => {
+                    const y0 = ctx.p0.parsed.y;
+                    const y1 = ctx.p1.parsed.y;
+                    return (y0 === 0 || y1 === 0) ? [4, 4] : undefined;
+                }
+            };
+
+            // Switch datasets structure
+            if (dest === 'ld') {
+                chartMasterLatency.data.datasets = [
+                    { label: 'VIVO Portal', data: [], borderColor: '#8b5cf6', backgroundColor: 'transparent', borderWidth: 2, fill: false, tension: 0.3, segment: segmentStyle },
+                    { label: 'MICKS Portal', data: [], borderColor: '#00d2fc', backgroundColor: 'transparent', borderWidth: 2, fill: false, tension: 0.3, segment: segmentStyle },
+                    { label: 'VIVO Voz', data: [], borderColor: '#8b5cf6', backgroundColor: 'transparent', borderWidth: 2, borderDash: [4, 4], fill: false, tension: 0.3, segment: segmentStyle },
+                    { label: 'MICKS Voz', data: [], borderColor: '#00d2fc', backgroundColor: 'transparent', borderWidth: 2, borderDash: [4, 4], fill: false, tension: 0.3, segment: segmentStyle }
+                ];
+            } else {
+                chartMasterLatency.data.datasets = [
+                    { label: 'VIVO', data: [], borderColor: '#8b5cf6', backgroundColor: purpleGradientCallback, fill: true, tension: 0.3, segment: segmentStyle },
+                    { label: 'MICKS', data: [], borderColor: '#00d2fc', backgroundColor: blueGradientCallback, fill: true, tension: 0.3, segment: segmentStyle }
+                ];
+            }
+
+            // Toggle peaks layouts
+            if (dest === 'ld') {
+                document.getElementById('peaks-standard').style.display = 'none';
+                document.getElementById('peaks-laudite').style.display = 'flex';
+            } else {
+                document.getElementById('peaks-standard').style.display = 'flex';
+                document.getElementById('peaks-laudite').style.display = 'none';
+            }
+
+            // Load and update
+            populateMasterChartData();
+            chartMasterLatency.update();
+            updateMasterMetrics();
+        }
+
+        function populateMasterChartData() {
+            if (!window.telemetryHistory || window.telemetryHistory.length === 0) return;
+            const data = window.telemetryHistory;
+            const dest = window.activeDestination || 'mm';
+
+            // Map labels
+            const labels = data.map(item => {
+                const t = new Date(item.timestamp.replace(' ', 'T'));
+                if (window.currentTimeRange === '24h' || window.currentTimeRange === '7d') {
+                    return t.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ' ' + t.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                }
+                return t.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            });
+            chartMasterLatency.data.labels = labels;
+
+            // Map datasets data
+            if (dest === 'mm') {
+                chartMasterLatency.data.datasets[0].data = data.map(item => item.rtt_vivo_mm);
+                chartMasterLatency.data.datasets[1].data = data.map(item => item.rtt_micks_mm);
+            } else if (dest === 'rbd') {
+                chartMasterLatency.data.datasets[0].data = data.map(item => item.rtt_vivo_rbd || 0);
+                chartMasterLatency.data.datasets[1].data = data.map(item => item.rtt_micks_rbd || 0);
+            } else if (dest === 'lf') {
+                chartMasterLatency.data.datasets[0].data = data.map(item => item.rtt_vivo_lf);
+                chartMasterLatency.data.datasets[1].data = data.map(item => item.rtt_micks_lf);
+            } else if (dest === 'lp') {
+                chartMasterLatency.data.datasets[0].data = data.map(item => item.rtt_vivo_lp);
+                chartMasterLatency.data.datasets[1].data = data.map(item => item.rtt_micks_lp);
+            } else if (dest === 'ld') {
+                chartMasterLatency.data.datasets[0].data = data.map(item => item.rtt_vivo_laudite || 0);
+                chartMasterLatency.data.datasets[1].data = data.map(item => item.rtt_micks_laudite || 0);
+                chartMasterLatency.data.datasets[2].data = data.map(item => item.rtt_vivo_laudite_asr || 0);
+                chartMasterLatency.data.datasets[3].data = data.map(item => item.rtt_micks_laudite_asr || 0);
+            }
+        }
+
+        function updateMasterMetrics() {
+            if (!window.telemetryHistory || window.telemetryHistory.length === 0) return;
+            const latest = window.telemetryHistory[window.telemetryHistory.length - 1];
+            const dest = window.activeDestination || 'mm';
+            
+            // Update Delta Badge
+            let vivoVal = 0, micksVal = 0;
+            if (dest === 'mm') {
+                vivoVal = latest.rtt_vivo_mm;
+                micksVal = latest.rtt_micks_mm;
+            } else if (dest === 'rbd') {
+                vivoVal = latest.rtt_vivo_rbd || 0;
+                micksVal = latest.rtt_micks_rbd || 0;
+            } else if (dest === 'lf') {
+                vivoVal = latest.rtt_vivo_lf;
+                micksVal = latest.rtt_micks_lf;
+            } else if (dest === 'lp') {
+                vivoVal = latest.rtt_vivo_lp;
+                micksVal = latest.rtt_micks_lp;
+            } else if (dest === 'ld') {
+                vivoVal = latest.rtt_vivo_laudite;
+                micksVal = latest.rtt_micks_laudite;
+            }
+            
+            updateDeltaBadge('master-delta', vivoVal, micksVal);
+            
+            // Update Jitter & Loss
+            let rttList = [];
+            if (dest === 'mm') {
+                rttList = window.telemetryHistory.map(item => item.link_ativo === "VIVO" ? item.rtt_vivo_mm : item.rtt_micks_mm);
+            } else if (dest === 'rbd') {
+                rttList = window.telemetryHistory.map(item => item.link_ativo === "VIVO" ? (item.rtt_vivo_rbd || 0) : (item.rtt_micks_rbd || 0));
+            } else if (dest === 'lf') {
+                rttList = window.telemetryHistory.map(item => item.link_ativo === "VIVO" ? item.rtt_vivo_lf : item.rtt_micks_lf);
+            } else if (dest === 'lp') {
+                rttList = window.telemetryHistory.map(item => item.link_ativo === "VIVO" ? item.rtt_vivo_lp : item.rtt_micks_lp);
+            } else if (dest === 'ld') {
+                rttList = window.telemetryHistory.map(item => item.link_ativo === "VIVO" ? item.rtt_vivo_laudite : item.rtt_micks_laudite);
+            }
+            updateJitterAndLoss('master-jitter', 'master-loss', rttList);
+            
+            // Update Peaks text
+            const rp = window.currentRttPeaks;
+            if (rp) {
+                if (dest === 'ld') {
+                    document.getElementById('master-rtt-ld-v-peaks').innerText = `${rp.ld_vivo_max.toFixed(1)} / ${rp.ld_vivo_min.toFixed(1)} ms`;
+                    document.getElementById('master-rtt-ld-m-peaks').innerText = `${rp.ld_micks_max.toFixed(1)} / ${rp.ld_micks_min.toFixed(1)} ms`;
+                    document.getElementById('master-rtt-lda-v-peaks').innerText = `${rp.lda_vivo_max.toFixed(1)} / ${rp.lda_vivo_min.toFixed(1)} ms`;
+                    document.getElementById('master-rtt-lda-m-peaks').innerText = `${rp.lda_micks_max.toFixed(1)} / ${rp.lda_micks_min.toFixed(1)} ms`;
+                } else {
+                    const vMax = rp[`${dest}_vivo_max`] || 0;
+                    const vMin = rp[`${dest}_vivo_min`] || 0;
+                    const mMax = rp[`${dest}_micks_max`] || 0;
+                    const mMin = rp[`${dest}_micks_min`] || 0;
+                    document.getElementById('master-rtt-v-peaks').innerText = `${vMax.toFixed(1)} / ${vMin.toFixed(1)} ms`;
+                    document.getElementById('master-rtt-m-peaks').innerText = `${mMax.toFixed(1)} / ${mMin.toFixed(1)} ms`;
+                }
+            }
+        }
+
+        let isFetching = false;
+        let lastFullStatsFetch = 0;
+
+        async function fetchAndUpdate(forceFull = false) {
+            if (isFetching) return;
+            isFetching = true;
             try {
                 let hours = 1;
                 if (window.currentTimeRange === '12h') hours = 12;
                 else if (window.currentTimeRange === '24h') hours = 24;
                 else if (window.currentTimeRange === '7d') hours = 168;
 
-                const response = await fetch(`/api/data?hours=${hours}`);
-                if (!response.ok) throw new Error("API error");
-                const data = await response.json();
-                
-                if (data.length === 0) return;
+                const needFull = forceFull || !window.telemetryHistory || window.telemetryHistory.length === 0;
+                let latest;
 
-                // Update latest record values
-                const latest = data[data.length - 1];
-                
-                // Uptime & Connection
+                if (needFull) {
+                    const response = await fetch(`/api/data?hours=${hours}`);
+                    if (!response.ok) throw new Error("API error");
+                    const data = await response.json();
+                    
+                    if (data.length === 0) {
+                        isFetching = false;
+                        return;
+                    }
+                    window.telemetryHistory = data;
+                    latest = data[data.length - 1];
+
+                    // Pre-populate bandwidth charts with history
+                    const startIdx = Math.max(0, data.length - maxBwPoints);
+                    vivoRxData.fill(0);
+                    vivoTxData.fill(0);
+                    micksRxData.fill(0);
+                    micksTxData.fill(0);
+                    bwLabels.fill('');
+                    
+                    for (let i = startIdx; i < data.length; i++) {
+                        const item = data[i];
+                        const idxInBw = i - startIdx;
+                        vivoRxData[idxInBw] = item.traffic_vivo_rx / 1000000;
+                        vivoTxData[idxInBw] = item.traffic_vivo_tx / 1000000;
+                        micksRxData[idxInBw] = item.traffic_micks_rx / 1000000;
+                        micksTxData[idxInBw] = item.traffic_micks_tx / 1000000;
+                        const t = new Date(item.timestamp.replace(' ', 'T'));
+                        bwLabels[idxInBw] = t.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    }
+                    chartBwVivo.update('none');
+                    chartBwMicks.update('none');
+                } else {
+                    // Incremental, lightweight poll
+                    const response = await fetch('/api/data/latest');
+                    if (!response.ok) throw new Error("API error");
+                    latest = await response.json();
+                    
+                    if (!latest || !latest.timestamp) {
+                        isFetching = false;
+                        return;
+                    }
+
+                    const lastInHistory = window.telemetryHistory[window.telemetryHistory.length - 1];
+                    if (lastInHistory && lastInHistory.timestamp !== latest.timestamp) {
+                        window.telemetryHistory.push(latest);
+                        
+                        // Limit size of in-memory history
+                        const cutoffTime = Date.now() - hours * 3600 * 1000;
+                        window.telemetryHistory = window.telemetryHistory.filter(item => {
+                            const itemTime = new Date(item.timestamp.replace(' ', 'T')).getTime();
+                            return itemTime >= cutoffTime;
+                        });
+
+                        // Shift bandwidth data
+                        const nowTimeStr = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                        vivoRxData.push(latest.traffic_vivo_rx / 1000000);
+                        vivoRxData.shift();
+                        vivoTxData.push(latest.traffic_vivo_tx / 1000000);
+                        vivoTxData.shift();
+
+                        micksRxData.push(latest.traffic_micks_rx / 1000000);
+                        micksRxData.shift();
+                        micksTxData.push(latest.traffic_micks_tx / 1000000);
+                        micksTxData.shift();
+
+                        bwLabels.push(nowTimeStr);
+                        bwLabels.shift();
+
+                        chartBwVivo.update('none');
+                        chartBwMicks.update('none');
+                    }
+                }
+
+                // Update uptime and router connection
                 document.getElementById('router-uptime').innerText = latest.uptime;
                 document.getElementById('system-uptime').innerText = latest.uptime;
                 document.getElementById('connection-dot').classList.remove('down');
@@ -1697,101 +1846,21 @@
                 document.getElementById('vivo-errors').style.color = (latest.eth1_errors > 0) ? "var(--accent-red)" : "var(--text-muted)";
                 document.getElementById('micks-errors').style.color = (latest.eth2_errors > 0) ? "var(--accent-red)" : "var(--text-muted)";
 
-                // Update charts data
-                const labels = data.map(item => {
-                    const t = new Date(item.timestamp.replace(' ', 'T'));
-                    if (window.currentTimeRange === '24h' || window.currentTimeRange === '7d') {
-                        return t.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ' ' + t.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                    }
-                    return t.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                });
+                // Re-populate and update the master chart using in-memory history
+                populateMasterChartData();
+                chartMasterLatency.update('none');
 
-                // Update MobileMed
-                chartMM.data.labels = labels;
-                chartMM.data.datasets[0].data = data.map(item => item.rtt_vivo_mm);
-                chartMM.data.datasets[1].data = data.map(item => item.rtt_micks_mm);
-                chartMM.update('none');
+                // Update master chart badges and peak statistics
+                updateMasterMetrics();
 
-                // Update RBD PACS
-                chartRBD.data.labels = labels;
-                chartRBD.data.datasets[0].data = data.map(item => item.rtt_vivo_rbd || 0);
-                chartRBD.data.datasets[1].data = data.map(item => item.rtt_micks_rbd || 0);
-                chartRBD.update('none');
+                // Recalculate and update the SLA quality side-by-side table using in-memory history
+                calculateSLAQuality(window.telemetryHistory, 'rtt_vivo_mm', 'rtt_micks_mm', 150.0, 'sla-vivo-rtt-mm', 'sla-vivo-jitter-mm', 'sla-vivo-loss-mm', 'sla-micks-rtt-mm', 'sla-micks-jitter-mm', 'sla-micks-loss-mm', 'sla-status-mm');
+                calculateSLAQuality(window.telemetryHistory, 'rtt_vivo_rbd', 'rtt_micks_rbd', 150.0, 'sla-vivo-rtt-rbd', 'sla-vivo-jitter-rbd', 'sla-vivo-loss-rbd', 'sla-micks-rtt-rbd', 'sla-micks-jitter-rbd', 'sla-micks-loss-rbd', 'sla-status-rbd');
+                calculateSLAQuality(window.telemetryHistory, 'rtt_vivo_lf', 'rtt_micks_lf', 280.0, 'sla-vivo-rtt-lf', 'sla-vivo-jitter-lf', 'sla-vivo-loss-lf', 'sla-micks-rtt-lf', 'sla-micks-jitter-lf', 'sla-micks-loss-lf', 'sla-status-lf');
+                calculateSLAQuality(window.telemetryHistory, 'rtt_vivo_lp', 'rtt_micks_lp', 280.0, 'sla-vivo-rtt-lp', 'sla-vivo-jitter-lp', 'sla-vivo-loss-lp', 'sla-micks-rtt-lp', 'sla-micks-jitter-lp', 'sla-micks-loss-lp', 'sla-status-lp');
+                calculateSLAQuality(window.telemetryHistory, 'rtt_vivo_laudite', 'rtt_micks_laudite', 250.0, 'sla-vivo-rtt-ld', 'sla-vivo-jitter-ld', 'sla-vivo-loss-ld', 'sla-micks-rtt-ld', 'sla-micks-jitter-ld', 'sla-micks-loss-ld', 'sla-status-ld');
 
-                // Update LifeFocus
-                chartLF.data.labels = labels;
-                chartLF.data.datasets[0].data = data.map(item => item.rtt_vivo_lf);
-                chartLF.data.datasets[1].data = data.map(item => item.rtt_micks_lf);
-                chartLF.update('none');
-
-                // Update LifePlus
-                chartLP.data.labels = labels;
-                chartLP.data.datasets[0].data = data.map(item => item.rtt_vivo_lp);
-                chartLP.data.datasets[1].data = data.map(item => item.rtt_micks_lp);
-                chartLP.update('none');
-
-                // Update Laudite
-                chartLD.data.labels = labels;
-                chartLD.data.datasets[0].data = data.map(item => item.rtt_vivo_laudite || 0);
-                chartLD.data.datasets[1].data = data.map(item => item.rtt_micks_laudite || 0);
-                chartLD.data.datasets[2].data = data.map(item => item.rtt_vivo_laudite_asr || 0);
-                chartLD.data.datasets[3].data = data.map(item => item.rtt_micks_laudite_asr || 0);
-                chartLD.update('none');
-
-                // Update Rolling Bandwidth data buffers (convert bits per second to Mbps)
-                const nowTimeStr = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                
-                vivoRxData.push(latest.traffic_vivo_rx / 1000000);
-                vivoRxData.shift();
-                vivoTxData.push(latest.traffic_vivo_tx / 1000000);
-                vivoTxData.shift();
-
-                micksRxData.push(latest.traffic_micks_rx / 1000000);
-                micksRxData.shift();
-                micksTxData.push(latest.traffic_micks_tx / 1000000);
-                micksTxData.shift();
-
-                bwLabels.push(nowTimeStr);
-                bwLabels.shift();
-
-                // Update charts
-                chartBwVivo.update('none');
-                chartBwMicks.update('none');
-
-                // Update delta badges
-                updateDeltaBadge('delta-mm', latest.rtt_vivo_mm, latest.rtt_micks_mm);
-                updateDeltaBadge('delta-rbd', latest.rtt_vivo_rbd, latest.rtt_micks_rbd);
-                updateDeltaBadge('delta-lf', latest.rtt_vivo_lf, latest.rtt_micks_lf);
-                updateDeltaBadge('delta-lp', latest.rtt_vivo_lp, latest.rtt_micks_lp);
-                updateDeltaBadge('delta-ld', latest.rtt_vivo_laudite, latest.rtt_micks_laudite);
-
-                // Update Jitter & Loss for active link
-                const mmRtts = data.map(item => item.link_ativo === "VIVO" ? item.rtt_vivo_mm : item.rtt_micks_mm);
-                const rbdRtts = data.map(item => item.link_ativo === "VIVO" ? (item.rtt_vivo_rbd || 0) : (item.rtt_micks_rbd || 0));
-                const lfRtts = data.map(item => item.link_ativo === "VIVO" ? item.rtt_vivo_lf : item.rtt_micks_lf);
-                const lpRtts = data.map(item => item.link_ativo === "VIVO" ? item.rtt_vivo_lp : item.rtt_micks_lp);
-                const ldRtts = data.map(item => item.link_ativo === "VIVO" ? item.rtt_vivo_laudite : item.rtt_micks_laudite);
-                
-                updateJitterAndLoss('jitter-mm', 'loss-mm', mmRtts);
-                updateJitterAndLoss('jitter-rbd', 'loss-rbd', rbdRtts);
-                updateJitterAndLoss('jitter-lf', 'loss-lf', lfRtts);
-                updateJitterAndLoss('jitter-lp', 'loss-lp', lpRtts);
-                updateJitterAndLoss('jitter-ld', 'loss-ld', ldRtts);
-
-                // Update SLA Side-by-Side Table
-                calculateSLAQuality(data, 'rtt_vivo_mm', 'rtt_micks_mm', 150.0, 'sla-vivo-rtt-mm', 'sla-vivo-jitter-mm', 'sla-vivo-loss-mm', 'sla-micks-rtt-mm', 'sla-micks-jitter-mm', 'sla-micks-loss-mm', 'sla-status-mm');
-                calculateSLAQuality(data, 'rtt_vivo_rbd', 'rtt_micks_rbd', 150.0, 'sla-vivo-rtt-rbd', 'sla-vivo-jitter-rbd', 'sla-vivo-loss-rbd', 'sla-micks-rtt-rbd', 'sla-micks-jitter-rbd', 'sla-micks-loss-rbd', 'sla-status-rbd');
-                calculateSLAQuality(data, 'rtt_vivo_lf', 'rtt_micks_lf', 280.0, 'sla-vivo-rtt-lf', 'sla-vivo-jitter-lf', 'sla-vivo-loss-lf', 'sla-micks-rtt-lf', 'sla-micks-jitter-lf', 'sla-micks-loss-lf', 'sla-status-lf');
-                calculateSLAQuality(data, 'rtt_vivo_lp', 'rtt_micks_lp', 280.0, 'sla-vivo-rtt-lp', 'sla-vivo-jitter-lp', 'sla-vivo-loss-lp', 'sla-micks-rtt-lp', 'sla-micks-jitter-lp', 'sla-micks-loss-lp', 'sla-status-lp');
-                calculateSLAQuality(data, 'rtt_vivo_laudite', 'rtt_micks_laudite', 250.0, 'sla-vivo-rtt-ld', 'sla-vivo-jitter-ld', 'sla-vivo-loss-ld', 'sla-micks-rtt-ld', 'sla-micks-jitter-ld', 'sla-micks-loss-ld', 'sla-status-ld');
-
-                // Fetch incident log
-                fetchIncidents();
-
-                // Fetch daily and monthly traffic totals
-                fetchTrafficStats();
-
-                // Check for active alerts in latest telemetry
+                // Active alerts banner check
                 const activeAlertBanner = document.getElementById('active-alert-banner');
                 const alertMessage = document.getElementById('alert-banner-message');
                 const alertTime = document.getElementById('alert-banner-time');
@@ -1802,7 +1871,6 @@
                         activeAlerts.push("Link de Backup (MICKS) ativo devido a instabilidade na VIVO");
                     }
                     
-                    // Check RTT thresholds
                     if (latest.rtt_vivo_mm === 0 || latest.rtt_vivo_mm > 150) activeAlerts.push("MobileMed instável na VIVO");
                     if ((latest.rtt_vivo_rbd || 0) === 0 || (latest.rtt_vivo_rbd || 0) > 150) activeAlerts.push("RBD PACS instável na VIVO");
                     if (latest.rtt_vivo_lf === 0 || latest.rtt_vivo_lf > 280) activeAlerts.push("LifeFocus instável na VIVO");
@@ -1818,10 +1886,20 @@
                     }
                 }
 
+                // Periodically fetch heavy statistics and logs (every 30 seconds) to avoid database lock/high load
+                const now = Date.now();
+                if (needFull || (now - lastFullStatsFetch > 30000)) {
+                    fetchIncidents();
+                    fetchTrafficStats();
+                    lastFullStatsFetch = now;
+                }
+
             } catch (err) {
                 console.error("Fetch update failed:", err);
                 document.getElementById('connection-dot').classList.add('down');
                 document.getElementById('connection-status').innerText = "Offline";
+            } finally {
+                isFetching = false;
             }
         }
 
@@ -1926,23 +2004,8 @@
 
                 // Update SLA 24h peaks UI badges (Max / Min RTT)
                 if (stats.rtt_peaks) {
-                    const rp = stats.rtt_peaks;
-                    document.getElementById('rtt-mm-v-peaks').innerText = `${rp.mm_vivo_max.toFixed(1)} / ${rp.mm_vivo_min.toFixed(1)} ms`;
-                    document.getElementById('rtt-mm-m-peaks').innerText = `${rp.mm_micks_max.toFixed(1)} / ${rp.mm_micks_min.toFixed(1)} ms`;
-                    
-                    document.getElementById('rtt-rbd-v-peaks').innerText = `${(rp.rbd_vivo_max || 0.0).toFixed(1)} / ${(rp.rbd_vivo_min || 0.0).toFixed(1)} ms`;
-                    document.getElementById('rtt-rbd-m-peaks').innerText = `${(rp.rbd_micks_max || 0.0).toFixed(1)} / ${(rp.rbd_micks_min || 0.0).toFixed(1)} ms`;
-                    
-                    document.getElementById('rtt-lf-v-peaks').innerText = `${rp.lf_vivo_max.toFixed(1)} / ${rp.lf_vivo_min.toFixed(1)} ms`;
-                    document.getElementById('rtt-lf-m-peaks').innerText = `${rp.lf_micks_max.toFixed(1)} / ${rp.lf_micks_min.toFixed(1)} ms`;
-                    
-                    document.getElementById('rtt-lp-v-peaks').innerText = `${rp.lp_vivo_max.toFixed(1)} / ${rp.lp_vivo_min.toFixed(1)} ms`;
-                    document.getElementById('rtt-lp-m-peaks').innerText = `${rp.lp_micks_max.toFixed(1)} / ${rp.lp_micks_min.toFixed(1)} ms`;
-                    
-                    document.getElementById('rtt-ld-v-peaks').innerText = `${rp.ld_vivo_max.toFixed(1)} / ${rp.ld_vivo_min.toFixed(1)} ms`;
-                    document.getElementById('rtt-ld-m-peaks').innerText = `${rp.ld_micks_max.toFixed(1)} / ${rp.ld_micks_min.toFixed(1)} ms`;
-                    document.getElementById('rtt-lda-v-peaks').innerText = `${rp.lda_vivo_max.toFixed(1)} / ${rp.lda_vivo_min.toFixed(1)} ms`;
-                    document.getElementById('rtt-lda-m-peaks').innerText = `${rp.lda_micks_max.toFixed(1)} / ${rp.lda_micks_min.toFixed(1)} ms`;
+                    window.currentRttPeaks = stats.rtt_peaks;
+                    updateMasterMetrics();
                 }
 
             } catch (err) {
@@ -2257,41 +2320,45 @@
             } else {
                 window.currentPeakDays = 30;
             }
-            countdown = 5; // Reset heartbeat counter to fetch immediately
+            lastFetchTime = Date.now(); // reset heartbeat timer
             const progressCircle = document.getElementById('heartbeat-progress');
             if (progressCircle) progressCircle.style.strokeDashoffset = 0;
-            fetchAndUpdate();
+            fetchAndUpdate(true); // force full history load
         }
 
         // Live heartbeat timer countdown loop
-        let countdown = 5;
+        let lastFetchTime = Date.now();
         function startHeartbeatTimer() {
             const progressCircle = document.getElementById('heartbeat-progress');
             const heartbeatText = document.getElementById('heartbeat-text');
             
             setInterval(() => {
-                countdown--;
-                if (countdown <= 0) {
-                    countdown = 5;
-                    fetchAndUpdate(); // Trigger fetch
+                const now = Date.now();
+                const elapsed = now - lastFetchTime;
+                
+                if (elapsed >= 1500) {
+                    lastFetchTime = now;
+                    fetchAndUpdate(false); // Trigger lightweight poll
                 }
+                
+                const remaining = Math.max(0, 1.5 - (elapsed / 1000));
                 
                 // Update text
                 if (heartbeatText) {
-                    heartbeatText.innerText = `Live (${countdown}s)`;
+                    heartbeatText.innerText = `Live (${remaining.toFixed(1)}s)`;
                 }
                 
                 // Update circle
                 if (progressCircle) {
-                    const pct = (countdown / 5);
+                    const pct = remaining / 1.5;
                     const dashoffset = 43.96 * (1 - pct);
                     progressCircle.style.strokeDashoffset = dashoffset;
                 }
-            }, 1000);
+            }, 100);
         }
 
-        // Fetch at load and start countdown heartbeat timer
-        fetchAndUpdate();
+        // Fetch at load (force full history) and start countdown heartbeat timer
+        fetchAndUpdate(true);
         startHeartbeatTimer();
     </script>
 </body>

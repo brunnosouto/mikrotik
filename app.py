@@ -431,6 +431,30 @@ def get_data():
         
     return jsonify(result)
 
+@app.route('/api/data/latest', methods=['GET'])
+def get_latest_data():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM telemetry ORDER BY id DESC LIMIT 1')
+    row = cursor.fetchone()
+    conn.close()
+    
+    if not row:
+        return jsonify({})
+        
+    result = dict(row)
+    # Override the latest element's traffic rates with the in-memory 5-second real-time values if available
+    if latest_traffic['timestamp'] is not None:
+        result['traffic_vivo_rx'] = latest_traffic['traffic_vivo_rx']
+        result['traffic_vivo_tx'] = latest_traffic['traffic_vivo_tx']
+        result['traffic_micks_rx'] = latest_traffic['traffic_micks_rx']
+        result['traffic_micks_tx'] = latest_traffic['traffic_micks_tx']
+        result['traffic_lan_rx'] = latest_traffic['traffic_lan_rx']
+        result['traffic_lan_tx'] = latest_traffic['traffic_lan_tx']
+        
+    return jsonify(result)
+
 @app.route('/api/incidents', methods=['GET'])
 def get_incidents():
     days = request.args.get('days', 7, type=int)
