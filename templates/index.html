@@ -11,16 +11,140 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --bg-color: #0b0c10;
-            --card-bg: rgba(20, 22, 30, 0.65);
-            --border-color: rgba(255, 255, 255, 0.07);
+            --bg-color: #08090c;
+            --card-bg: rgba(15, 18, 25, 0.7);
+            --card-glow-vivo: rgba(139, 92, 246, 0.12);
+            --card-glow-micks: rgba(0, 210, 252, 0.1);
+            --border-color: rgba(255, 255, 255, 0.08);
             --text-main: #f5f6fa;
-            --text-muted: #8b9bb4;
-            --accent-vivo: #6f42c1; /* Purple */
-            --accent-micks: #00d2fc; /* Neon Blue */
-            --accent-green: #00ff87; /* Light Green */
-            --accent-orange: #ff9f43;
-            --accent-red: #ff4d4d;
+            --text-muted: #8595ae;
+            --accent-vivo: #8b5cf6; /* Modern Purple */
+            --accent-micks: #00d2fc; /* Neon Cyan */
+            --accent-green: #00e676; /* Vibrant green */
+            --accent-orange: #ffab40;
+            --accent-red: #ff5252;
+            --glow-green: rgba(0, 230, 118, 0.35);
+            --glow-red: rgba(255, 82, 82, 0.35);
+        }
+
+        /* Tooltip Style */
+        .tooltip-trigger {
+            position: relative;
+            cursor: help;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            margin-left: 0.3rem;
+            vertical-align: middle;
+            transition: all 0.2s;
+        }
+        .tooltip-trigger:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: var(--text-main);
+        }
+        .tooltip-trigger::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%) scale(0.85);
+            background: #12141a;
+            color: var(--text-main);
+            padding: 0.5rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.72rem;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 500;
+            width: 220px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            border: 1px solid var(--border-color);
+            pointer-events: none;
+            opacity: 0;
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            z-index: 1000;
+            line-height: 1.4;
+        }
+        .tooltip-trigger:hover::after {
+            opacity: 1;
+            transform: translateX(-50%) scale(1);
+        }
+
+        /* Live Heartbeat Ring Animation */
+        .heartbeat-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .heartbeat-ring {
+            position: relative;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .heartbeat-ring svg {
+            width: 16px;
+            height: 16px;
+            transform: rotate(-90deg);
+        }
+        .heartbeat-ring circle {
+            fill: none;
+            stroke-width: 2.5;
+        }
+        .heartbeat-ring .bg-circle {
+            stroke: rgba(255, 255, 255, 0.08);
+        }
+        .heartbeat-ring .progress-circle {
+            stroke: var(--accent-micks);
+            stroke-linecap: round;
+            stroke-dasharray: 43.96; /* 2 * pi * 7 */
+            stroke-dashoffset: 0;
+            transition: stroke-dashoffset 0.1s linear;
+        }
+
+        /* Active Alert Banner */
+        .alert-banner {
+            background: rgba(255, 82, 82, 0.08);
+            border: 1px solid rgba(255, 82, 82, 0.2);
+            border-radius: 12px;
+            padding: 0.8rem 1.2rem;
+            margin-bottom: 1.5rem;
+            display: none; /* Controlled by JS */
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            animation: slideDown 0.3s ease-out;
+            box-shadow: 0 4px 15px rgba(255, 82, 82, 0.05);
+        }
+        @keyframes slideDown {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .alert-banner-content {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 0.9rem;
+            color: var(--text-main);
+        }
+        .alert-banner-title {
+            font-weight: 700;
+            color: var(--accent-red);
+        }
+
+        /* SLA violation rows */
+        .sla-violation-row {
+            border-left: 3px solid var(--accent-red) !important;
+            background: rgba(255, 82, 82, 0.02) !important;
+            box-shadow: inset 5px 0 10px rgba(255, 82, 82, 0.03);
         }
 
         * {
@@ -151,24 +275,40 @@
         .card {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
-            backdrop-filter: blur(24px);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border-radius: 20px;
             padding: 1.5rem;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
         .card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(111, 66, 193, 0.25);
-            box-shadow: 0 12px 40px rgba(111, 66, 193, 0.12);
+            transform: translateY(-4px);
+            border-color: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
         }
         
-        #card-route:hover {
-            border-color: rgba(0, 210, 252, 0.25);
-            box-shadow: 0 12px 40px rgba(0, 210, 252, 0.12);
+        .card.vivo-active {
+            border-left: 4px solid var(--accent-vivo);
+            box-shadow: inset 5px 0 15px var(--card-glow-vivo), 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .card.micks-active {
+            border-left: 4px solid var(--accent-micks);
+            box-shadow: inset 5px 0 15px var(--card-glow-micks), 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .card.vivo-active:hover {
+            border-color: rgba(139, 92, 246, 0.35);
+            box-shadow: 0 12px 40px rgba(139, 92, 246, 0.12), inset 5px 0 15px var(--card-glow-vivo);
+        }
+
+        .card.micks-active:hover {
+            border-color: rgba(0, 210, 252, 0.35);
+            box-shadow: 0 12px 40px rgba(0, 210, 252, 0.1), inset 5px 0 15px var(--card-glow-micks);
         }
 
         .card-header {
@@ -199,14 +339,7 @@
             color: var(--text-muted);
         }
 
-        /* Highlights */
-        .vivo-active {
-            border-left: 4px solid var(--accent-vivo);
-        }
-
-        .micks-active {
-            border-left: 4px solid var(--accent-micks);
-        }
+        /* Highlights handled dynamically by card classes */
 
         /* Large grids for charts */
         .chart-grid {
@@ -598,12 +731,22 @@
             <div class="status-badge" style="gap: 0.5rem; background: rgba(255, 255, 255, 0.05); border-color: var(--border-color);">
                 <i class="fa-solid fa-calendar-alt" style="color: var(--accent-micks);"></i>
                 <span style="color: var(--text-muted); font-size: 0.82rem; font-weight: 500; margin-right: 0.2rem;">Janela:</span>
-                <select id="time-range-select" onchange="window.currentTimeRange = this.value; fetchAndUpdate();" style="background: transparent; color: var(--text-main); border: none; font-size: 0.85rem; font-weight: 600; cursor: pointer; outline: none; font-family: inherit;">
+                <select id="time-range-select" onchange="window.currentTimeRange = this.value; onTimeRangeChange(this.value);" style="background: transparent; color: var(--text-main); border: none; font-size: 0.85rem; font-weight: 600; cursor: pointer; outline: none; font-family: inherit;">
                     <option value="1h" selected style="background: #14161e; color: #f5f6fa;">Última 1h</option>
                     <option value="12h" style="background: #14161e; color: #f5f6fa;">Últimas 12h</option>
                     <option value="24h" style="background: #14161e; color: #f5f6fa;">Últimas 24h</option>
                     <option value="7d" style="background: #14161e; color: #f5f6fa;">Últimos 7 dias</option>
                 </select>
+            </div>
+            <!-- Live Heartbeat Indicator -->
+            <div class="status-badge heartbeat-container">
+                <div class="heartbeat-ring">
+                    <svg>
+                        <circle class="bg-circle" cx="8" cy="8" r="7"></circle>
+                        <circle class="progress-circle" id="heartbeat-progress" cx="8" cy="8" r="7"></circle>
+                    </svg>
+                </div>
+                <span style="font-size: 0.78rem; color: var(--text-muted); font-weight: 600;" id="heartbeat-text">Live (5s)</span>
             </div>
             <div class="status-badge" id="router-uptime-badge">
                 <i class="fa-solid fa-clock text-muted"></i>
@@ -615,6 +758,18 @@
             </div>
         </div>
     </header>
+
+    <!-- Central de Alertas Ativos -->
+    <div class="alert-banner" id="active-alert-banner">
+        <div class="alert-banner-content">
+            <i class="fa-solid fa-circle-exclamation" style="color: var(--accent-red); font-size: 1.25rem;"></i>
+            <div>
+                <span class="alert-banner-title">ALERTA ATIVO:</span>
+                <span id="alert-banner-message" style="margin-left: 0.3rem;">--</span>
+            </div>
+        </div>
+        <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600;" id="alert-banner-time">--:--:--</div>
+    </div>
 
     <!-- Cards Grid -->
     <div class="dashboard-grid">
@@ -749,13 +904,7 @@
                         <th>Erros (CRC)</th>
                         <th>Hoje (RX / TX)</th>
                         <th>Mês (RX / TX)</th>
-                        <th>
-                             Pico
-                             <select id="peak-interval-select" onchange="window.currentPeakDays = this.value; fetchTrafficStats();" style="background: rgba(255, 255, 255, 0.08); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.72rem; padding: 0.15rem 0.35rem; margin-left: 0.3rem; cursor: pointer; outline: none; font-weight: 600; font-family: inherit; vertical-align: middle;">
-                                 <option value="7">7d</option>
-                                 <option value="30" selected>30d</option>
-                             </select>
-                         </th>
+                        <th>Pico</th>
                         <th>Download (RX)</th>
                         <th>Upload (TX)</th>
                     </tr>
@@ -819,13 +968,34 @@
                 <thead>
                     <tr>
                         <th>Destino</th>
-                        <th style="color: var(--accent-vivo); text-align: center;">VIVO - RTT Médio</th>
-                        <th style="color: var(--accent-vivo); text-align: center;">VIVO - Jitter</th>
-                        <th style="color: var(--accent-vivo); text-align: center;">VIVO - Perda</th>
-                        <th style="color: var(--accent-micks); text-align: center;">MICKS - RTT Médio</th>
-                        <th style="color: var(--accent-micks); text-align: center;">MICKS - Jitter</th>
-                        <th style="color: var(--accent-micks); text-align: center;">MICKS - Perda</th>
-                        <th style="text-align: center;">Status SLA</th>
+                        <th style="color: var(--accent-vivo); text-align: center;">
+                            VIVO RTT Médio
+                            <span class="tooltip-trigger" data-tooltip="Round Trip Time: Tempo médio de ida e volta do pacote em milissegundos.">?</span>
+                        </th>
+                        <th style="color: var(--accent-vivo); text-align: center;">
+                            VIVO Jitter
+                            <span class="tooltip-trigger" data-tooltip="Jitter: Desvio padrão médio do tempo entre pings consecutivos. Menor é melhor.">?</span>
+                        </th>
+                        <th style="color: var(--accent-vivo); text-align: center;">
+                            VIVO Perda
+                            <span class="tooltip-trigger" data-tooltip="Perda de Pacotes: Percentual de pings sem resposta no período. Ideal é 0%.">?</span>
+                        </th>
+                        <th style="color: var(--accent-micks); text-align: center;">
+                            MICKS RTT Médio
+                            <span class="tooltip-trigger" data-tooltip="Round Trip Time: Tempo médio de ida e volta do pacote em milissegundos.">?</span>
+                        </th>
+                        <th style="color: var(--accent-micks); text-align: center;">
+                            MICKS Jitter
+                            <span class="tooltip-trigger" data-tooltip="Jitter: Desvio padrão médio do tempo entre pings consecutivos. Menor é melhor.">?</span>
+                        </th>
+                        <th style="color: var(--accent-micks); text-align: center;">
+                            MICKS Perda
+                            <span class="tooltip-trigger" data-tooltip="Perda de Pacotes: Percentual de pings sem resposta no período. Ideal é 0%.">?</span>
+                        </th>
+                        <th style="text-align: center;">
+                            Status SLA
+                            <span class="tooltip-trigger" data-tooltip="Conformidade: Indica se a operadora está cumprindo a meta de SLA da rota.">?</span>
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1621,6 +1791,33 @@
                 // Fetch daily and monthly traffic totals
                 fetchTrafficStats();
 
+                // Check for active alerts in latest telemetry
+                const activeAlertBanner = document.getElementById('active-alert-banner');
+                const alertMessage = document.getElementById('alert-banner-message');
+                const alertTime = document.getElementById('alert-banner-time');
+                
+                if (activeAlertBanner && alertMessage && alertTime) {
+                    let activeAlerts = [];
+                    if (latest.link_ativo === "MICKS") {
+                        activeAlerts.push("Link de Backup (MICKS) ativo devido a instabilidade na VIVO");
+                    }
+                    
+                    // Check RTT thresholds
+                    if (latest.rtt_vivo_mm === 0 || latest.rtt_vivo_mm > 150) activeAlerts.push("MobileMed instável na VIVO");
+                    if ((latest.rtt_vivo_rbd || 0) === 0 || (latest.rtt_vivo_rbd || 0) > 150) activeAlerts.push("RBD PACS instável na VIVO");
+                    if (latest.rtt_vivo_lf === 0 || latest.rtt_vivo_lf > 280) activeAlerts.push("LifeFocus instável na VIVO");
+                    if (latest.rtt_vivo_lp === 0 || latest.rtt_vivo_lp > 280) activeAlerts.push("LifePlus instável na VIVO");
+                    if (latest.rtt_vivo_laudite === 0 || latest.rtt_vivo_laudite > 250) activeAlerts.push("Laudite instável na VIVO");
+                    
+                    if (activeAlerts.length > 0) {
+                        activeAlertBanner.style.display = 'flex';
+                        alertMessage.innerHTML = `<strong>${activeAlerts.length} anomalia(s) detectada(s):</strong> ${activeAlerts.join(" | ")}`;
+                        alertTime.innerText = new Date().toLocaleTimeString('pt-BR');
+                    } else {
+                        activeAlertBanner.style.display = 'none';
+                    }
+                }
+
             } catch (err) {
                 console.error("Fetch update failed:", err);
                 document.getElementById('connection-dot').classList.add('down');
@@ -1873,6 +2070,17 @@
             }
             
             document.getElementById(statusEl).innerHTML = statusHtml;
+            
+            // Highlight row on active violation
+            const destKey = rttElVivo.split('-').pop(); // e.g., 'mm'
+            const rowEl = document.getElementById(`sla-row-${destKey}`);
+            if (rowEl) {
+                if (!vivoComplies || !micksComplies) {
+                    rowEl.classList.add('sla-violation-row');
+                } else {
+                    rowEl.classList.remove('sla-violation-row');
+                }
+            }
         }
 
         function computeRttStats(rttList) {
@@ -2041,10 +2249,50 @@
             }
         }
 
-        // Fetch every 1s for high responsiveness on open tab
+        // Unify range changes and trigger stats refresh
+        function onTimeRangeChange(val) {
+            window.currentTimeRange = val;
+            if (val === '7d') {
+                window.currentPeakDays = 7;
+            } else {
+                window.currentPeakDays = 30;
+            }
+            countdown = 5; // Reset heartbeat counter to fetch immediately
+            const progressCircle = document.getElementById('heartbeat-progress');
+            if (progressCircle) progressCircle.style.strokeDashoffset = 0;
+            fetchAndUpdate();
+        }
+
+        // Live heartbeat timer countdown loop
+        let countdown = 5;
+        function startHeartbeatTimer() {
+            const progressCircle = document.getElementById('heartbeat-progress');
+            const heartbeatText = document.getElementById('heartbeat-text');
+            
+            setInterval(() => {
+                countdown--;
+                if (countdown <= 0) {
+                    countdown = 5;
+                    fetchAndUpdate(); // Trigger fetch
+                }
+                
+                // Update text
+                if (heartbeatText) {
+                    heartbeatText.innerText = `Live (${countdown}s)`;
+                }
+                
+                // Update circle
+                if (progressCircle) {
+                    const pct = (countdown / 5);
+                    const dashoffset = 43.96 * (1 - pct);
+                    progressCircle.style.strokeDashoffset = dashoffset;
+                }
+            }, 1000);
+        }
+
+        // Fetch at load and start countdown heartbeat timer
         fetchAndUpdate();
-        
-        setInterval(fetchAndUpdate, 1000);
+        startHeartbeatTimer();
     </script>
 </body>
 </html>
