@@ -18,7 +18,7 @@ COPY . .
 # We grant full read/write/execute permissions to the app directory to allow SQLite to write telemetry.db.
 RUN chmod -R 777 /app
 
-EXPOSE 5001
+EXPOSE 8000
 
-# Run with Gunicorn, binding to port 5001 with 1 worker to prevent database locks on SQLite.
-CMD ["gunicorn", "--bind", "0.0.0.0:5001", "--workers", "1", "app:app"]
+# Run with Gunicorn, binding to the PORT environment variable (defaulting to 8000) with 1 worker to prevent database locks on SQLite.
+CMD gunicorn --bind 0.0.0.0:${PORT:-8000} --workers 1 app:app
