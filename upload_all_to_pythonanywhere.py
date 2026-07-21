@@ -1,23 +1,20 @@
 import urllib.request
 import os
-import json
 
 token = 'e7af53806d16424ad9036117c309bae723d4a3be'
 user = 'brunnosouto'
 domain = 'brunnosouto.pythonanywhere.com'
 
 files_to_upload = [
-    ('app.py', '/home/brunnosouto/mikrotik/app.py'),
     ('db.py', '/home/brunnosouto/mikrotik/db.py'),
+    ('app.py', '/home/brunnosouto/mikrotik/app.py'),
     ('services/sla_service.py', '/home/brunnosouto/mikrotik/services/sla_service.py'),
-    ('static/css/style.css', '/home/brunnosouto/mikrotik/static/css/style.css'),
     ('static/js/app.js', '/home/brunnosouto/mikrotik/static/js/app.js'),
-    ('static/js/charts.js', '/home/brunnosouto/mikrotik/static/js/charts.js'),
-    ('templates/index.html', '/home/brunnosouto/mikrotik/templates/index.html'),
+    ('test_endpoints.py', '/home/brunnosouto/mikrotik/test_endpoints.py'),
 ]
 
 def upload_file(local_path, remote_path):
-    print(f"Uploading {local_path} -> {remote_path}...")
+    print(f"Uploading {local_path}...")
     with open(local_path, 'rb') as f:
         file_bytes = f.read()
 
@@ -36,25 +33,23 @@ def upload_file(local_path, remote_path):
     req.add_header('Content-Type', f'multipart/form-data; boundary={boundary}')
 
     try:
-        with urllib.request.urlopen(req) as resp:
-            print(f"Uploaded {local_path} successfully ({resp.getcode()})")
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            print(f"Uploaded {local_path} ({resp.getcode()})")
             return True
     except Exception as e:
-        print(f"Failed to upload {local_path}: {e}")
+        print(f"Upload error {local_path}: {e}")
         return False
 
-# 1. Upload all files
 for local, remote in files_to_upload:
     upload_file(local, remote)
 
-# 2. Reload Webapp
-print("Triggering webapp reload via API...")
+print("Reloading webapp...")
 url_reload = f'https://www.pythonanywhere.com/api/v0/user/{user}/webapps/{domain}/reload/'
 req_reload = urllib.request.Request(url_reload, method='POST')
 req_reload.add_header('Authorization', f'Token {token}')
 
 try:
-    with urllib.request.urlopen(req_reload) as resp:
-        print(f"Webapp reloaded successfully! ({resp.getcode()})")
+    with urllib.request.urlopen(req_reload, timeout=5) as resp:
+        print(f"Reload status: {resp.getcode()}")
 except Exception as e:
-    print(f"Reload failed: {e}")
+    print(f"Reload error: {e}")

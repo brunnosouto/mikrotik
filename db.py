@@ -105,11 +105,27 @@ def prune_old_telemetry(days=90):
         return 0
 
 def parse_float(val, default=0.0):
-    """Defensive float parsing."""
+    """Defensive float parsing supporting RouterOS 7 time interval strings (HH:MM:SS.ffffff)."""
     if val is None:
         return default
-    try:
+    if isinstance(val, (int, float)):
         return float(val)
+    val_str = str(val).strip()
+    if not val_str:
+        return default
+    if ':' in val_str:
+        try:
+            parts = val_str.split(':')
+            if len(parts) == 3:
+                h = float(parts[0])
+                m = float(parts[1])
+                s = float(parts[2])
+                total_seconds = h * 3600.0 + m * 60.0 + s
+                return round(total_seconds * 1000.0, 1)
+        except Exception:
+            return default
+    try:
+        return float(val_str)
     except (ValueError, TypeError):
         return default
 

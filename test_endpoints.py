@@ -41,6 +41,12 @@ class EndpointTestCase(unittest.TestCase):
         time_str = estimate_dicom_load_time(100000000, 500) # 100 Mbps
         self.assertEqual(time_str, "40.0 s")
 
+    def test_routeros_time_parsing(self):
+        """Test RouterOS 7 HH:MM:SS.ffffff time string parsing."""
+        from db import parse_float
+        self.assertEqual(parse_float('00:00:00.051138'), 51.1)
+        self.assertEqual(parse_float('00:00:00.173400'), 173.4)
+
     def test_telemetry_unauthorized(self):
         """Test that /api/telemetry rejects POST requests without token."""
         response = self.app.post('/api/telemetry', json={'link_ativo': 'VIVO'})
