@@ -5,10 +5,12 @@ import urllib.request
 import urllib.parse
 import datetime
 
-TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '')
-TELEGRAM_CHAT_ID = os.environ.get('TELEGRAM_CHAT_ID', '')
+DEFAULT_BOT_TOKEN = '8392662615:AAGUaems6tTlqPa1BeJC09_HvXMBalQLyms'
+DEFAULT_CHAT_ID = '5365032561'
 
-# Cooldown tracking: status_type -> timestamp
+TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', DEFAULT_BOT_TOKEN)
+TELEGRAM_CHAT_ID = os.environ.get('TELEGRAM_CHAT_ID', DEFAULT_CHAT_ID)
+
 _last_alert_timestamps = {}
 COOLDOWN_SECONDS = 600  # 10 minutes cooldown between duplicate warnings
 
@@ -16,11 +18,11 @@ def send_telegram_message(message_text, parse_mode='Markdown'):
     """
     Send a message via Telegram Bot API using urllib.
     """
-    token = os.environ.get('TELEGRAM_BOT_TOKEN', TELEGRAM_BOT_TOKEN)
-    chat_id = os.environ.get('TELEGRAM_CHAT_ID', TELEGRAM_CHAT_ID)
+    token = os.environ.get('TELEGRAM_BOT_TOKEN', DEFAULT_BOT_TOKEN)
+    chat_id = os.environ.get('TELEGRAM_CHAT_ID', DEFAULT_CHAT_ID)
     
     if not token or not chat_id:
-        print("[Telegram Alert Skipped] TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID not configured.")
+        print("[Telegram Alert Skipped] TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID missing.")
         return False, "Token or Chat ID missing"
         
     url = f"https://api.telegram.org/bot{token}/sendMessage"
@@ -51,7 +53,6 @@ def send_laudite_alert(mos_score, mos_status, jitter_ms, rtt_vivo, rtt_micks, rc
     global _last_alert_timestamps
     now = time.time()
     
-    # 1. Evaluate degradation
     is_degraded = (mos_score < 3.8) or (jitter_ms > 20.0) or (rtt_vivo > 300 and rtt_micks > 300)
     
     last_degraded_time = _last_alert_timestamps.get('laudite_degraded', 0)
@@ -61,7 +62,6 @@ def send_laudite_alert(mos_score, mos_status, jitter_ms, rtt_vivo, rtt_micks, rc
     now_str = datetime.datetime.now(tz_gmt3).strftime('%Y-%m-%d %H:%M:%S')
     
     if is_degraded:
-        # Check cooldown (10 minutes)
         if last_was_degraded and (now - last_degraded_time < COOLDOWN_SECONDS):
             print(f"[Telegram Alert Cooldown] Alert suppressed (next in {int(COOLDOWN_SECONDS - (now - last_degraded_time))}s)")
             return False, "Cooldown active"
@@ -81,7 +81,6 @@ def send_laudite_alert(mos_score, mos_status, jitter_ms, rtt_vivo, rtt_micks, rc
         return send_telegram_message(msg)
         
     elif last_was_degraded:
-        # Recovery notification!
         _last_alert_timestamps['is_currently_degraded'] = False
         _last_alert_timestamps['laudite_degraded'] = 0
         
