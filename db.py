@@ -178,9 +178,11 @@ def save_telemetry_record(data):
     rtt_vivo_rbd = parse_float(data.get('rtt_vivo_rbd', data.get('MONITOR_VIVO_RBD', 0)))
     rtt_micks_rbd = parse_float(data.get('rtt_micks_rbd', data.get('MONITOR_MICKS_RBD', 0)))
 
-    # Detect incident before inserting
+    # Detect incidents before inserting
     cursor.execute('SELECT link_ativo FROM telemetry ORDER BY id DESC LIMIT 1')
     last_row = cursor.fetchone()
+    
+    # 1. LINK_FAILOVER — route switchover
     if last_row and last_row['link_ativo'] != link_ativo:
         inc_type = "LINK_FAILOVER"
         severity = "HIGH" if link_ativo == "MICKS" else "INFO"
@@ -191,11 +193,49 @@ def save_telemetry_record(data):
         if eth1_errors > 0: rca_details.append(f"Erros de CRC/físico na porta ether1 ({eth1_errors} erros)")
         if not rca_details: rca_details.append("Falha de ping nos testes de Netwatch da operadora principal")
         rca_text = " | ".join(rca_details)
-        
-        cursor.execute('''
-            INSERT INTO incidents (type, severity, message, rca)
-            VALUES (?, ?, ?, ?)
-        ''', (inc_type, severity, msg, rca_text))
+        cursor.execute('INSERT INTO incidents (type, severity, message, rca) VALUES (?, ?, ?, ?)',
+                       (inc_type, severity, msg, rca_text))
+    
+    # 2. LATENCY_SPIKE — RTT exceeds SLA threshold
+    sla_checks = [
+        ('MobileMed', rtt_vivo_mm, rtt_micks_mm, 150, 250),
+        ('LifeFocus', rtt_vivo_lf, rtt_micks_lf, 280, 350),
+        ('LifePlus', rtt_vivo_lp, rtt_micks_lp, 280, 350),
+        ('Laudite ASR', rtt_vivo_laudite_asr, rtt_micks_laudite_asr, 250, 300),
+        ('RBD PACS', rtt_vivo_rbd, rtt_micks_rbd, 150, 250),
+    ]
+    for dest_name, v_rtt, m_rtt, v_limit, m_limit in sla_checks:
+        violations = []
+        if v_rtt > v_limit: violations.append(f"VIVO {v_rtt:.1f}ms > {v_limit}ms")
+        if m_rtt > m_limit: violations.append(f"MICKS {m_rtt:.1f}ms > {m_limit}ms")
+        if violations:
+            cursor.execute('INSERT INTO incidents (type, severity, message, rca) VALUES (?, ?, ?, ?)',
+                           ("LATENCY_SPIKE", "MEDIUM",
+                            f"Pico de Latência em {dest_name}: {', '.join(violations)}",
+                            f"Violação de SLA detectada no destino {dest_name}"))
+    
+    # 3. DESTINATION_DOWN — RTT = 0 for a previously reachable destination
+    if last_row:
+        dest_down_checks = [
+            ('MobileMed VIVO', rtt_vivo_mm, 'rtt_vivo_mm'),
+            ('MobileMed MICKS', rtt_micks_mm, 'rtt_micks_mm'),
+            ('RBD PACS VIVO', rtt_vivo_rbd, 'rtt_vivo_rbd'),
+            ('RBD PACS MICKS', rtt_micks_rbd, 'rtt_micks_rbd'),
+        ]
+        for dest_name, current_rtt, col_name in dest_down_checks:
+            prev_val = last_row[col_name] if col_name in last_row.keys() else 0
+            if prev_val > 0 and current_rtt == 0:
+                cursor.execute('INSERT INTO incidents (type, severity, message, rca) VALUES (?, ?, ?, ?)',
+                               ("DESTINATION_DOWN", "HIGH",
+                                f"Destino {dest_name} ficou inalcançável (RTT: {prev_val:.1f}ms → 0ms)",
+                                f"Perda de conectividade para {dest_name}"))
+    
+    # 4. CPU_OVERLOAD — CPU > 85%
+    if cpu > 85:
+        cursor.execute('INSERT INTO incidents (type, severity, message, rca) VALUES (?, ?, ?, ?)',
+                       ("CPU_OVERLOAD", "HIGH",
+                        f"Sobrecarga de CPU do Roteador: {cpu}%",
+                        f"Temperatura: {temp}°C | RAM: {ram}MB"))
 
     cursor.execute('''
         INSERT INTO telemetry (

@@ -700,3 +700,61 @@ footer {
     border: 1px solid rgba(255, 255, 255, 0.2);
     color: var(--text-muted);
 }
+
+/* Incident History Log */
+.incident-log-card {
+    padding: 1.5rem;
+}
+.incident-log-header:hover {
+    opacity: 0.85;
+}
+.incident-row:hover {
+    transform: translateX(4px);
+    filter: brightness(1.1);
+}
+
+/* Custom scrollbar for incident list */
+#incident-list::-webkit-scrollbar {
+    width: 5px;
+}
+#incident-list::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 10px;
+}
+#incident-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+}
+#incident-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Enhanced Mobile Responsive */
+@media (max-width: 600px) {
+    .segmented-control {
+        flex-wrap: wrap;
+        gap: 3px;
+    }
+    .segment-btn {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.72rem;
+    }
+    .incident-row {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+    }
+    .incident-row > div:first-child {
+        display: none !important;
+    }
+    #incident-list {
+        max-height: 300px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    body { padding: 0.5rem; }
+    .card { padding: 1rem; border-radius: 14px; }
+    .card-value { font-size: 1.4rem; }
+    .chart-card { border-radius: 14px; }
+    .incident-log-card { padding: 1rem; }
+}

@@ -186,14 +186,27 @@ def get_radiology_status():
 @app.route('/api/incidents', methods=['GET'])
 def get_incidents():
     days = request.args.get('days', 7, type=int)
+    limit = min(request.args.get('limit', 200, type=int), 500)
+    inc_type = request.args.get('type', None)
+    severity = request.args.get('severity', None)
+    
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute('''
-        SELECT * FROM incidents 
-        WHERE timestamp >= datetime('now', ? || ' days')
-        ORDER BY id DESC
-        LIMIT 50
-    ''', (f"-{days}",))
+    
+    query = 'SELECT * FROM incidents WHERE timestamp >= datetime("now", ? || " days")'
+    params = [f"-{days}"]
+    
+    if inc_type:
+        query += ' AND type = ?'
+        params.append(inc_type)
+    if severity:
+        query += ' AND severity = ?'
+        params.append(severity)
+    
+    query += ' ORDER BY id DESC LIMIT ?'
+    params.append(limit)
+    
+    cursor.execute(query, params)
     rows = cursor.fetchall()
     conn.close()
     return jsonify([dict(row) for row in rows])

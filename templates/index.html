@@ -501,6 +501,44 @@
         </div>
     </div>
 
+    <!-- Collapsible Incident History Log -->
+    <div class="card incident-log-card" style="margin-bottom: 2rem;">
+        <div class="incident-log-header" onclick="toggleIncidentLog()" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+                <i class="fa-solid fa-clock-rotate-left" style="color: var(--accent-orange);"></i>
+                <h3 style="font-size: 1rem; font-weight: 700; margin: 0;">Histórico de Incidentes &amp; Instabilidades</h3>
+                <span id="incident-count-badge" style="background: rgba(255,149,0,0.15); color: var(--accent-orange); padding: 0.15rem 0.5rem; border-radius: 20px; font-size: 0.72rem; font-weight: 700;">0</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 0.72rem; color: var(--text-muted);">Clique para expandir</span>
+                <i class="fa-solid fa-chevron-down" id="incident-log-chevron" style="color: var(--text-muted); transition: transform 0.3s ease;"></i>
+            </div>
+        </div>
+        <div id="incident-log-body" style="display: none; padding-top: 1rem; border-top: 1px solid var(--border-color); margin-top: 1rem;">
+            <div style="display: flex; flex-wrap: wrap; gap: 0.6rem; margin-bottom: 1rem; align-items: center;">
+                <div class="segmented-control" style="margin-bottom: 0;">
+                    <button class="segment-btn active" id="btn-inc-24h" onclick="loadIncidents(1)">24h</button>
+                    <button class="segment-btn" id="btn-inc-7d" onclick="loadIncidents(7)">7 dias</button>
+                    <button class="segment-btn" id="btn-inc-30d" onclick="loadIncidents(30)">30 dias</button>
+                </div>
+                <div class="segmented-control" style="margin-bottom: 0;">
+                    <button class="segment-btn active" id="btn-inc-all" onclick="filterIncidentType('ALL')">Todos</button>
+                    <button class="segment-btn" id="btn-inc-failover" onclick="filterIncidentType('LINK_FAILOVER')"><i class="fa-solid fa-shuffle" style="margin-right: 0.2rem;"></i>Failover</button>
+                    <button class="segment-btn" id="btn-inc-latency" onclick="filterIncidentType('LATENCY_SPIKE')"><i class="fa-solid fa-chart-line" style="margin-right: 0.2rem;"></i>Latência</button>
+                    <button class="segment-btn" id="btn-inc-down" onclick="filterIncidentType('DESTINATION_DOWN')"><i class="fa-solid fa-plug-circle-xmark" style="margin-right: 0.2rem;"></i>Queda</button>
+                    <button class="segment-btn" id="btn-inc-cpu" onclick="filterIncidentType('CPU_OVERLOAD')"><i class="fa-solid fa-microchip" style="margin-right: 0.2rem;"></i>CPU</button>
+                </div>
+            </div>
+            <div id="incident-list" style="max-height: 420px; overflow-y: auto; padding-right: 0.3rem;">
+                <div style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.5rem; margin-bottom: 0.5rem; display: block;"></i>
+                    Carregando histórico...
+                </div>
+            </div>
+            <div id="incident-summary" style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; padding-top: 0.8rem; border-top: 1px solid var(--border-color); flex-wrap: wrap; gap: 0.5rem;"></div>
+        </div>
+    </div>
+
     <!-- Modal Guia de Interpretação -->
     <div id="guide-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 1rem;">
         <div style="background: #14161e; border: 1px solid rgba(255,255,255,0.1); width: 100%; max-width: 650px; border-radius: 20px; padding: 2rem; box-shadow: 0 20px 40px rgba(0,0,0,0.6); position: relative; max-height: 90vh; overflow-y: auto;">

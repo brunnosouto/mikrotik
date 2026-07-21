@@ -359,13 +359,20 @@ async function fetchTrafficStats() {
 
 async function fetchIncidents() {
     try {
-        const res = await fetch('/api/incidents?days=7');
+        const res = await fetch('/api/incidents?days=7&limit=200');
         if (!res.ok) return;
         const incidents = await res.json();
         
+        // Store globally for filtering
+        window._allIncidents = incidents;
+        window._incidentDays = 7;
+        window._incidentTypeFilter = 'ALL';
+        
+        // Update alert banner with latest HIGH severity incident
         const alertBanner = document.getElementById('active-alert-banner');
-        if (incidents.length > 0) {
-            const latest = incidents[0];
+        const highIncidents = incidents.filter(i => i.severity === 'HIGH');
+        if (highIncidents.length > 0) {
+            const latest = highIncidents[0];
             const msgElem = document.getElementById('alert-banner-message');
             const timeElem = document.getElementById('alert-banner-time');
             if (msgElem) msgElem.innerText = `${latest.message} (${latest.rca || 'Sem RCA'})`;
@@ -374,8 +381,166 @@ async function fetchIncidents() {
         } else {
             if (alertBanner) alertBanner.style.display = 'none';
         }
+        
+        // Update count badge
+        const badge = document.getElementById('incident-count-badge');
+        if (badge) badge.innerText = incidents.length;
+        
+        // Initial render
+        renderIncidentList(incidents);
     } catch (e) {
         console.error("Error fetching incidents:", e);
+    }
+}
+
+function toggleIncidentLog() {
+    const body = document.getElementById('incident-log-body');
+    const chevron = document.getElementById('incident-log-chevron');
+    if (!body) return;
+    
+    if (body.style.display === 'none') {
+        body.style.display = 'block';
+        if (chevron) chevron.style.transform = 'rotate(180deg)';
+        // Load fresh data on first open
+        if (!window._allIncidents || window._allIncidents.length === 0) {
+            loadIncidents(1);
+        }
+    } else {
+        body.style.display = 'none';
+        if (chevron) chevron.style.transform = 'rotate(0deg)';
+    }
+}
+
+async function loadIncidents(days) {
+    window._incidentDays = days;
+    
+    // Update period buttons
+    ['24h', '7d', '30d'].forEach(k => {
+        const btn = document.getElementById(`btn-inc-${k}`);
+        if (btn) btn.classList.remove('active');
+    });
+    const map = { 1: '24h', 7: '7d', 30: '30d' };
+    const activeBtn = document.getElementById(`btn-inc-${map[days]}`);
+    if (activeBtn) activeBtn.classList.add('active');
+    
+    try {
+        const res = await fetch(`/api/incidents?days=${days}&limit=500`);
+        if (!res.ok) return;
+        const incidents = await res.json();
+        window._allIncidents = incidents;
+        
+        const badge = document.getElementById('incident-count-badge');
+        if (badge) badge.innerText = incidents.length;
+        
+        filterIncidentType(window._incidentTypeFilter || 'ALL');
+    } catch (e) {
+        console.error("Error loading incidents:", e);
+    }
+}
+
+function filterIncidentType(type) {
+    window._incidentTypeFilter = type;
+    
+    // Update type filter buttons
+    const typeMap = { 'ALL': 'all', 'LINK_FAILOVER': 'failover', 'LATENCY_SPIKE': 'latency', 'DESTINATION_DOWN': 'down', 'CPU_OVERLOAD': 'cpu' };
+    Object.values(typeMap).forEach(k => {
+        const btn = document.getElementById(`btn-inc-${k}`);
+        if (btn) btn.classList.remove('active');
+    });
+    const activeBtn = document.getElementById(`btn-inc-${typeMap[type]}`);
+    if (activeBtn) activeBtn.classList.add('active');
+    
+    let filtered = window._allIncidents || [];
+    if (type !== 'ALL') {
+        filtered = filtered.filter(i => i.type === type);
+    }
+    
+    renderIncidentList(filtered);
+}
+
+function renderIncidentList(incidents) {
+    const container = document.getElementById('incident-list');
+    const summary = document.getElementById('incident-summary');
+    if (!container) return;
+    
+    if (!incidents || incidents.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; color: var(--text-muted); padding: 2.5rem 1rem;">
+                <i class="fa-solid fa-shield-check" style="font-size: 2.5rem; color: var(--accent-green); margin-bottom: 0.8rem; display: block;"></i>
+                <div style="font-size: 0.95rem; font-weight: 600; color: var(--accent-green); margin-bottom: 0.3rem;">Nenhum Incidente Registrado</div>
+                <div style="font-size: 0.78rem;">Rede operando com estabilidade total no período selecionado.</div>
+            </div>`;
+        if (summary) summary.innerHTML = '';
+        return;
+    }
+    
+    const typeConfig = {
+        'LINK_FAILOVER': { icon: 'fa-shuffle', color: '#ff3b30', label: 'FAILOVER' },
+        'LATENCY_SPIKE': { icon: 'fa-chart-line', color: '#ffb703', label: 'LATÊNCIA' },
+        'DESTINATION_DOWN': { icon: 'fa-plug-circle-xmark', color: '#ff3b30', label: 'QUEDA' },
+        'CPU_OVERLOAD': { icon: 'fa-microchip', color: '#ff9500', label: 'CPU' }
+    };
+    const severityConfig = {
+        'HIGH': { bg: 'rgba(255,59,48,0.1)', border: 'rgba(255,59,48,0.25)', color: '#ff3b30', label: 'ALTA' },
+        'MEDIUM': { bg: 'rgba(255,183,3,0.1)', border: 'rgba(255,183,3,0.25)', color: '#ffb703', label: 'MÉDIA' },
+        'INFO': { bg: 'rgba(52,199,89,0.08)', border: 'rgba(52,199,89,0.2)', color: '#34c759', label: 'INFO' }
+    };
+    
+    let html = '';
+    incidents.forEach(inc => {
+        const tc = typeConfig[inc.type] || { icon: 'fa-circle-exclamation', color: '#868e96', label: inc.type };
+        const sc = severityConfig[inc.severity] || severityConfig['INFO'];
+        
+        // Time formatting
+        let timeStr = inc.timestamp || '--';
+        try {
+            const d = new Date(inc.timestamp + 'Z');
+            const now = new Date();
+            const diffMs = now - d;
+            const diffMin = Math.floor(diffMs / 60000);
+            const diffHrs = Math.floor(diffMs / 3600000);
+            
+            if (diffMin < 60) timeStr = `${diffMin}min atrás`;
+            else if (diffHrs < 24) timeStr = `${diffHrs}h atrás`;
+            else timeStr = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+        } catch(e) {}
+        
+        html += `
+        <div class="incident-row" style="display: flex; align-items: flex-start; gap: 0.8rem; padding: 0.8rem; border-radius: 12px; background: ${sc.bg}; border: 1px solid ${sc.border}; margin-bottom: 0.5rem; transition: all 0.2s;">
+            <div style="min-width: 32px; height: 32px; border-radius: 8px; background: rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i class="fa-solid ${tc.icon}" style="color: ${tc.color}; font-size: 0.85rem;"></i>
+            </div>
+            <div style="flex: 1; min-width: 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.25rem;">
+                    <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
+                        <span style="background: rgba(0,0,0,0.3); color: ${tc.color}; padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.65rem; font-weight: 800; letter-spacing: 0.5px;">${tc.label}</span>
+                        <span style="background: rgba(0,0,0,0.3); color: ${sc.color}; padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.65rem; font-weight: 700;">${sc.label}</span>
+                    </div>
+                    <span style="font-size: 0.68rem; color: var(--text-muted); font-weight: 600; white-space: nowrap;">${timeStr}</span>
+                </div>
+                <div style="font-size: 0.82rem; color: var(--text-main); font-weight: 500; line-height: 1.4;">${inc.message}</div>
+                ${inc.rca ? `<div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.2rem;"><i class="fa-solid fa-magnifying-glass" style="margin-right: 0.2rem;"></i>${inc.rca}</div>` : ''}
+            </div>
+        </div>`;
+    });
+    
+    container.innerHTML = html;
+    
+    // Summary counters
+    if (summary) {
+        const counts = {};
+        incidents.forEach(i => { counts[i.type] = (counts[i.type] || 0) + 1; });
+        
+        let sumHtml = '<div style="display: flex; gap: 1rem; flex-wrap: wrap;">';
+        for (const [type, count] of Object.entries(counts)) {
+            const tc = typeConfig[type] || { icon: 'fa-circle', color: '#868e96', label: type };
+            sumHtml += `<span style="font-size: 0.72rem; color: ${tc.color}; display: flex; align-items: center; gap: 0.3rem;">
+                <i class="fa-solid ${tc.icon}"></i> ${count} ${tc.label}
+            </span>`;
+        }
+        sumHtml += '</div>';
+        sumHtml += `<span style="font-size: 0.68rem; color: var(--text-muted);">${incidents.length} eventos no período</span>`;
+        summary.innerHTML = sumHtml;
     }
 }
 
