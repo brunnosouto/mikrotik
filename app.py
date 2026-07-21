@@ -2,7 +2,16 @@ import os
 import time
 import sqlite3
 import datetime
+import subprocess
 from flask import Flask, request, jsonify, render_template
+
+# Auto-sync latest code from git on app initialization
+try:
+    app_dir = os.path.dirname(os.path.abspath(__file__))
+    if os.path.exists(os.path.join(app_dir, '.git')):
+        subprocess.run(["git", "pull", "origin", "main"], cwd=app_dir, capture_output=True, timeout=10)
+except Exception as e:
+    pass
 
 from db import init_db, get_db_connection, save_telemetry_record, prune_old_telemetry
 from services.sla_service import calculate_traffic_stats
