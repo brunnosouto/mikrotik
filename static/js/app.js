@@ -267,17 +267,89 @@ async function fetchTrafficStats() {
         
         if (stats.uptime_report) {
             const u = stats.uptime_report;
-            if (u['7d']) {
-                document.getElementById('vivo-uptime-7d').innerText = `${u['7d'].vivo_uptime}%`;
-                document.getElementById('vivo-sla-7d').innerText = `${u['7d'].vivo_sla}%`;
-                document.getElementById('micks-uptime-7d').innerText = `${u['7d'].micks_uptime}%`;
-                document.getElementById('micks-sla-7d').innerText = `${u['7d'].micks_sla}%`;
+            
+            // Helper: color value based on percentage threshold
+            function uptimeColor(val) {
+                if (val >= 99.5) return 'var(--accent-green)';
+                if (val >= 95) return '#ffb703';
+                if (val >= 90) return 'var(--accent-orange)';
+                return 'var(--accent-red)';
             }
+            
+            function setUptimeVal(id, val) {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.innerText = `${val}%`;
+                el.style.color = uptimeColor(val);
+            }
+            
+            // 7d global summary
+            if (u['7d']) {
+                setUptimeVal('vivo-uptime-7d', u['7d'].vivo_uptime);
+                setUptimeVal('vivo-sla-7d', u['7d'].vivo_sla);
+                setUptimeVal('micks-uptime-7d', u['7d'].micks_uptime);
+                setUptimeVal('micks-sla-7d', u['7d'].micks_sla);
+                
+                // Total samples badge
+                const samplesEl = document.getElementById('uptime-total-samples');
+                if (samplesEl) samplesEl.innerText = `📊 ${u['7d'].total_samples} amostras (7d)`;
+                
+                // Per-destination breakdown table
+                const tbody = document.getElementById('uptime-dest-tbody');
+                if (tbody && u['7d'].destinations) {
+                    const dests = u['7d'].destinations;
+                    const icons = {
+                        mm: 'fa-hospital', rbd: 'fa-x-ray', lf: 'fa-eye',
+                        lp: 'fa-circle-plus', lda: 'fa-microphone'
+                    };
+                    let html = '';
+                    for (const [key, d] of Object.entries(dests)) {
+                        const icon = icons[key] || 'fa-server';
+                        
+                        if (!d.has_data) {
+                            html += `<tr style="opacity: 0.4;">
+                                <td><div class="interface-name"><i class="fa-solid ${icon}" style="color: var(--text-muted); margin-right: 0.3rem;"></i>${d.name}</div></td>
+                                <td colspan="7" style="text-align: center; color: var(--text-muted); font-style: italic;">Sem dados coletados neste período</td>
+                                <td style="text-align: center;"><span class="bandwidth-badge" style="color: var(--text-muted); border-color: rgba(255,255,255,0.08); background: rgba(255,255,255,0.02);">N/A</span></td>
+                            </tr>`;
+                            continue;
+                        }
+                        
+                        // Determine overall status
+                        const bestSla = Math.max(d.vivo_sla, d.micks_sla);
+                        let statusBadge = '';
+                        if (bestSla >= 99) {
+                            statusBadge = '<span class="bandwidth-badge" style="color: var(--accent-green); border-color: rgba(52,199,89,0.2); background: rgba(52,199,89,0.05);">✅ EXCELENTE</span>';
+                        } else if (bestSla >= 95) {
+                            statusBadge = '<span class="bandwidth-badge" style="color: var(--accent-green); border-color: rgba(52,199,89,0.2); background: rgba(52,199,89,0.05);">👍 BOM</span>';
+                        } else if (bestSla >= 85) {
+                            statusBadge = '<span class="bandwidth-badge" style="color: #ffb703; border-color: rgba(255,183,3,0.2); background: rgba(255,183,3,0.05);">⚠️ ATENÇÃO</span>';
+                        } else {
+                            statusBadge = '<span class="bandwidth-badge" style="color: var(--accent-red); border-color: rgba(255,59,48,0.2); background: rgba(255,59,48,0.05);">🔴 CRÍTICO</span>';
+                        }
+                        
+                        html += `<tr>
+                            <td><div class="interface-name"><i class="fa-solid ${icon}" style="color: var(--accent-vivo); margin-right: 0.3rem;"></i>${d.name}</div></td>
+                            <td style="text-align: center; color: ${uptimeColor(d.vivo_uptime)}; font-weight: 700;">${d.vivo_uptime}%</td>
+                            <td style="text-align: center; color: ${uptimeColor(d.vivo_sla)}; font-weight: 700;">${d.vivo_sla}%</td>
+                            <td style="text-align: center; color: var(--text-muted);">${d.vivo_avg_rtt > 0 ? d.vivo_avg_rtt + ' ms' : '--'}</td>
+                            <td style="text-align: center; color: ${uptimeColor(d.micks_uptime)}; font-weight: 700;">${d.micks_uptime}%</td>
+                            <td style="text-align: center; color: ${uptimeColor(d.micks_sla)}; font-weight: 700;">${d.micks_sla}%</td>
+                            <td style="text-align: center; color: var(--text-muted);">${d.micks_avg_rtt > 0 ? d.micks_avg_rtt + ' ms' : '--'}</td>
+                            <td style="text-align: center; font-size: 0.78rem; color: var(--text-muted);">V≤${d.vivo_sla_limit}ms / M≤${d.micks_sla_limit}ms</td>
+                            <td style="text-align: center;">${statusBadge}</td>
+                        </tr>`;
+                    }
+                    tbody.innerHTML = html;
+                }
+            }
+            
+            // 30d summary footer
             if (u['30d']) {
-                document.getElementById('vivo-uptime-30d').innerText = `${u['30d'].vivo_uptime}%`;
-                document.getElementById('vivo-sla-30d').innerText = `${u['30d'].vivo_sla}%`;
-                document.getElementById('micks-uptime-30d').innerText = `${u['30d'].micks_uptime}%`;
-                document.getElementById('micks-sla-30d').innerText = `${u['30d'].micks_sla}%`;
+                setUptimeVal('vivo-uptime-30d', u['30d'].vivo_uptime);
+                setUptimeVal('vivo-sla-30d', u['30d'].vivo_sla);
+                setUptimeVal('micks-uptime-30d', u['30d'].micks_uptime);
+                setUptimeVal('micks-sla-30d', u['30d'].micks_sla);
             }
         }
     } catch (e) {

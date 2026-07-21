@@ -315,34 +315,107 @@ def calculate_traffic_stats(peak_days=30):
     row_rtt_peaks = cursor.fetchone()
     
     uptime_report = {}
+    
+    # Per-destination granular uptime & SLA conformity
+    dest_sla_limits = {
+        'mm': ('rtt_vivo_mm', 'rtt_micks_mm', 150, 250, 'MobileMed'),
+        'rbd': ('rtt_vivo_rbd', 'rtt_micks_rbd', 150, 250, 'RBD PACS'),
+        'lf': ('rtt_vivo_lf', 'rtt_micks_lf', 280, 350, 'LifeFocus'),
+        'lp': ('rtt_vivo_lp', 'rtt_micks_lp', 280, 350, 'LifePlus'),
+        'lda': ('rtt_vivo_laudite_asr', 'rtt_micks_laudite_asr', 250, 300, 'Laudite ASR'),
+    }
+    
     for name, days_limit in [('7d', 7), ('30d', 30)]:
         since_date = (datetime.datetime.now(tz_gmt3) - datetime.timedelta(days=days_limit)).strftime('%Y-%m-%d %H:%M:%S')
+        
+        cursor.execute('SELECT COUNT(*) FROM telemetry WHERE timestamp >= ?', (since_date,))
+        total_row = cursor.fetchone()
+        total = total_row[0] if total_row else 0
+        
+        if total == 0:
+            uptime_report[name] = {
+                "total_samples": 0,
+                "vivo_uptime": 100.0, "micks_uptime": 100.0,
+                "vivo_sla": 100.0, "micks_sla": 100.0,
+                "destinations": {}
+            }
+            continue
+        
+        # Global uptime: any destination responding = link alive
         cursor.execute('''
             SELECT 
-                COUNT(*),
-                SUM(CASE WHEN rtt_vivo_mm > 0.0 OR rtt_vivo_lf > 0.0 OR rtt_vivo_lp > 0.0 OR (rtt_vivo_rbd > 0.0 AND rtt_vivo_rbd IS NOT NULL) THEN 1 ELSE 0 END),
-                SUM(CASE WHEN rtt_micks_mm > 0.0 OR rtt_micks_lf > 0.0 OR rtt_micks_lp > 0.0 OR (rtt_micks_rbd > 0.0 AND rtt_micks_rbd IS NOT NULL) THEN 1 ELSE 0 END),
-                SUM(CASE WHEN (rtt_vivo_mm > 0.0 AND rtt_vivo_mm <= 150.0) AND (rtt_vivo_rbd > 0.0 AND rtt_vivo_rbd <= 150.0) THEN 1 ELSE 0 END),
-                SUM(CASE WHEN (rtt_micks_mm > 0.0 AND rtt_micks_mm <= 250.0) AND (rtt_micks_rbd > 0.0 AND rtt_micks_rbd <= 250.0) THEN 1 ELSE 0 END)
-            FROM telemetry
-            WHERE timestamp >= ?
+                SUM(CASE WHEN rtt_vivo_mm > 0 OR rtt_vivo_lf > 0 OR rtt_vivo_lp > 0 
+                         OR rtt_vivo_laudite_asr > 0 OR rtt_vivo_rbd > 0 THEN 1 ELSE 0 END),
+                SUM(CASE WHEN rtt_micks_mm > 0 OR rtt_micks_lf > 0 OR rtt_micks_lp > 0 
+                         OR rtt_micks_laudite_asr > 0 OR rtt_micks_rbd > 0 THEN 1 ELSE 0 END)
+            FROM telemetry WHERE timestamp >= ?
         ''', (since_date,))
-        row_up = cursor.fetchone()
+        global_row = cursor.fetchone()
         
-        if row_up and row_up[0] > 0:
-            total = row_up[0]
-            v_up = (row_up[1] / total) * 100.0
-            m_up = (row_up[2] / total) * 100.0
-            v_sla = (row_up[3] / total) * 100.0
-            m_sla = (row_up[4] / total) * 100.0
-        else:
-            v_up, m_up, v_sla, m_sla = 100.0, 100.0, 100.0, 100.0
+        v_up_global = round((global_row[0] / total) * 100.0, 2) if global_row and global_row[0] else 0.0
+        m_up_global = round((global_row[1] / total) * 100.0, 2) if global_row and global_row[1] else 0.0
+        
+        # Per-destination breakdown
+        dest_data = {}
+        overall_vivo_sla_ok = 0
+        overall_micks_sla_ok = 0
+        active_dest_count = 0
+        
+        for dkey, (vcol, mcol, v_limit, m_limit, dname) in dest_sla_limits.items():
+            cursor.execute(f'''
+                SELECT 
+                    SUM(CASE WHEN {vcol} > 0 THEN 1 ELSE 0 END),
+                    SUM(CASE WHEN {mcol} > 0 THEN 1 ELSE 0 END),
+                    SUM(CASE WHEN {vcol} > 0 AND {vcol} <= ? THEN 1 ELSE 0 END),
+                    SUM(CASE WHEN {mcol} > 0 AND {mcol} <= ? THEN 1 ELSE 0 END),
+                    AVG(CASE WHEN {vcol} > 0 THEN {vcol} END),
+                    AVG(CASE WHEN {mcol} > 0 THEN {mcol} END)
+                FROM telemetry WHERE timestamp >= ?
+            ''', (v_limit, m_limit, since_date))
+            drow = cursor.fetchone()
             
+            v_up_count = drow[0] or 0
+            m_up_count = drow[1] or 0
+            v_sla_count = drow[2] or 0
+            m_sla_count = drow[3] or 0
+            v_avg_rtt = round(drow[4], 1) if drow[4] else 0.0
+            m_avg_rtt = round(drow[5], 1) if drow[5] else 0.0
+            
+            v_uptime_pct = round((v_up_count / total) * 100.0, 2) if total > 0 else 0.0
+            m_uptime_pct = round((m_up_count / total) * 100.0, 2) if total > 0 else 0.0
+            v_sla_pct = round((v_sla_count / total) * 100.0, 2) if total > 0 else 0.0
+            m_sla_pct = round((m_sla_count / total) * 100.0, 2) if total > 0 else 0.0
+            
+            has_data = v_up_count > 0 or m_up_count > 0
+            if has_data:
+                active_dest_count += 1
+                overall_vivo_sla_ok += v_sla_pct
+                overall_micks_sla_ok += m_sla_pct
+            
+            dest_data[dkey] = {
+                "name": dname,
+                "has_data": has_data,
+                "vivo_uptime": v_uptime_pct,
+                "micks_uptime": m_uptime_pct,
+                "vivo_sla": v_sla_pct,
+                "micks_sla": m_sla_pct,
+                "vivo_avg_rtt": v_avg_rtt,
+                "micks_avg_rtt": m_avg_rtt,
+                "vivo_sla_limit": v_limit,
+                "micks_sla_limit": m_limit
+            }
+        
+        # Overall SLA = average of per-destination SLA conformities (only for active destinations)
+        v_sla_overall = round(overall_vivo_sla_ok / active_dest_count, 2) if active_dest_count > 0 else 0.0
+        m_sla_overall = round(overall_micks_sla_ok / active_dest_count, 2) if active_dest_count > 0 else 0.0
+        
         uptime_report[name] = {
-            "vivo_uptime": round(v_up, 2),
-            "micks_uptime": round(m_up, 2),
-            "vivo_sla": round(v_sla, 2),
-            "micks_sla": round(m_sla, 2)
+            "total_samples": total,
+            "vivo_uptime": v_up_global,
+            "micks_uptime": m_up_global,
+            "vivo_sla": v_sla_overall,
+            "micks_sla": m_sla_overall,
+            "destinations": dest_data
         }
         
     conn.close()

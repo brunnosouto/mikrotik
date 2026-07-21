@@ -210,62 +210,101 @@
         </div>
     </div>
 
-    <!-- SLA & Uptime Availability Grid -->
+    <!-- SLA & Uptime Availability Grid — Granular Per-Destination -->
     <div class="card" style="margin-bottom: 2rem; padding: 1.5rem;">
-        <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1.2rem; display: flex; align-items: center; gap: 0.6rem;">
-            <i class="fa-solid fa-clock-rotate-left" style="color: var(--accent-vivo);"></i>
-            <span>Disponibilidade Física & Conformidade de SLA (Uptime)</span>
-        </h3>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
-            <!-- VIVO Card -->
-            <div style="background: rgba(111, 66, 193, 0.03); border: 1px solid rgba(111, 66, 193, 0.15); padding: 1.2rem; border-radius: 16px; display: flex; flex-direction: column; gap: 1rem;">
-                <div style="display: flex; align-items: center; gap: 0.8rem; border-bottom: 1px solid rgba(111, 66, 193, 0.15); padding-bottom: 0.6rem;">
-                    <i class="fa-solid fa-server" style="color: var(--accent-vivo); font-size: 1.2rem;"></i>
-                    <span style="font-weight: 700; font-size: 1rem; color: var(--accent-vivo);">VIVO FIBRA (Link Principal)</span>
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1.2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+            <h3 style="font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; gap: 0.6rem; margin: 0;">
+                <i class="fa-solid fa-clock-rotate-left" style="color: var(--accent-vivo);"></i>
+                <span>Disponibilidade Física & Conformidade SLA</span>
+            </h3>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <div style="font-size: 0.72rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.3rem;">
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--accent-vivo); display: inline-block;"></span> VIVO FIBRA
                 </div>
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-                    <div>
-                        <span style="font-size: 0.75rem; color: var(--text-muted); display: block; font-weight: 600; text-transform: uppercase;">Uptime (7d)</span>
-                        <span id="vivo-uptime-7d" style="font-size: 1.5rem; font-weight: 800; color: var(--accent-green);">--%</span>
-                    </div>
-                    <div>
-                        <span style="font-size: 0.75rem; color: var(--text-muted); display: block; font-weight: 600; text-transform: uppercase;">Conformidade SLA (7d)</span>
-                        <span id="vivo-sla-7d" style="font-size: 1.5rem; font-weight: 800; color: var(--accent-green);">--%</span>
-                    </div>
-                    <div>
-                        <span style="font-size: 0.75rem; color: var(--text-muted); display: block; font-weight: 600; text-transform: uppercase;">Uptime (30d)</span>
-                        <span id="vivo-uptime-30d" style="font-size: 1.5rem; font-weight: 800; color: var(--accent-green);">--%</span>
-                    </div>
-                    <div>
-                        <span style="font-size: 0.75rem; color: var(--text-muted); display: block; font-weight: 600; text-transform: uppercase;">Conformidade SLA (30d)</span>
-                        <span id="vivo-sla-30d" style="font-size: 1.5rem; font-weight: 800; color: var(--accent-green);">--%</span>
-                    </div>
+                <div style="font-size: 0.72rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.3rem;">
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--accent-micks); display: inline-block;"></span> MICKS TELECOM
+                </div>
+                <span id="uptime-total-samples" style="font-size: 0.72rem; color: var(--text-muted); background: rgba(255,255,255,0.04); padding: 0.2rem 0.6rem; border-radius: 6px;"></span>
+            </div>
+        </div>
+
+        <!-- Global Uptime Summary -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+            <div style="background: rgba(111, 66, 193, 0.04); border: 1px solid rgba(111, 66, 193, 0.15); padding: 1rem; border-radius: 14px; text-align: center;">
+                <span style="font-size: 0.7rem; color: var(--text-muted); display: block; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">VIVO Uptime Global (7d)</span>
+                <span id="vivo-uptime-7d" style="font-size: 1.8rem; font-weight: 800; color: var(--accent-green); font-family: 'Outfit', sans-serif;">--%</span>
+                <span style="font-size: 0.65rem; color: var(--text-muted); display: block; margin-top: 0.2rem;">Ao menos 1 destino respondendo</span>
+            </div>
+            <div style="background: rgba(111, 66, 193, 0.04); border: 1px solid rgba(111, 66, 193, 0.15); padding: 1rem; border-radius: 14px; text-align: center;">
+                <span style="font-size: 0.7rem; color: var(--text-muted); display: block; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">VIVO Conformidade SLA (7d)</span>
+                <span id="vivo-sla-7d" style="font-size: 1.8rem; font-weight: 800; color: var(--accent-green); font-family: 'Outfit', sans-serif;">--%</span>
+                <span style="font-size: 0.65rem; color: var(--text-muted); display: block; margin-top: 0.2rem;">Média das conformidades por destino</span>
+            </div>
+            <div style="background: rgba(0, 210, 252, 0.04); border: 1px solid rgba(0, 210, 252, 0.15); padding: 1rem; border-radius: 14px; text-align: center;">
+                <span style="font-size: 0.7rem; color: var(--text-muted); display: block; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">MICKS Uptime Global (7d)</span>
+                <span id="micks-uptime-7d" style="font-size: 1.8rem; font-weight: 800; color: var(--accent-micks); font-family: 'Outfit', sans-serif;">--%</span>
+                <span style="font-size: 0.65rem; color: var(--text-muted); display: block; margin-top: 0.2rem;">Ao menos 1 destino respondendo</span>
+            </div>
+            <div style="background: rgba(0, 210, 252, 0.04); border: 1px solid rgba(0, 210, 252, 0.15); padding: 1rem; border-radius: 14px; text-align: center;">
+                <span style="font-size: 0.7rem; color: var(--text-muted); display: block; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">MICKS Conformidade SLA (7d)</span>
+                <span id="micks-sla-7d" style="font-size: 1.8rem; font-weight: 800; color: var(--accent-micks); font-family: 'Outfit', sans-serif;">--%</span>
+                <span style="font-size: 0.65rem; color: var(--text-muted); display: block; margin-top: 0.2rem;">Média das conformidades por destino</span>
+            </div>
+        </div>
+
+        <!-- Per-Destination Breakdown Table -->
+        <div style="margin-bottom: 0.8rem;">
+            <h4 style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fa-solid fa-layer-group" style="color: var(--accent-vivo); font-size: 0.8rem;"></i>
+                Detalhamento por Destino PACS/ASR (últimos 7 dias)
+            </h4>
+        </div>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 18%;">Destino</th>
+                        <th style="text-align: center; width: 10%;">VIVO<br>Uptime</th>
+                        <th style="text-align: center; width: 10%;">VIVO<br>Conform. SLA</th>
+                        <th style="text-align: center; width: 10%;">VIVO<br>Avg RTT</th>
+                        <th style="text-align: center; width: 10%;">MICKS<br>Uptime</th>
+                        <th style="text-align: center; width: 10%;">MICKS<br>Conform. SLA</th>
+                        <th style="text-align: center; width: 10%;">MICKS<br>Avg RTT</th>
+                        <th style="text-align: center; width: 12%;">Limite SLA</th>
+                        <th style="text-align: center; width: 10%;">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="uptime-dest-tbody">
+                    <tr><td colspan="9" style="text-align: center; color: var(--text-muted);">Carregando dados...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 30d Summary Footer -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.2rem; padding-top: 0.8rem; border-top: 1px solid var(--border-color); flex-wrap: wrap; gap: 0.8rem;">
+            <div style="display: flex; gap: 2rem;">
+                <div>
+                    <span style="font-size: 0.7rem; color: var(--text-muted); display: block; font-weight: 600; text-transform: uppercase;">VIVO Uptime 30d</span>
+                    <span id="vivo-uptime-30d" style="font-size: 1.2rem; font-weight: 800; color: var(--accent-green); font-family: 'Outfit', sans-serif;">--%</span>
+                </div>
+                <div>
+                    <span style="font-size: 0.7rem; color: var(--text-muted); display: block; font-weight: 600; text-transform: uppercase;">VIVO SLA 30d</span>
+                    <span id="vivo-sla-30d" style="font-size: 1.2rem; font-weight: 800; color: var(--accent-green); font-family: 'Outfit', sans-serif;">--%</span>
                 </div>
             </div>
-            <!-- MICKS Card -->
-            <div style="background: rgba(0, 210, 252, 0.03); border: 1px solid rgba(0, 210, 252, 0.15); padding: 1.2rem; border-radius: 16px; display: flex; flex-direction: column; gap: 1rem;">
-                <div style="display: flex; align-items: center; gap: 0.8rem; border-bottom: 1px solid rgba(0, 210, 252, 0.15); padding-bottom: 0.6rem;">
-                    <i class="fa-solid fa-server" style="color: var(--accent-micks); font-size: 1.2rem;"></i>
-                    <span style="font-weight: 700; font-size: 1rem; color: var(--accent-micks);">MICKS TELECOM (Link Backup)</span>
+            <div style="display: flex; gap: 2rem;">
+                <div>
+                    <span style="font-size: 0.7rem; color: var(--text-muted); display: block; font-weight: 600; text-transform: uppercase;">MICKS Uptime 30d</span>
+                    <span id="micks-uptime-30d" style="font-size: 1.2rem; font-weight: 800; color: var(--accent-micks); font-family: 'Outfit', sans-serif;">--%</span>
                 </div>
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-                    <div>
-                        <span style="font-size: 0.75rem; color: var(--text-muted); display: block; font-weight: 600; text-transform: uppercase;">Uptime (7d)</span>
-                        <span id="micks-uptime-7d" style="font-size: 1.5rem; font-weight: 800; color: var(--accent-micks);">--%</span>
-                    </div>
-                    <div>
-                        <span style="font-size: 0.75rem; color: var(--text-muted); display: block; font-weight: 600; text-transform: uppercase;">Conformidade SLA (7d)</span>
-                        <span id="micks-sla-7d" style="font-size: 1.5rem; font-weight: 800; color: var(--accent-micks);">--%</span>
-                    </div>
-                    <div>
-                        <span style="font-size: 0.75rem; color: var(--text-muted); display: block; font-weight: 600; text-transform: uppercase;">Uptime (30d)</span>
-                        <span id="micks-uptime-30d" style="font-size: 1.5rem; font-weight: 800; color: var(--accent-micks);">--%</span>
-                    </div>
-                    <div>
-                        <span style="font-size: 0.75rem; color: var(--text-muted); display: block; font-weight: 600; text-transform: uppercase;">Conformidade SLA (30d)</span>
-                        <span id="micks-sla-30d" style="font-size: 1.5rem; font-weight: 800; color: var(--accent-micks);">--%</span>
-                    </div>
+                <div>
+                    <span style="font-size: 0.7rem; color: var(--text-muted); display: block; font-weight: 600; text-transform: uppercase;">MICKS SLA 30d</span>
+                    <span id="micks-sla-30d" style="font-size: 1.2rem; font-weight: 800; color: var(--accent-micks); font-family: 'Outfit', sans-serif;">--%</span>
                 </div>
+            </div>
+            <div style="font-size: 0.68rem; color: var(--text-muted); max-width: 280px; line-height: 1.4;">
+                <i class="fa-solid fa-circle-info" style="margin-right: 0.3rem;"></i>
+                <strong>Uptime</strong> = % de amostras com resposta > 0ms. <strong>SLA</strong> = % de amostras com latência dentro do limite do destino.
             </div>
         </div>
     </div>
