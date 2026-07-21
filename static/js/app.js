@@ -320,8 +320,16 @@ function calculateSLAAndJitter(history) {
     ];
     
     destinations.forEach(dest => {
-        const vivoVals = history.map(d => d[`rtt_vivo_${dest.key}`] || 0).filter(v => v > 0);
-        const micksVals = history.map(d => d[`rtt_micks_${dest.key}`] || 0).filter(v => v > 0);
+        let vivoVals = history.map(d => d[`rtt_vivo_${dest.key}`] || 0).filter(v => v > 0);
+        let micksVals = history.map(d => d[`rtt_micks_${dest.key}`] || 0).filter(v => v > 0);
+        
+        // Fallback: Laudite Portal (ld) uses Laudite ASR (lda) data if no portal data
+        if (dest.key === 'ld' && vivoVals.length === 0) {
+            vivoVals = history.map(d => d['rtt_vivo_lda'] || 0).filter(v => v > 0);
+        }
+        if (dest.key === 'ld' && micksVals.length === 0) {
+            micksVals = history.map(d => d['rtt_micks_lda'] || 0).filter(v => v > 0);
+        }
         
         const totalCount = history.length;
         const vivoLossPct = totalCount > 0 ? (((totalCount - vivoVals.length) / totalCount) * 100).toFixed(1) : '0.0';
@@ -342,15 +350,19 @@ function calculateSLAAndJitter(history) {
         setElemText(`sla-micks-jitter-${dest.key}`, `${micksJitter} ms`);
         setElemText(`sla-micks-loss-${dest.key}`, `${micksLossPct}%`);
         
-        // SLA Status badge
+        // SLA Status badge — neutral for 0.0ms (no data), green for conforming, red for violation
         const isVivoOk = parseFloat(vivoAvg) > 0 && parseFloat(vivoAvg) <= dest.slaLimit;
         const isMicksOk = parseFloat(micksAvg) > 0 && parseFloat(micksAvg) <= dest.slaLimit;
+        const hasAnyData = parseFloat(vivoAvg) > 0 || parseFloat(micksAvg) > 0;
         const statusElem = document.getElementById(`sla-status-${dest.key}`);
         const rowElem = document.getElementById(`sla-row-${dest.key}`);
         
         if (statusElem) {
             if (isVivoOk || isMicksOk) {
                 statusElem.innerHTML = `<span class="bandwidth-badge" style="color: var(--accent-green); border-color: rgba(52,199,89,0.2); background: rgba(52,199,89,0.05);">EM CONFORMIDADE</span>`;
+                if (rowElem) rowElem.classList.remove('sla-violation-row');
+            } else if (!hasAnyData) {
+                statusElem.innerHTML = `<span class="bandwidth-badge" style="color: var(--text-muted); border-color: rgba(255,255,255,0.1); background: rgba(255,255,255,0.03);">SEM DADOS</span>`;
                 if (rowElem) rowElem.classList.remove('sla-violation-row');
             } else {
                 statusElem.innerHTML = `<span class="bandwidth-badge" style="color: var(--accent-red); border-color: rgba(255,59,48,0.2); background: rgba(255,59,48,0.05);">VIOLAÇÃO SLA</span>`;
@@ -367,8 +379,10 @@ function calculateSLAAndJitter(history) {
                 bestElem.innerHTML = `<span class="best-route-badge best-route-vivo"><i class="fa-solid fa-trophy"></i> VIVO FIBRA</span>`;
             } else if (mVal > 0 && (vVal <= 0 || mVal < vVal - 2.0)) {
                 bestElem.innerHTML = `<span class="best-route-badge best-route-micks"><i class="fa-solid fa-trophy"></i> MICKS TELECOM</span>`;
-            } else {
+            } else if (vVal > 0 || mVal > 0) {
                 bestElem.innerHTML = `<span class="best-route-badge best-route-tie">EMPATE</span>`;
+            } else {
+                bestElem.innerHTML = `<span class="best-route-badge best-route-tie">--</span>`;
             }
         }
     });

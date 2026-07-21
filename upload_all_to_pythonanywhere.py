@@ -10,6 +10,7 @@ files_to_upload = [
     ('app.py', '/home/brunnosouto/mikrotik/app.py'),
     ('services/sla_service.py', '/home/brunnosouto/mikrotik/services/sla_service.py'),
     ('services/telegram_service.py', '/home/brunnosouto/mikrotik/services/telegram_service.py'),
+    ('static/css/style.css', '/home/brunnosouto/mikrotik/static/css/style.css'),
     ('static/js/app.js', '/home/brunnosouto/mikrotik/static/js/app.js'),
     ('static/js/charts.js', '/home/brunnosouto/mikrotik/static/js/charts.js'),
     ('templates/index.html', '/home/brunnosouto/mikrotik/templates/index.html'),

@@ -447,7 +447,8 @@
             </div>
             
             <div class="segmented-control">
-                <button class="segment-btn active" id="btn-segment-mm" onclick="setLatencySegment('mm')">MobileMed</button>
+                <button class="segment-btn active" id="btn-segment-todos" onclick="setLatencySegment('todos')" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(0, 210, 252, 0.15)); border: 1px solid rgba(139, 92, 246, 0.4);">🌟 TODOS</button>
+                <button class="segment-btn" id="btn-segment-mm" onclick="setLatencySegment('mm')">MobileMed</button>
                 <button class="segment-btn" id="btn-segment-rbd" onclick="setLatencySegment('rbd')">RBD PACS</button>
                 <button class="segment-btn" id="btn-segment-lf" onclick="setLatencySegment('lf')">LifeFocus</button>
                 <button class="segment-btn" id="btn-segment-lp" onclick="setLatencySegment('lp')">LifePlus</button>
@@ -456,7 +457,7 @@
             </div>
         </div>
 
-        <div class="chart-container" style="height: 320px; position: relative;">
+        <div class="chart-container" style="height: 380px; position: relative;">
             <canvas id="chart-master-latency"></canvas>
         </div>
     </div>

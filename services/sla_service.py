@@ -113,6 +113,13 @@ def calculate_best_routes(latest):
         r_vivo = latest.get(vivo_col, 0.0) or 0.0
         r_micks = latest.get(micks_col, 0.0) or 0.0
         
+        # Fallback Laudite Portal to Laudite ASR RTT if 0.0
+        if key == 'ld':
+            if r_vivo <= 0:
+                r_vivo = latest.get('rtt_vivo_laudite_asr', 0.0) or 0.0
+            if r_micks <= 0:
+                r_micks = latest.get('rtt_micks_laudite_asr', 0.0) or 0.0
+                
         if r_vivo <= 0 and r_micks <= 0:
             winner = 'INDETERMINADO'
             winner_name = 'Sem Dados'
