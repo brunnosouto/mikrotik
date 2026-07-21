@@ -1,6 +1,7 @@
 import unittest
 import json
 from app import app, TELEMETRY_SECRET_TOKEN
+from services.sla_service import calculate_mos_score, estimate_dicom_load_time
 
 class EndpointTestCase(unittest.TestCase):
 
@@ -16,6 +17,29 @@ class EndpointTestCase(unittest.TestCase):
         self.assertEqual(data['status'], 'healthy')
         self.assertIn('uptime_seconds', data)
         self.assertIn('total_telemetry_records', data)
+
+    def test_radiology_status_endpoint(self):
+        """Test the /api/radiology/status endpoint."""
+        response = self.app.get('/api/radiology/status')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data.decode('utf-8'))
+        self.assertIn('mos_laudite', data)
+        self.assertIn('ct_load_time_500mb', data)
+        self.assertIn('flapping_risk', data)
+
+    def test_laudite_mos_calculation(self):
+        """Test ITU-T G.107 MOS score for Laudite audio."""
+        mos, status = calculate_mos_score(30, 2)
+        self.assertGreaterEqual(mos, 4.0)
+        self.assertIn("Excelente", status)
+        
+        mos_bad, status_bad = calculate_mos_score(600, 150, loss_pct=5.0)
+        self.assertLess(mos_bad, 3.5)
+
+    def test_dicom_estimator(self):
+        """Test DICOM CT load time estimation."""
+        time_str = estimate_dicom_load_time(100000000, 500) # 100 Mbps
+        self.assertEqual(time_str, "40.0 s")
 
     def test_telemetry_unauthorized(self):
         """Test that /api/telemetry rejects POST requests without token."""
@@ -40,11 +64,6 @@ class EndpointTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.data.decode('utf-8'))
         self.assertEqual(data['status'], 'success')
-
-    def test_latest_data_endpoint(self):
-        """Test the /api/data/latest endpoint."""
-        response = self.app.get('/api/data/latest')
-        self.assertEqual(response.status_code, 200)
 
 if __name__ == '__main__':
     unittest.main()

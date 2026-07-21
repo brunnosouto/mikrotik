@@ -14,7 +14,7 @@ except Exception as e:
     pass
 
 from db import init_db, get_db_connection, save_telemetry_record, prune_old_telemetry
-from services.sla_service import calculate_traffic_stats
+from services.sla_service import calculate_traffic_stats, get_radiology_health_summary
 
 app = Flask(__name__)
 
@@ -169,7 +169,19 @@ def get_latest_data():
         result['traffic_lan_rx'] = latest_traffic['traffic_lan_rx']
         result['traffic_lan_tx'] = latest_traffic['traffic_lan_tx']
         
+    # Enriqecer com métricas radiológicas
+    med_health = get_radiology_health_summary()
+    result.update(med_health)
+        
     return jsonify(result)
+
+@app.route('/api/radiology/status', methods=['GET'])
+def get_radiology_status():
+    try:
+        health = get_radiology_health_summary()
+        return jsonify(health), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/incidents', methods=['GET'])
 def get_incidents():

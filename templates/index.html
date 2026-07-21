@@ -66,6 +66,52 @@
         <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600;" id="alert-banner-time">--:--:--</div>
     </div>
 
+    <!-- Painel de Saúde Radiológica & Fluidez Plena (Engenharia Médica) -->
+    <div class="card" style="margin-bottom: 1.5rem; padding: 1.2rem 1.5rem; background: linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(0, 210, 252, 0.05)); border: 1px solid rgba(255, 255, 255, 0.08);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div style="display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
+                <!-- MOS Laudite -->
+                <div style="display: flex; align-items: center; gap: 0.8rem;">
+                    <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(139, 92, 246, 0.15); display: flex; align-items: center; justify-content: center;">
+                        <i class="fa-solid fa-microphone" style="color: var(--accent-vivo); font-size: 1.2rem;"></i>
+                    </div>
+                    <div>
+                        <span style="font-size: 0.72rem; color: var(--text-muted); display: block; font-weight: 600; text-transform: uppercase;">Laudite Voice ASR</span>
+                        <span id="med-mos-laudite" style="font-weight: 800; font-size: 1.1rem; color: var(--accent-green);">4.5 / 5.0 (Excelente)</span>
+                    </div>
+                </div>
+                
+                <!-- Carga DICOM TC -->
+                <div style="display: flex; align-items: center; gap: 0.8rem; border-left: 1px solid rgba(255, 255, 255, 0.08); padding-left: 1.5rem;">
+                    <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(0, 210, 252, 0.15); display: flex; align-items: center; justify-content: center;">
+                        <i class="fa-solid fa-x-ray" style="color: var(--accent-micks); font-size: 1.2rem;"></i>
+                    </div>
+                    <div>
+                        <span style="font-size: 0.72rem; color: var(--text-muted); display: block; font-weight: 600; text-transform: uppercase;">Est. Carga TC (500MB)</span>
+                        <span id="med-ct-load-time" style="font-weight: 800; font-size: 1.1rem; color: var(--text-main);">1.8 s</span>
+                    </div>
+                </div>
+
+                <!-- Proteção Anti-Fibrilação -->
+                <div style="display: flex; align-items: center; gap: 0.8rem; border-left: 1px solid rgba(255, 255, 255, 0.08); padding-left: 1.5rem;">
+                    <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(52, 199, 89, 0.15); display: flex; align-items: center; justify-content: center;">
+                        <i class="fa-solid fa-shield-halved" style="color: var(--accent-green); font-size: 1.2rem;"></i>
+                    </div>
+                    <div>
+                        <span style="font-size: 0.72rem; color: var(--text-muted); display: block; font-weight: 600; text-transform: uppercase;">Fibrilação (Flapping)</span>
+                        <span id="med-flapping-risk" style="font-weight: 800; font-size: 1.1rem; color: var(--accent-green);">0% (Estabilidade Total)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diagnostics Clinical Note -->
+            <div style="font-size: 0.8rem; color: var(--text-muted); text-align: right;" id="med-radiology-rca">
+                <i class="fa-solid fa-circle-check" style="color: var(--accent-green); margin-right: 0.3rem;"></i>
+                <span>Fluidez Plena: Exames PACS e Ditado Laudite em capacidade máxima.</span>
+            </div>
+        </div>
+    </div>
+
     <!-- Cards Grid -->
     <div class="dashboard-grid">
         <div class="card" id="card-route">

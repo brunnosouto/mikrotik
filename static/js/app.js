@@ -160,6 +160,35 @@ function updateDashboardDOM(data) {
     
     const micksErrorsElem = document.getElementById('micks-errors');
     if (micksErrorsElem) micksErrorsElem.innerText = data.eth2_errors || '0';
+
+    // 4. Radiology Medical Health Metrics
+    if (data.mos_laudite !== undefined) {
+        const mosElem = document.getElementById('med-mos-laudite');
+        if (mosElem) {
+            const color = data.mos_laudite >= 4.0 ? 'var(--accent-green)' : (data.mos_laudite >= 3.5 ? 'var(--accent-orange)' : 'var(--accent-red)');
+            mosElem.innerHTML = `<span style="color: ${color};">${data.mos_laudite} / 5.0 (${data.mos_status || 'Bom'})</span>`;
+        }
+    }
+    
+    if (data.ct_load_time_500mb) {
+        setElemText('med-ct-load-time', data.ct_load_time_500mb);
+    }
+    
+    if (data.flapping_risk) {
+        const flapElem = document.getElementById('med-flapping-risk');
+        if (flapElem) {
+            const isAlert = data.flapping_risk.includes('ALERTA');
+            const color = isAlert ? 'var(--accent-red)' : 'var(--accent-green)';
+            flapElem.innerHTML = `<span style="color: ${color};">${data.flapping_risk}</span>`;
+        }
+    }
+    
+    if (data.radiology_rca) {
+        const rcaElem = document.getElementById('med-radiology-rca');
+        if (rcaElem) {
+            rcaElem.innerHTML = `<i class="fa-solid fa-circle-check" style="color: var(--accent-green); margin-right: 0.3rem;"></i><span>${data.radiology_rca}</span>`;
+        }
+    }
 }
 
 async function fetchTrafficStats() {
