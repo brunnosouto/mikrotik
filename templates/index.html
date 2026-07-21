@@ -71,8 +71,57 @@
         <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600;" id="alert-banner-time">--:--:--</div>
     </div>
 
+    <!-- MONITOR DEDICADO LAUDITE ASR & SAÚDE DE VOZ (Destaque Principal) -->
+    <div class="card" style="margin-bottom: 1.5rem; padding: 1.5rem; background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(0, 210, 252, 0.04)); border: 1px solid rgba(139, 92, 246, 0.2); box-shadow: 0 10px 30px rgba(139, 92, 246, 0.05);">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 1rem; margin-bottom: 1.2rem; flex-wrap: wrap; gap: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.8rem;">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(139, 92, 246, 0.2); display: flex; align-items: center; justify-content: center; border: 1px solid rgba(139, 92, 246, 0.4);">
+                    <i class="fa-solid fa-microphone-lines" style="color: var(--accent-vivo); font-size: 1.4rem;"></i>
+                </div>
+                <div>
+                    <h3 style="font-size: 1.2rem; margin: 0; font-weight: 800; color: #fff;">MONITOR DEDICADO LAUDITE SPEECH-TO-TEXT (ASR)</h3>
+                    <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">Telemetria contínua de transcrição por voz e qualidade de rota de áudio (ITU-T G.107)</p>
+                </div>
+            </div>
+            <div style="background: rgba(52, 199, 89, 0.1); border: 1px solid rgba(52, 199, 89, 0.3); padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 700; color: var(--accent-green); display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fa-solid fa-waveform"></i>
+                <span>AUDIO STREAM ACTIVE</span>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.2rem;">
+            <!-- MOS Score Item -->
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 1rem; border-radius: 14px;">
+                <span style="font-size: 0.72rem; color: var(--text-muted); display: block; font-weight: 700; text-transform: uppercase; margin-bottom: 0.3rem;">Score MOS (G.107)</span>
+                <div id="med-mos-laudite" style="font-size: 1.4rem; font-weight: 800; color: var(--accent-green);">4.5 / 5.0 (Excelente)</div>
+                <span style="font-size: 0.75rem; color: var(--text-muted);">Fluidez total no ditado</span>
+            </div>
+
+            <!-- Laudite ASR RTT VIVO -->
+            <div style="background: rgba(111, 66, 193, 0.04); border: 1px solid rgba(111, 66, 193, 0.15); padding: 1rem; border-radius: 14px;">
+                <span style="font-size: 0.72rem; color: var(--accent-vivo); display: block; font-weight: 700; text-transform: uppercase; margin-bottom: 0.3rem;">ASR RTT (VIVO FIBRA)</span>
+                <div id="laudite-asr-rtt-vivo" style="font-size: 1.4rem; font-weight: 800; color: var(--text-main);">173.4 ms</div>
+                <span style="font-size: 0.75rem; color: var(--text-muted);">Servidor Cloud ASR</span>
+            </div>
+
+            <!-- Laudite ASR RTT MICKS -->
+            <div style="background: rgba(0, 210, 252, 0.04); border: 1px solid rgba(0, 210, 252, 0.15); padding: 1rem; border-radius: 14px;">
+                <span style="font-size: 0.72rem; color: var(--accent-micks); display: block; font-weight: 700; text-transform: uppercase; margin-bottom: 0.3rem;">ASR RTT (MICKS TELECOM)</span>
+                <div id="laudite-asr-rtt-micks" style="font-size: 1.4rem; font-weight: 800; color: var(--text-main);">159.4 ms</div>
+                <span style="font-size: 0.75rem; color: var(--text-muted);">Servidor Cloud ASR</span>
+            </div>
+
+            <!-- Jitter de Voz -->
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 1rem; border-radius: 14px;">
+                <span style="font-size: 0.72rem; color: var(--text-muted); display: block; font-weight: 700; text-transform: uppercase; margin-bottom: 0.3rem;">Jitter de Voz</span>
+                <div id="laudite-jitter" style="font-size: 1.4rem; font-weight: 800; color: var(--accent-green);">2.1 ms</div>
+                <span style="font-size: 0.75rem; color: var(--text-muted);">Estabilidade da rota</span>
+            </div>
+        </div>
+    </div>
+
     <!-- Painel de Saúde Radiológica & Fluidez Plena (Engenharia Médica) -->
-    <div class="card" style="margin-bottom: 1.5rem; padding: 1.2rem 1.5rem; background: linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(0, 210, 252, 0.05)); border: 1px solid rgba(255, 255, 255, 0.08);">
+    <div class="card" style="margin-bottom: 1.5rem; padding: 1.2rem 1.5rem; background: linear-gradient(135deg, rgba(139, 92, 246, 0.03), rgba(0, 210, 252, 0.03)); border: 1px solid rgba(255, 255, 255, 0.08);">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
             <div style="display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
                 <!-- Carga DICOM TC -->
@@ -101,7 +150,7 @@
             <!-- Diagnostics Clinical Note -->
             <div style="font-size: 0.8rem; color: var(--text-muted); text-align: right;" id="med-radiology-rca">
                 <i class="fa-solid fa-circle-check" style="color: var(--accent-green); margin-right: 0.3rem;"></i>
-                <span>Fluidez Plena: Exames PACS operando em capacidade máxima.</span>
+                <span>Fluidez Plena: Exames PACS e Ditado Laudite operando em capacidade máxima.</span>
             </div>
         </div>
     </div>
@@ -353,6 +402,26 @@
                         <td id="sla-micks-loss-lp" style="text-align: center;">--%</td>
                         <td id="sla-status-lp" style="text-align: center;">--</td>
                     </tr>
+                    <tr id="sla-row-ld">
+                        <td data-label="Destino"><div class="interface-name"><i class="fa-solid fa-microphone" style="color: var(--accent-vivo); margin-right: 0.3rem;"></i><span>Laudite Portal (SLA: 250ms)</span></div></td>
+                        <td id="sla-vivo-rtt-ld" style="text-align: center;">-- ms</td>
+                        <td id="sla-vivo-jitter-ld" style="text-align: center;">-- ms</td>
+                        <td id="sla-vivo-loss-ld" style="text-align: center;">--%</td>
+                        <td id="sla-micks-rtt-ld" style="text-align: center;">-- ms</td>
+                        <td id="sla-micks-jitter-ld" style="text-align: center;">-- ms</td>
+                        <td id="sla-micks-loss-ld" style="text-align: center;">--%</td>
+                        <td id="sla-status-ld" style="text-align: center;">--</td>
+                    </tr>
+                    <tr id="sla-row-lda">
+                        <td data-label="Destino"><div class="interface-name"><i class="fa-solid fa-waveform" style="color: var(--accent-micks); margin-right: 0.3rem;"></i><span>Laudite ASR Speech-to-Text (SLA: 250ms)</span></div></td>
+                        <td id="sla-vivo-rtt-lda" style="text-align: center;">-- ms</td>
+                        <td id="sla-vivo-jitter-lda" style="text-align: center;">-- ms</td>
+                        <td id="sla-vivo-loss-lda" style="text-align: center;">--%</td>
+                        <td id="sla-micks-rtt-lda" style="text-align: center;">-- ms</td>
+                        <td id="sla-micks-jitter-lda" style="text-align: center;">-- ms</td>
+                        <td id="sla-micks-loss-lda" style="text-align: center;">--%</td>
+                        <td id="sla-status-lda" style="text-align: center;">--</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -373,6 +442,8 @@
                 <button class="segment-btn" id="btn-segment-rbd" onclick="setLatencySegment('rbd')">RBD PACS</button>
                 <button class="segment-btn" id="btn-segment-lf" onclick="setLatencySegment('lf')">LifeFocus</button>
                 <button class="segment-btn" id="btn-segment-lp" onclick="setLatencySegment('lp')">LifePlus</button>
+                <button class="segment-btn" id="btn-segment-ld" onclick="setLatencySegment('ld')">Laudite Portal</button>
+                <button class="segment-btn" id="btn-segment-lda" onclick="setLatencySegment('lda')">Laudite ASR</button>
             </div>
         </div>
 
@@ -397,14 +468,19 @@
             </div>
 
             <div style="display: flex; flex-direction: column; gap: 1.2rem;">
-                <div style="background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 12px; border-left: 4px solid var(--accent-vivo);">
-                    <h4 style="margin: 0 0 0.3rem 0; font-size: 0.95rem; color: var(--accent-vivo);"><i class="fa-solid fa-stopwatch"></i> RTT (Latência em ms)</h4>
-                    <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0; line-height: 1.4;">Tempo de ida e volta do pacote até os servidores do PACS. <strong>Quanto menor o RTT, mais rápido os exames de TC/RM abrem.</strong> (Ideal: &lt; 150ms).</p>
+                <div style="background: rgba(139, 92, 246, 0.05); padding: 1rem; border-radius: 12px; border-left: 4px solid var(--accent-vivo);">
+                    <h4 style="margin: 0 0 0.3rem 0; font-size: 0.95rem; color: var(--accent-vivo);"><i class="fa-solid fa-microphone-lines"></i> Laudite ASR & Score MOS (ITU-T G.107)</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0; line-height: 1.4;">Mede a qualidade da rota de voz para o ditado por IA. O <strong>Score MOS (1.0 a 4.5)</strong> combina Latência + Jitter + Perda. Notas acima de <strong>4.2</strong> garantem transcrição em tempo real sem perda de palavras.</p>
                 </div>
 
                 <div style="background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 12px; border-left: 4px solid var(--accent-micks);">
-                    <h4 style="margin: 0 0 0.3rem 0; font-size: 0.95rem; color: var(--accent-micks);"><i class="fa-solid fa-wave-square"></i> Jitter (Oscilação da Rede)</h4>
-                    <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0; line-height: 1.4;">Mede a estabilidade da latência. Se o Jitter for alto (&gt; 20ms), o sinal varia bruscamente, gerando pequenas micro-pausas no carregamento.</p>
+                    <h4 style="margin: 0 0 0.3rem 0; font-size: 0.95rem; color: var(--accent-micks);"><i class="fa-solid fa-stopwatch"></i> RTT (Latência em ms)</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0; line-height: 1.4;">Tempo de ida e volta do pacote até os servidores do PACS. <strong>Quanto menor o RTT, mais rápido os exames de TC/RM abrem.</strong> (Ideal: &lt; 150ms).</p>
+                </div>
+
+                <div style="background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 12px; border-left: 4px solid var(--accent-orange);">
+                    <h4 style="margin: 0 0 0.3rem 0; font-size: 0.95rem; color: var(--accent-orange);"><i class="fa-solid fa-wave-square"></i> Jitter (Oscilação da Rede)</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0; line-height: 1.4;">Mede a estabilidade da latência. Se o Jitter for alto (&gt; 20ms), o sinal varia bruscamente, gerando pequenas micro-pausas no carregamento do áudio ou DICOM.</p>
                 </div>
 
                 <div style="background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 12px; border-left: 4px solid var(--accent-red);">

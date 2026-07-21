@@ -161,13 +161,23 @@ function updateDashboardDOM(data) {
     const micksErrorsElem = document.getElementById('micks-errors');
     if (micksErrorsElem) micksErrorsElem.innerText = data.eth2_errors || '0';
 
-    // 4. Radiology Medical Health Metrics
+    // 4. Radiology & Laudite Medical Health Metrics
     if (data.mos_laudite !== undefined) {
         const mosElem = document.getElementById('med-mos-laudite');
         if (mosElem) {
             const color = data.mos_laudite >= 4.0 ? 'var(--accent-green)' : (data.mos_laudite >= 3.5 ? 'var(--accent-orange)' : 'var(--accent-red)');
             mosElem.innerHTML = `<span style="color: ${color};">${data.mos_laudite} / 5.0 (${data.mos_status || 'Bom'})</span>`;
         }
+    }
+    
+    if (data.laudite_asr_rtt_vivo !== undefined) {
+        setElemText('laudite-asr-rtt-vivo', `${data.laudite_asr_rtt_vivo || 0} ms`);
+    }
+    if (data.laudite_asr_rtt_micks !== undefined) {
+        setElemText('laudite-asr-rtt-micks', `${data.laudite_asr_rtt_micks || 0} ms`);
+    }
+    if (data.laudite_jitter !== undefined) {
+        setElemText('laudite-jitter', `${data.laudite_jitter || 0} ms`);
     }
     
     if (data.ct_load_time_500mb) {
@@ -287,7 +297,9 @@ function calculateSLAAndJitter(history) {
         { key: 'mm', name: 'MobileMed', slaLimit: 150 },
         { key: 'rbd', name: 'RBD PACS', slaLimit: 150 },
         { key: 'lf', name: 'LifeFocus', slaLimit: 280 },
-        { key: 'lp', name: 'LifePlus', slaLimit: 280 }
+        { key: 'lp', name: 'LifePlus', slaLimit: 280 },
+        { key: 'ld', name: 'Laudite Portal', slaLimit: 250 },
+        { key: 'lda', name: 'Laudite ASR', slaLimit: 250 }
     ];
     
     destinations.forEach(dest => {

@@ -100,6 +100,7 @@ def generate_radiology_rca(latest, history):
         
     active_link = latest.get('link_ativo', 'VIVO')
     cpu = latest.get('cpu', 0)
+    rtt_laudite_asr = latest.get('rtt_vivo_laudite_asr', 0) if active_link == 'VIVO' else latest.get('rtt_micks_laudite_asr', 0)
     
     rca_items = []
     
@@ -108,18 +109,23 @@ def generate_radiology_rca(latest, history):
     else:
         rca_items.append("Failover ativo: Tráfego operando via MICKS Telecom por contingência.")
         
+    if rtt_laudite_asr > 200:
+        rca_items.append(f"Latência elevada no Laudite ASR ({rtt_laudite_asr}ms). Pode afetar a agilidade da transcrição.")
+    else:
+        rca_items.append("Laudite ASR Speech-to-Text operando com latência excelente.")
+        
     if cpu > 80:
         rca_items.append(f"Uso elevado de CPU no roteador ({cpu}%).")
         
     flapping = evaluate_flapping_and_hysteresis(history)
     if flapping["is_flapping"]:
-        rca_items.append("Filtro de Histerese Ativo: Prevenindo troca espúria de operadora durante a ditado.")
+        rca_items.append("Filtro de Histerese Ativo: Prevenindo troca espúria de operadora durante o ditado.")
         
     return " | ".join(rca_items)
 
 def get_radiology_health_summary():
     """
-    Fetch comprehensive Radiology Medical Health Summary.
+    Fetch comprehensive Radiology Medical Health Summary including dedicated Laudite ASR Metrics.
     """
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -131,6 +137,9 @@ def get_radiology_health_summary():
         return {
             "mos_laudite": 4.5,
             "mos_status": "Excelente (Ditado Fluido)",
+            "laudite_asr_rtt_vivo": 170.0,
+            "laudite_asr_rtt_micks": 160.0,
+            "laudite_jitter": 2.1,
             "ct_load_time_500mb": "1.8 s",
             "xray_load_time_100mb": "0.4 s",
             "flapping_risk": "0% (Estabilidade Total)",
@@ -138,15 +147,25 @@ def get_radiology_health_summary():
         }
         
     latest = rows[0]
-    rtt_laudite = latest.get('rtt_vivo_mm', 45.0)
+    active_link = latest.get('link_ativo', 'VIVO')
     
-    past_rtts = [r.get('rtt_vivo_mm', 0) for r in rows if r.get('rtt_vivo_mm', 0) > 0]
+    # Laudite ASR metrics
+    rtt_laudite_vivo = latest.get('rtt_vivo_laudite_asr', 0.0)
+    rtt_laudite_micks = latest.get('rtt_micks_laudite_asr', 0.0)
+    
+    rtt_active = rtt_laudite_vivo if active_link == 'VIVO' else rtt_laudite_micks
+    if rtt_active <= 0:
+        rtt_active = latest.get('rtt_vivo_mm', 45.0)
+        
+    past_rtts = [r.get('rtt_vivo_laudite_asr', 0) if active_link == 'VIVO' else r.get('rtt_micks_laudite_asr', 0) for r in rows]
+    past_rtts = [v for v in past_rtts if v > 0]
+    
     jitter = 0.0
     if len(past_rtts) >= 2:
         diffs = [abs(past_rtts[i] - past_rtts[i-1]) for i in range(1, len(past_rtts))]
-        jitter = sum(diffs) / len(diffs)
+        jitter = round(sum(diffs) / len(diffs), 1)
         
-    mos_score, mos_status = calculate_mos_score(rtt_laudite, jitter)
+    mos_score, mos_status = calculate_mos_score(rtt_active, jitter)
     
     throughput = latest.get('traffic_lan_rx', 0) + latest.get('traffic_lan_tx', 0)
     ct_time = estimate_dicom_load_time(throughput, 500)
@@ -158,6 +177,9 @@ def get_radiology_health_summary():
     return {
         "mos_laudite": mos_score,
         "mos_status": mos_status,
+        "laudite_asr_rtt_vivo": rtt_laudite_vivo,
+        "laudite_asr_rtt_micks": rtt_laudite_micks,
+        "laudite_jitter": jitter,
         "ct_load_time_500mb": ct_time,
         "xray_load_time_100mb": xray_time,
         "flapping_risk": flapping["flapping_risk"],
@@ -208,6 +230,12 @@ def calculate_traffic_stats(peak_days=30):
             
             MAX(rtt_vivo_lp), MIN(CASE WHEN rtt_vivo_lp > 0 THEN rtt_vivo_lp END),
             MAX(rtt_micks_lp), MIN(CASE WHEN rtt_micks_lp > 0 THEN rtt_micks_lp END),
+            
+            MAX(rtt_vivo_laudite), MIN(CASE WHEN rtt_vivo_laudite > 0 THEN rtt_vivo_laudite END),
+            MAX(rtt_micks_laudite), MIN(CASE WHEN rtt_micks_laudite > 0 THEN rtt_micks_laudite END),
+            
+            MAX(rtt_vivo_laudite_asr), MIN(CASE WHEN rtt_vivo_laudite_asr > 0 THEN rtt_vivo_laudite_asr END),
+            MAX(rtt_micks_laudite_asr), MIN(CASE WHEN rtt_micks_laudite_asr > 0 THEN rtt_micks_laudite_asr END),
             
             MAX(rtt_vivo_rbd), MIN(CASE WHEN rtt_vivo_rbd > 0 THEN rtt_vivo_rbd END),
             MAX(rtt_micks_rbd), MIN(CASE WHEN rtt_micks_rbd > 0 THEN rtt_micks_rbd END)
@@ -268,8 +296,12 @@ def calculate_traffic_stats(peak_days=30):
             "lf_micks_max": row_rtt_peaks[6] or 0.0, "lf_micks_min": row_rtt_peaks[7] or 0.0,
             "lp_vivo_max": row_rtt_peaks[8] or 0.0, "lp_vivo_min": row_rtt_peaks[9] or 0.0,
             "lp_micks_max": row_rtt_peaks[10] or 0.0, "lp_micks_min": row_rtt_peaks[11] or 0.0,
-            "rbd_vivo_max": row_rtt_peaks[12] or 0.0, "rbd_vivo_min": row_rtt_peaks[13] or 0.0,
-            "rbd_micks_max": row_rtt_peaks[14] or 0.0, "rbd_micks_min": row_rtt_peaks[15] or 0.0,
+            "ld_vivo_max": row_rtt_peaks[12] or 0.0, "ld_vivo_min": row_rtt_peaks[13] or 0.0,
+            "ld_micks_max": row_rtt_peaks[14] or 0.0, "ld_micks_min": row_rtt_peaks[15] or 0.0,
+            "lda_vivo_max": row_rtt_peaks[16] or 0.0, "lda_vivo_min": row_rtt_peaks[17] or 0.0,
+            "lda_micks_max": row_rtt_peaks[18] or 0.0, "lda_micks_min": row_rtt_peaks[19] or 0.0,
+            "rbd_vivo_max": row_rtt_peaks[20] or 0.0, "rbd_vivo_min": row_rtt_peaks[21] or 0.0,
+            "rbd_micks_max": row_rtt_peaks[22] or 0.0, "rbd_micks_min": row_rtt_peaks[23] or 0.0,
         }
 
     return {
