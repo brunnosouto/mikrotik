@@ -174,6 +174,13 @@ def get_radiology_health_summary():
     flapping = evaluate_flapping_and_hysteresis(rows)
     rca = generate_radiology_rca(latest, rows)
     
+    # Trigger Telegram alert check
+    try:
+        from services.telegram_service import send_laudite_alert
+        send_laudite_alert(mos_score, mos_status, jitter, rtt_laudite_vivo, rtt_laudite_micks, rca)
+    except Exception as e:
+        print(f"Error checking Telegram alert: {e}")
+    
     return {
         "mos_laudite": mos_score,
         "mos_status": mos_status,

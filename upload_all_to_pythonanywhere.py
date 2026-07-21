@@ -9,10 +9,12 @@ files_to_upload = [
     ('db.py', '/home/brunnosouto/mikrotik/db.py'),
     ('app.py', '/home/brunnosouto/mikrotik/app.py'),
     ('services/sla_service.py', '/home/brunnosouto/mikrotik/services/sla_service.py'),
+    ('services/telegram_service.py', '/home/brunnosouto/mikrotik/services/telegram_service.py'),
     ('static/js/app.js', '/home/brunnosouto/mikrotik/static/js/app.js'),
     ('static/js/charts.js', '/home/brunnosouto/mikrotik/static/js/charts.js'),
     ('templates/index.html', '/home/brunnosouto/mikrotik/templates/index.html'),
     ('test_endpoints.py', '/home/brunnosouto/mikrotik/test_endpoints.py'),
+    ('test_telegram_alert.py', '/home/brunnosouto/mikrotik/test_telegram_alert.py'),
 ]
 
 def upload_file(local_path, remote_path):

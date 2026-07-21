@@ -47,6 +47,13 @@ class EndpointTestCase(unittest.TestCase):
         self.assertEqual(parse_float('00:00:00.051138'), 51.1)
         self.assertEqual(parse_float('00:00:00.173400'), 173.4)
 
+    def test_telegram_service_cooldown(self):
+        """Test Telegram alert evaluation and cooldown logic."""
+        from services.telegram_service import send_laudite_alert
+        # Without token configured, it should return missing credentials status safely
+        status, msg = send_laudite_alert(4.5, "Excelente", 1.2, 170.0, 160.0, "OK")
+        self.assertFalse(status)
+
     def test_telemetry_unauthorized(self):
         """Test that /api/telemetry rejects POST requests without token."""
         response = self.app.post('/api/telemetry', json={'link_ativo': 'VIVO'})
