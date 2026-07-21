@@ -661,3 +661,36 @@ footer {
         gap: 0.6rem;
     }
 }
+
+/* Best Route Winner Intelligence Badges */
+.best-route-badge {
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+}
+
+.best-route-vivo {
+    background: rgba(139, 92, 246, 0.15);
+    border: 1px solid rgba(139, 92, 246, 0.4);
+    color: var(--accent-vivo);
+    box-shadow: 0 0 12px rgba(139, 92, 246, 0.2);
+}
+
+.best-route-micks {
+    background: rgba(0, 210, 252, 0.15);
+    border: 1px solid rgba(0, 210, 252, 0.4);
+    color: var(--accent-micks);
+    box-shadow: 0 0 12px rgba(0, 210, 252, 0.2);
+}
+
+.best-route-tie {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--text-muted);
+}

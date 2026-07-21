@@ -47,6 +47,17 @@ class EndpointTestCase(unittest.TestCase):
         self.assertEqual(parse_float('00:00:00.051138'), 51.1)
         self.assertEqual(parse_float('00:00:00.173400'), 173.4)
 
+    def test_best_route_intelligence(self):
+        """Test Best Route Winner calculation per destination."""
+        from services.sla_service import calculate_best_routes
+        sample = {
+            'rtt_vivo_mm': 45.2, 'rtt_micks_mm': 64.1,
+            'rtt_vivo_laudite_asr': 173.5, 'rtt_micks_laudite_asr': 159.4
+        }
+        res = calculate_best_routes(sample)
+        self.assertEqual(res['mm']['winner'], 'VIVO')
+        self.assertEqual(res['lda']['winner'], 'MICKS')
+
     def test_telegram_service_cooldown(self):
         """Test Telegram alert evaluation and cooldown logic."""
         from services.telegram_service import send_laudite_alert

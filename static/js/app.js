@@ -183,6 +183,23 @@ function updateDashboardDOM(data) {
     if (data.ct_load_time_500mb) {
         setElemText('med-ct-load-time', data.ct_load_time_500mb);
     }
+    if (data.mri_load_time_1gb) {
+        setElemText('med-mri-load-time', data.mri_load_time_1gb);
+    }
+    
+    if (data.best_routes && data.best_routes.lda) {
+        const ldaBest = data.best_routes.lda;
+        const winnerElem = document.getElementById('laudite-best-route-winner');
+        if (winnerElem) {
+            if (ldaBest.winner === 'VIVO') {
+                winnerElem.innerHTML = `<span class="best-route-badge best-route-vivo"><i class="fa-solid fa-trophy"></i> VIVO FIBRA (${ldaBest.advantage_ms}ms mais rápida)</span>`;
+            } else if (ldaBest.winner === 'MICKS') {
+                winnerElem.innerHTML = `<span class="best-route-badge best-route-micks"><i class="fa-solid fa-trophy"></i> MICKS TELECOM (${ldaBest.advantage_ms}ms mais rápida)</span>`;
+            } else {
+                winnerElem.innerHTML = `<span class="best-route-badge best-route-tie">EMPATE TÉCNICO</span>`;
+            }
+        }
+    }
     
     if (data.flapping_risk) {
         const flapElem = document.getElementById('med-flapping-risk');
@@ -338,6 +355,20 @@ function calculateSLAAndJitter(history) {
             } else {
                 statusElem.innerHTML = `<span class="bandwidth-badge" style="color: var(--accent-red); border-color: rgba(255,59,48,0.2); background: rgba(255,59,48,0.05);">VIOLAÇÃO SLA</span>`;
                 if (rowElem) rowElem.classList.add('sla-violation-row');
+            }
+        }
+
+        // Best Route Winner badge
+        const bestElem = document.getElementById(`sla-best-route-${dest.key}`);
+        if (bestElem) {
+            const vVal = parseFloat(vivoAvg);
+            const mVal = parseFloat(micksAvg);
+            if (vVal > 0 && (mVal <= 0 || vVal < mVal - 2.0)) {
+                bestElem.innerHTML = `<span class="best-route-badge best-route-vivo"><i class="fa-solid fa-trophy"></i> VIVO FIBRA</span>`;
+            } else if (mVal > 0 && (vVal <= 0 || mVal < vVal - 2.0)) {
+                bestElem.innerHTML = `<span class="best-route-badge best-route-micks"><i class="fa-solid fa-trophy"></i> MICKS TELECOM</span>`;
+            } else {
+                bestElem.innerHTML = `<span class="best-route-badge best-route-tie">EMPATE</span>`;
             }
         }
     });

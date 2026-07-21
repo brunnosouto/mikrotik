@@ -42,7 +42,7 @@ def calculate_mos_score(rtt_ms, jitter_ms, loss_pct=0.0):
 
 def estimate_dicom_load_time(throughput_bps, study_size_mb=500):
     """
-    Estimate DICOM Study Download Time (e.g. 500MB CT Series / 100MB X-Ray).
+    Estimate DICOM Study Download Time (e.g. 500MB CT Series / 100MB X-Ray / 1GB MRI).
     """
     effective_mbps = max(throughput_bps / 1000000.0, 50.0)
     total_bits = study_size_mb * 8.0  # Megabits
@@ -91,6 +91,56 @@ def evaluate_flapping_and_hysteresis(history):
             "recommended_action": "Fluidez máxima mantida sem alternância de rotas."
         }
 
+def calculate_best_routes(latest):
+    """
+    Best Route Intelligence Indicator per Destination (VIVO vs MICKS Winner Badge).
+    Compares RTT of VIVO and MICKS for all 6 monitored medical destinations.
+    """
+    if not latest:
+        return {}
+        
+    destinations = [
+        ('mm', 'MobileMed', 'rtt_vivo_mm', 'rtt_micks_mm'),
+        ('rbd', 'RBD PACS', 'rtt_vivo_rbd', 'rtt_micks_rbd'),
+        ('lf', 'LifeFocus', 'rtt_vivo_lf', 'rtt_micks_lf'),
+        ('lp', 'LifePlus', 'rtt_vivo_lp', 'rtt_micks_lp'),
+        ('ld', 'Laudite Portal', 'rtt_vivo_laudite', 'rtt_micks_laudite'),
+        ('lda', 'Laudite ASR', 'rtt_vivo_laudite_asr', 'rtt_micks_laudite_asr'),
+    ]
+    
+    best_routes = {}
+    for key, name, vivo_col, micks_col in destinations:
+        r_vivo = latest.get(vivo_col, 0.0) or 0.0
+        r_micks = latest.get(micks_col, 0.0) or 0.0
+        
+        if r_vivo <= 0 and r_micks <= 0:
+            winner = 'INDETERMINADO'
+            winner_name = 'Sem Dados'
+            diff_ms = 0.0
+        elif r_vivo > 0 and (r_micks <= 0 or r_vivo < r_micks - 2.0):
+            winner = 'VIVO'
+            winner_name = 'VIVO FIBRA'
+            diff_ms = round(r_micks - r_vivo, 1) if r_micks > 0 else 0.0
+        elif r_micks > 0 and (r_vivo <= 0 or r_micks < r_vivo - 2.0):
+            winner = 'MICKS'
+            winner_name = 'MICKS TELECOM'
+            diff_ms = round(r_vivo - r_micks, 1) if r_vivo > 0 else 0.0
+        else:
+            winner = 'EMPATE'
+            winner_name = 'EMPATE TÉCNICO'
+            diff_ms = 0.0
+            
+        best_routes[key] = {
+            "name": name,
+            "winner": winner,
+            "winner_name": winner_name,
+            "vivo_rtt": r_vivo,
+            "micks_rtt": r_micks,
+            "advantage_ms": diff_ms
+        }
+        
+    return best_routes
+
 def generate_radiology_rca(latest, history):
     """
     Generate Radiology Root Cause Analysis (RCA) in plain clinical terms.
@@ -125,7 +175,7 @@ def generate_radiology_rca(latest, history):
 
 def get_radiology_health_summary():
     """
-    Fetch comprehensive Radiology Medical Health Summary including dedicated Laudite ASR Metrics.
+    Fetch comprehensive Radiology Medical Health Summary including dedicated Laudite ASR Metrics and Best Routes.
     """
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -142,8 +192,10 @@ def get_radiology_health_summary():
             "laudite_jitter": 2.1,
             "ct_load_time_500mb": "1.8 s",
             "xray_load_time_100mb": "0.4 s",
+            "mri_load_time_1gb": "3.6 s",
             "flapping_risk": "0% (Estabilidade Total)",
-            "radiology_rca": "Sistema inicializado e saudável."
+            "radiology_rca": "Sistema inicializado e saudável.",
+            "best_routes": {}
         }
         
     latest = rows[0]
@@ -170,9 +222,11 @@ def get_radiology_health_summary():
     throughput = latest.get('traffic_lan_rx', 0) + latest.get('traffic_lan_tx', 0)
     ct_time = estimate_dicom_load_time(throughput, 500)
     xray_time = estimate_dicom_load_time(throughput, 100)
+    mri_time = estimate_dicom_load_time(throughput, 1024)
     
     flapping = evaluate_flapping_and_hysteresis(rows)
     rca = generate_radiology_rca(latest, rows)
+    best_routes = calculate_best_routes(latest)
     
     # Trigger Telegram alert check
     try:
@@ -189,8 +243,10 @@ def get_radiology_health_summary():
         "laudite_jitter": jitter,
         "ct_load_time_500mb": ct_time,
         "xray_load_time_100mb": xray_time,
+        "mri_load_time_1gb": mri_time,
         "flapping_risk": flapping["flapping_risk"],
-        "radiology_rca": rca
+        "radiology_rca": rca,
+        "best_routes": best_routes
     }
 
 def calculate_traffic_stats(peak_days=30):
