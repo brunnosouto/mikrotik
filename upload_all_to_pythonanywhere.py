@@ -10,6 +10,8 @@ files_to_upload = [
     ('app.py', '/home/brunnosouto/mikrotik/app.py'),
     ('services/sla_service.py', '/home/brunnosouto/mikrotik/services/sla_service.py'),
     ('static/js/app.js', '/home/brunnosouto/mikrotik/static/js/app.js'),
+    ('static/js/charts.js', '/home/brunnosouto/mikrotik/static/js/charts.js'),
+    ('templates/index.html', '/home/brunnosouto/mikrotik/templates/index.html'),
     ('test_endpoints.py', '/home/brunnosouto/mikrotik/test_endpoints.py'),
 ]
 
@@ -49,7 +51,7 @@ req_reload = urllib.request.Request(url_reload, method='POST')
 req_reload.add_header('Authorization', f'Token {token}')
 
 try:
-    with urllib.request.urlopen(req_reload, timeout=5) as resp:
+    with urllib.request.urlopen(req_reload, timeout=15) as resp:
         print(f"Reload status: {resp.getcode()}")
 except Exception as e:
     print(f"Reload error: {e}")

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MikroTik Live Monitor</title>
+    <title>MikroTik Live Monitor - Telemetria de SLA</title>
     <!-- Google Fonts & FontAwesome -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Plus+Jakarta+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -22,6 +22,11 @@
             </div>
         </div>
         <div class="status-badge-container">
+            <!-- Guia de Interpretação Button -->
+            <button class="status-badge" onclick="openGuideModal();" style="gap: 0.5rem; background: rgba(139, 92, 246, 0.12); border-color: rgba(139, 92, 246, 0.3); color: var(--text-main); font-weight: 600; cursor: pointer; padding: 0.45rem 0.85rem; outline: none;">
+                <i class="fa-solid fa-circle-question" style="color: var(--accent-vivo);"></i>
+                <span>Guia de Interpretação</span>
+            </button>
             <!-- Janela Temporal Dropdown -->
             <div class="status-badge" style="gap: 0.5rem; background: rgba(255, 255, 255, 0.05); border-color: var(--border-color);">
                 <i class="fa-solid fa-calendar-alt" style="color: var(--accent-micks);"></i>
@@ -70,19 +75,8 @@
     <div class="card" style="margin-bottom: 1.5rem; padding: 1.2rem 1.5rem; background: linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(0, 210, 252, 0.05)); border: 1px solid rgba(255, 255, 255, 0.08);">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
             <div style="display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
-                <!-- MOS Laudite -->
-                <div style="display: flex; align-items: center; gap: 0.8rem;">
-                    <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(139, 92, 246, 0.15); display: flex; align-items: center; justify-content: center;">
-                        <i class="fa-solid fa-microphone" style="color: var(--accent-vivo); font-size: 1.2rem;"></i>
-                    </div>
-                    <div>
-                        <span style="font-size: 0.72rem; color: var(--text-muted); display: block; font-weight: 600; text-transform: uppercase;">Laudite Voice ASR</span>
-                        <span id="med-mos-laudite" style="font-weight: 800; font-size: 1.1rem; color: var(--accent-green);">4.5 / 5.0 (Excelente)</span>
-                    </div>
-                </div>
-                
                 <!-- Carga DICOM TC -->
-                <div style="display: flex; align-items: center; gap: 0.8rem; border-left: 1px solid rgba(255, 255, 255, 0.08); padding-left: 1.5rem;">
+                <div style="display: flex; align-items: center; gap: 0.8rem;">
                     <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(0, 210, 252, 0.15); display: flex; align-items: center; justify-content: center;">
                         <i class="fa-solid fa-x-ray" style="color: var(--accent-micks); font-size: 1.2rem;"></i>
                     </div>
@@ -98,7 +92,7 @@
                         <i class="fa-solid fa-shield-halved" style="color: var(--accent-green); font-size: 1.2rem;"></i>
                     </div>
                     <div>
-                        <span style="font-size: 0.72rem; color: var(--text-muted); display: block; font-weight: 600; text-transform: uppercase;">Fibrilação (Flapping)</span>
+                        <span style="font-size: 0.72rem; color: var(--text-muted); display: block; font-weight: 600; text-transform: uppercase;">Estabilidade Anti-Flapping</span>
                         <span id="med-flapping-risk" style="font-weight: 800; font-size: 1.1rem; color: var(--accent-green);">0% (Estabilidade Total)</span>
                     </div>
                 </div>
@@ -107,7 +101,7 @@
             <!-- Diagnostics Clinical Note -->
             <div style="font-size: 0.8rem; color: var(--text-muted); text-align: right;" id="med-radiology-rca">
                 <i class="fa-solid fa-circle-check" style="color: var(--accent-green); margin-right: 0.3rem;"></i>
-                <span>Fluidez Plena: Exames PACS e Ditado Laudite em capacidade máxima.</span>
+                <span>Fluidez Plena: Exames PACS operando em capacidade máxima.</span>
             </div>
         </div>
     </div>
@@ -359,16 +353,6 @@
                         <td id="sla-micks-loss-lp" style="text-align: center;">--%</td>
                         <td id="sla-status-lp" style="text-align: center;">--</td>
                     </tr>
-                    <tr id="sla-row-ld">
-                        <td data-label="Destino"><div class="interface-name"><span>Laudite Portal (SLA: 250ms)</span></div></td>
-                        <td id="sla-vivo-rtt-ld" style="text-align: center;">-- ms</td>
-                        <td id="sla-vivo-jitter-ld" style="text-align: center;">-- ms</td>
-                        <td id="sla-vivo-loss-ld" style="text-align: center;">--%</td>
-                        <td id="sla-micks-rtt-ld" style="text-align: center;">-- ms</td>
-                        <td id="sla-micks-jitter-ld" style="text-align: center;">-- ms</td>
-                        <td id="sla-micks-loss-ld" style="text-align: center;">--%</td>
-                        <td id="sla-status-ld" style="text-align: center;">--</td>
-                    </tr>
                 </tbody>
             </table>
         </div>
@@ -389,12 +373,54 @@
                 <button class="segment-btn" id="btn-segment-rbd" onclick="setLatencySegment('rbd')">RBD PACS</button>
                 <button class="segment-btn" id="btn-segment-lf" onclick="setLatencySegment('lf')">LifeFocus</button>
                 <button class="segment-btn" id="btn-segment-lp" onclick="setLatencySegment('lp')">LifePlus</button>
-                <button class="segment-btn" id="btn-segment-ld" onclick="setLatencySegment('ld')">Laudite</button>
             </div>
         </div>
 
         <div class="chart-container" style="height: 320px; position: relative;">
             <canvas id="chart-master-latency"></canvas>
+        </div>
+    </div>
+
+    <!-- Modal Guia de Interpretação -->
+    <div id="guide-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 1rem;">
+        <div style="background: #14161e; border: 1px solid rgba(255,255,255,0.1); width: 100%; max-width: 650px; border-radius: 20px; padding: 2rem; box-shadow: 0 20px 40px rgba(0,0,0,0.6); position: relative; max-height: 90vh; overflow-y: auto;">
+            <button onclick="closeGuideModal();" style="position: absolute; top: 1.2rem; right: 1.2rem; background: transparent; border: none; color: var(--text-muted); font-size: 1.4rem; cursor: pointer;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            
+            <div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 1rem;">
+                <i class="fa-solid fa-graduation-cap" style="color: var(--accent-vivo); font-size: 1.8rem;"></i>
+                <div>
+                    <h2 style="font-size: 1.3rem; margin: 0; font-weight: 700;">Guia de Interpretação do Monitor</h2>
+                    <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">Como avaliar o desempenho e a estabilidade da sua rede radiológica</p>
+                </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 1.2rem;">
+                <div style="background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 12px; border-left: 4px solid var(--accent-vivo);">
+                    <h4 style="margin: 0 0 0.3rem 0; font-size: 0.95rem; color: var(--accent-vivo);"><i class="fa-solid fa-stopwatch"></i> RTT (Latência em ms)</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0; line-height: 1.4;">Tempo de ida e volta do pacote até os servidores do PACS. <strong>Quanto menor o RTT, mais rápido os exames de TC/RM abrem.</strong> (Ideal: &lt; 150ms).</p>
+                </div>
+
+                <div style="background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 12px; border-left: 4px solid var(--accent-micks);">
+                    <h4 style="margin: 0 0 0.3rem 0; font-size: 0.95rem; color: var(--accent-micks);"><i class="fa-solid fa-wave-square"></i> Jitter (Oscilação da Rede)</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0; line-height: 1.4;">Mede a estabilidade da latência. Se o Jitter for alto (&gt; 20ms), o sinal varia bruscamente, gerando pequenas micro-pausas no carregamento.</p>
+                </div>
+
+                <div style="background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 12px; border-left: 4px solid var(--accent-red);">
+                    <h4 style="margin: 0 0 0.3rem 0; font-size: 0.95rem; color: var(--accent-red);"><i class="fa-solid fa-triangle-exclamation"></i> Perda de Pacotes (%)</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0; line-height: 1.4;">Porcentagem de requisições que não retornaram. O valor ideal deve ser rigorosamente <strong>0.0%</strong> para evitar reconexões.</p>
+                </div>
+
+                <div style="background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 12px; border-left: 4px solid var(--accent-green);">
+                    <h4 style="margin: 0 0 0.3rem 0; font-size: 0.95rem; color: var(--accent-green);"><i class="fa-solid fa-shield-halved"></i> Estabilidade Anti-Flapping</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0; line-height: 1.4;">Proteção de histerese que impede que o MikroTik fique alternando de operadora em pequenas oscilações, mantendo seu laudo estável sem quedas bruscas.</p>
+                </div>
+            </div>
+
+            <button onclick="closeGuideModal();" style="margin-top: 1.5rem; width: 100%; padding: 0.8rem; background: var(--accent-vivo); border: none; border-radius: 12px; color: white; font-weight: 700; cursor: pointer;">
+                Entendido
+            </button>
         </div>
     </div>
 

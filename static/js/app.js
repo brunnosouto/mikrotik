@@ -287,9 +287,7 @@ function calculateSLAAndJitter(history) {
         { key: 'mm', name: 'MobileMed', slaLimit: 150 },
         { key: 'rbd', name: 'RBD PACS', slaLimit: 150 },
         { key: 'lf', name: 'LifeFocus', slaLimit: 280 },
-        { key: 'lp', name: 'LifePlus', slaLimit: 280 },
-        { key: 'ld', name: 'Laudite Portal', slaLimit: 250 },
-        { key: 'lda', name: 'Laudite ASR', slaLimit: 250 }
+        { key: 'lp', name: 'LifePlus', slaLimit: 280 }
     ];
     
     destinations.forEach(dest => {
@@ -345,4 +343,14 @@ function calcJitter(vals) {
 function setElemText(id, txt) {
     const elem = document.getElementById(id);
     if (elem) elem.innerText = txt;
+}
+
+function openGuideModal() {
+    const modal = document.getElementById('guide-modal');
+    if (modal) modal.style.display = 'flex';
+}
+
+function closeGuideModal() {
+    const modal = document.getElementById('guide-modal');
+    if (modal) modal.style.display = 'none';
 }

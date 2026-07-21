@@ -44,7 +44,6 @@ def estimate_dicom_load_time(throughput_bps, study_size_mb=500):
     """
     Estimate DICOM Study Download Time (e.g. 500MB CT Series / 100MB X-Ray).
     """
-    # Default fallback to nominal 50 Mbps if idle
     effective_mbps = max(throughput_bps / 1000000.0, 50.0)
     total_bits = study_size_mb * 8.0  # Megabits
     seconds = total_bits / effective_mbps
@@ -67,7 +66,6 @@ def evaluate_flapping_and_hysteresis(history):
             "recommended_action": "Manter rota atual sem alterações."
         }
         
-    # Analyze recent link changes in the last 10 records
     recent = history[-10:]
     link_changes = 0
     for i in range(1, len(recent)):
@@ -102,8 +100,6 @@ def generate_radiology_rca(latest, history):
         
     active_link = latest.get('link_ativo', 'VIVO')
     cpu = latest.get('cpu', 0)
-    rtt_vivo = latest.get('rtt_vivo_mm', 0)
-    rtt_micks = latest.get('rtt_micks_mm', 0)
     
     rca_items = []
     
@@ -113,7 +109,7 @@ def generate_radiology_rca(latest, history):
         rca_items.append("Failover ativo: Tráfego operando via MICKS Telecom por contingência.")
         
     if cpu > 80:
-        rca_items.append(f"Uso elevado de CPU no roteador ({cpu}%). Pode afetar o buffer do Laudite.")
+        rca_items.append(f"Uso elevado de CPU no roteador ({cpu}%).")
         
     flapping = evaluate_flapping_and_hysteresis(history)
     if flapping["is_flapping"]:
@@ -142,14 +138,9 @@ def get_radiology_health_summary():
         }
         
     latest = rows[0]
+    rtt_laudite = latest.get('rtt_vivo_mm', 45.0)
     
-    # Calculate Laudite MOS for active route
-    rtt_laudite = latest.get('rtt_vivo_laudite_asr') if latest.get('link_ativo') == 'VIVO' else latest.get('rtt_micks_laudite_asr')
-    if not rtt_laudite or rtt_laudite <= 0:
-        rtt_laudite = latest.get('rtt_vivo_mm', 45.0)
-        
-    # Calculate Jitter from history
-    past_rtts = [r.get('rtt_vivo_laudite_asr', 0) for r in rows if r.get('rtt_vivo_laudite_asr', 0) > 0]
+    past_rtts = [r.get('rtt_vivo_mm', 0) for r in rows if r.get('rtt_vivo_mm', 0) > 0]
     jitter = 0.0
     if len(past_rtts) >= 2:
         diffs = [abs(past_rtts[i] - past_rtts[i-1]) for i in range(1, len(past_rtts))]
@@ -157,7 +148,6 @@ def get_radiology_health_summary():
         
     mos_score, mos_status = calculate_mos_score(rtt_laudite, jitter)
     
-    # Calculate DICOM Load Times
     throughput = latest.get('traffic_lan_rx', 0) + latest.get('traffic_lan_tx', 0)
     ct_time = estimate_dicom_load_time(throughput, 500)
     xray_time = estimate_dicom_load_time(throughput, 100)
@@ -219,12 +209,6 @@ def calculate_traffic_stats(peak_days=30):
             MAX(rtt_vivo_lp), MIN(CASE WHEN rtt_vivo_lp > 0 THEN rtt_vivo_lp END),
             MAX(rtt_micks_lp), MIN(CASE WHEN rtt_micks_lp > 0 THEN rtt_micks_lp END),
             
-            MAX(rtt_vivo_laudite), MIN(CASE WHEN rtt_vivo_laudite > 0 THEN rtt_vivo_laudite END),
-            MAX(rtt_micks_laudite), MIN(CASE WHEN rtt_micks_laudite > 0 THEN rtt_micks_laudite END),
-            
-            MAX(rtt_vivo_laudite_asr), MIN(CASE WHEN rtt_vivo_laudite_asr > 0 THEN rtt_vivo_laudite_asr END),
-            MAX(rtt_micks_laudite_asr), MIN(CASE WHEN rtt_micks_laudite_asr > 0 THEN rtt_micks_laudite_asr END),
-            
             MAX(rtt_vivo_rbd), MIN(CASE WHEN rtt_vivo_rbd > 0 THEN rtt_vivo_rbd END),
             MAX(rtt_micks_rbd), MIN(CASE WHEN rtt_micks_rbd > 0 THEN rtt_micks_rbd END)
         FROM telemetry
@@ -284,12 +268,8 @@ def calculate_traffic_stats(peak_days=30):
             "lf_micks_max": row_rtt_peaks[6] or 0.0, "lf_micks_min": row_rtt_peaks[7] or 0.0,
             "lp_vivo_max": row_rtt_peaks[8] or 0.0, "lp_vivo_min": row_rtt_peaks[9] or 0.0,
             "lp_micks_max": row_rtt_peaks[10] or 0.0, "lp_micks_min": row_rtt_peaks[11] or 0.0,
-            "ld_vivo_max": row_rtt_peaks[12] or 0.0, "ld_vivo_min": row_rtt_peaks[13] or 0.0,
-            "ld_micks_max": row_rtt_peaks[14] or 0.0, "ld_micks_min": row_rtt_peaks[15] or 0.0,
-            "lda_vivo_max": row_rtt_peaks[16] or 0.0, "lda_vivo_min": row_rtt_peaks[17] or 0.0,
-            "lda_micks_max": row_rtt_peaks[18] or 0.0, "lda_micks_min": row_rtt_peaks[19] or 0.0,
-            "rbd_vivo_max": row_rtt_peaks[20] or 0.0, "rbd_vivo_min": row_rtt_peaks[21] or 0.0,
-            "rbd_micks_max": row_rtt_peaks[22] or 0.0, "rbd_micks_min": row_rtt_peaks[23] or 0.0,
+            "rbd_vivo_max": row_rtt_peaks[12] or 0.0, "rbd_vivo_min": row_rtt_peaks[13] or 0.0,
+            "rbd_micks_max": row_rtt_peaks[14] or 0.0, "rbd_micks_min": row_rtt_peaks[15] or 0.0,
         }
 
     return {
