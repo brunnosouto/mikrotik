@@ -215,8 +215,78 @@ def get_incidents():
 def get_traffic_stats():
     try:
         peak_days = request.args.get('peak_days', 30, type=int)
-        stats = calculate_traffic_stats(peak_days)
-        return jsonify(stats)
+        stats = calculate_traffic_stats(peak_days=peak_days)
+        return jsonify(stats), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/reports/isp-sla', methods=['GET'])
+def get_isp_sla_report():
+    try:
+        days = request.args.get('days', 30, type=int)
+        fmt = request.args.get('format', 'json')
+        from services.report_service import generate_isp_sla_report
+        report = generate_isp_sla_report(days=days)
+        
+        if fmt == 'csv':
+            from flask import Response
+            return Response(
+                report['csv_text'],
+                mimetype='text/csv',
+                headers={'Content-Disposition': f'attachment;filename=Relatorio_Auditoria_SLA_ISP_{days}d.csv'}
+            )
+        return jsonify(report), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/reports/incidents/export', methods=['GET'])
+def export_incidents_report():
+    try:
+        days = request.args.get('days', 30, type=int)
+        inc_type = request.args.get('type', 'ALL')
+        from services.report_service import export_incidents_csv
+        csv_data = export_incidents_csv(days=days, inc_type=inc_type)
+        from flask import Response
+        return Response(
+            csv_data,
+            mimetype='text/csv',
+            headers={'Content-Disposition': f'attachment;filename=Historico_Incidentes_{days}d.csv'}
+        )
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# In-memory store for closed-loop route overrides
+ROUTE_OVERRIDES = {}
+
+@app.route('/api/route/override', methods=['GET', 'POST'])
+def handle_route_override():
+    global ROUTE_OVERRIDES
+    if request.method == 'GET':
+        return jsonify({"status": "success", "overrides": ROUTE_OVERRIDES}), 200
+        
+    try:
+        data = request.get_json() or {}
+        dest = data.get('destination')
+        provider = data.get('provider') # 'VIVO', 'MICKS', or 'AUTO'
+        
+        if not dest or not provider:
+            return jsonify({"status": "error", "message": "Parâmetros 'destination' e 'provider' são obrigatórios"}), 400
+            
+        if provider == 'AUTO':
+            ROUTE_OVERRIDES.pop(dest, None)
+            msg = f"Rota de {dest} restaurada para Seleção Automática (Best Route Winner)"
+        else:
+            ROUTE_OVERRIDES[dest] = {
+                "provider": provider,
+                "set_at": datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            }
+            msg = f"Rota de {dest} fixada manualmente via {provider} FIBRA/TELECOM"
+            
+        return jsonify({
+            "status": "success",
+            "message": msg,
+            "overrides": ROUTE_OVERRIDES
+        }), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 

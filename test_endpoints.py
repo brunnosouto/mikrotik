@@ -89,5 +89,26 @@ class EndpointTestCase(unittest.TestCase):
         data = json.loads(response.data.decode('utf-8'))
         self.assertEqual(data['status'], 'success')
 
+    def test_isp_sla_report_endpoint(self):
+        """Test the /api/reports/isp-sla audit report generation endpoint."""
+        response = self.app.get('/api/reports/isp-sla?days=7')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data.decode('utf-8'))
+        self.assertIn('summary', data)
+        self.assertIn('details', data)
+        
+        csv_resp = self.app.get('/api/reports/isp-sla?days=7&format=csv')
+        self.assertEqual(csv_resp.status_code, 200)
+        self.assertIn('RELATORIO DE AUDITORIA', csv_resp.data.decode('utf-8'))
+
+    def test_route_override_endpoint(self):
+        """Test the /api/route/override endpoint for closed-loop route control."""
+        response = self.app.post('/api/route/override', json={'destination': 'lda', 'provider': 'MICKS'})
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data.decode('utf-8'))
+        self.assertEqual(data['status'], 'success')
+        self.assertIn('lda', data['overrides'])
+
 if __name__ == '__main__':
     unittest.main()
+

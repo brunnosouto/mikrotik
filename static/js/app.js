@@ -648,3 +648,29 @@ function closeGuideModal() {
     const modal = document.getElementById('guide-modal');
     if (modal) modal.style.display = 'none';
 }
+
+function downloadIspSlaReport(days = 30) {
+    const url = `/api/reports/isp-sla?days=${days}&format=csv`;
+    window.open(url, '_blank');
+}
+
+async function toggleRouteOverride(destination, provider) {
+    try {
+        const res = await fetch('/api/route/override', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ destination, provider })
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+            alert(`✅ ${data.message}`);
+            fetchDashboardData();
+        } else {
+            alert(`⚠️ Erro: ${data.message}`);
+        }
+    } catch(e) {
+        console.error("Error toggling route override:", e);
+        alert("⚠️ Falha ao comunicar com o servidor.");
+    }
+}
+
