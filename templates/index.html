@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MikroTik Live Monitor 2.0 Turbo - Telemetria Radiológica</title>
+    <title>MikroTik Radiology Command Center 3.0 - Telemetria & Decisão de Rotas</title>
     <!-- Google Fonts & FontAwesome -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Plus+Jakarta+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Modular Custom CSS -->
+    <!-- Custom CSS 3.0 -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
@@ -17,26 +17,26 @@
         <div class="logo-area">
             <i class="fa-solid fa-microchip logo-icon"></i>
             <div class="logo-text">
-                <h1>MikroTik Live Monitor <span style="font-size: 0.75rem; background: linear-gradient(135deg, var(--accent-vivo), var(--accent-micks)); padding: 0.2rem 0.6rem; border-radius: 20px; color: #fff; font-weight: 800; vertical-align: middle; margin-left: 0.3rem;">2.0 TURBO</span></h1>
-                <p>Inteligência de Rota & Telemetria Radiológica de Alta Disponibilidade</p>
+                <h1>MikroTik Live Monitor <span style="font-size: 0.72rem; background: linear-gradient(135deg, var(--accent-vivo), var(--accent-micks)); padding: 0.2rem 0.6rem; border-radius: 20px; color: #fff; font-weight: 800; vertical-align: middle; margin-left: 0.4rem; letter-spacing: 0.5px;">3.0 COMMAND CENTER</span></h1>
+                <p>Inteligência Preditiva de Rota & Telemetria Radiológica de Alta Disponibilidade</p>
             </div>
         </div>
         <div class="status-badge-container">
             <!-- Relatório ISP SLA CSV Button -->
-            <button class="status-badge" onclick="downloadIspSlaReport();" style="gap: 0.5rem; background: rgba(52, 199, 89, 0.12); border-color: rgba(52, 199, 89, 0.3); color: var(--accent-green); font-weight: 600; cursor: pointer; padding: 0.45rem 0.85rem; outline: none;">
+            <button class="status-badge" onclick="downloadIspSlaReport();" style="gap: 0.5rem; background: rgba(52, 199, 89, 0.12); border-color: rgba(52, 199, 89, 0.3); color: var(--accent-green); font-weight: 700; cursor: pointer; padding: 0.45rem 0.85rem; outline: none;">
                 <i class="fa-solid fa-file-csv"></i>
                 <span>Auditoria ISP SLA</span>
             </button>
             <!-- Guia de Interpretação Button -->
-            <button class="status-badge" onclick="openGuideModal();" style="gap: 0.5rem; background: rgba(139, 92, 246, 0.12); border-color: rgba(139, 92, 246, 0.3); color: var(--text-main); font-weight: 600; cursor: pointer; padding: 0.45rem 0.85rem; outline: none;">
+            <button class="status-badge" onclick="openGuideModal();" style="gap: 0.5rem; background: rgba(157, 78, 221, 0.12); border-color: rgba(157, 78, 221, 0.3); color: var(--text-main); font-weight: 600; cursor: pointer; padding: 0.45rem 0.85rem; outline: none;">
                 <i class="fa-solid fa-circle-question" style="color: var(--accent-vivo);"></i>
-                <span>Guia de Interpretação</span>
+                <span>Guia</span>
             </button>
             <!-- Janela Temporal Dropdown -->
             <div class="status-badge" style="gap: 0.5rem; background: rgba(255, 255, 255, 0.05); border-color: var(--border-color);">
                 <i class="fa-solid fa-calendar-alt" style="color: var(--accent-micks);"></i>
-                <span style="color: var(--text-muted); font-size: 0.82rem; font-weight: 500; margin-right: 0.2rem;">Janela:</span>
-                <select id="time-range-select" onchange="onTimeRangeChange(this.value);" style="background: transparent; color: var(--text-main); border: none; font-size: 0.85rem; font-weight: 600; cursor: pointer; outline: none; font-family: inherit;">
+                <span style="color: var(--text-muted); font-size: 0.8rem; font-weight: 500;">Janela:</span>
+                <select id="time-range-select" onchange="onTimeRangeChange(this.value);" style="background: transparent; color: var(--text-main); border: none; font-size: 0.85rem; font-weight: 700; cursor: pointer; outline: none; font-family: inherit;">
                     <option value="1h" selected style="background: #14161e; color: #f5f6fa;">Última 1h</option>
                     <option value="12h" style="background: #14161e; color: #f5f6fa;">Últimas 12h</option>
                     <option value="24h" style="background: #14161e; color: #f5f6fa;">Últimas 24h</option>
@@ -45,10 +45,10 @@
             </div>
             <!-- Live Heartbeat Indicator -->
             <div class="status-badge heartbeat-container">
-                <div class="heartbeat-ring">
-                    <svg>
-                        <circle class="bg-circle" cx="8" cy="8" r="7"></circle>
-                        <circle class="progress-circle" id="heartbeat-progress" cx="8" cy="8" r="7"></circle>
+                <div class="heartbeat-ring" style="width: 16px; height: 16px; position: relative;">
+                    <svg style="width: 16px; height: 16px; transform: rotate(-90deg);">
+                        <circle cx="8" cy="8" r="7" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="2.5"></circle>
+                        <circle id="heartbeat-progress" cx="8" cy="8" r="7" fill="none" stroke="var(--accent-micks)" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="43.96" stroke-dashoffset="0"></circle>
                     </svg>
                 </div>
                 <span style="font-size: 0.78rem; color: var(--text-muted); font-weight: 600;" id="heartbeat-text">Live (1.5s)</span>
@@ -65,164 +65,241 @@
     </header>
 
     <!-- Central de Alertas Ativos -->
-    <div class="alert-banner" id="active-alert-banner">
-        <div class="alert-banner-content">
+    <div class="alert-banner" id="active-alert-banner" style="display: none; background: rgba(255, 59, 48, 0.08); border: 1px solid rgba(255, 59, 48, 0.25); border-radius: 14px; padding: 0.8rem 1.2rem; margin-bottom: 1.5rem; align-items: center; justify-content: space-between; gap: 1rem;">
+        <div style="display: flex; align-items: center; gap: 0.8rem; font-size: 0.9rem; color: var(--text-main);">
             <i class="fa-solid fa-circle-exclamation" style="color: var(--accent-red); font-size: 1.25rem;"></i>
             <div>
-                <span class="alert-banner-title">ALERTA ATIVO:</span>
+                <span style="font-weight: 800; color: var(--accent-red);">ALERTA ATIVO:</span>
                 <span id="alert-banner-message" style="margin-left: 0.3rem;">--</span>
             </div>
         </div>
         <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600;" id="alert-banner-time">--:--:--</div>
     </div>
 
-    <!-- MONITOR DEDICADO LAUDITE ASR & SAÚDE DE VOZ 2.0 TURBO -->
-    <div class="card" style="margin-bottom: 1.5rem; padding: 1.5rem; background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(0, 210, 252, 0.04)); border: 1px solid rgba(139, 92, 246, 0.2); box-shadow: 0 10px 30px rgba(139, 92, 246, 0.05);">
+    <!-- HERO MODULE: LAUDITE SPEECH-TO-TEXT (ASR) COMMAND CENTER 3.0 -->
+    <div class="card" style="margin-bottom: 1.5rem; padding: 1.5rem; background: linear-gradient(135deg, rgba(157, 78, 221, 0.10), rgba(0, 210, 252, 0.05)); border: 1px solid rgba(157, 78, 221, 0.25); box-shadow: 0 12px 40px rgba(157, 78, 221, 0.08);">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 1rem; margin-bottom: 1.2rem; flex-wrap: wrap; gap: 1rem;">
-            <div style="display: flex; align-items: center; gap: 0.8rem;">
-                <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(139, 92, 246, 0.2); display: flex; align-items: center; justify-content: center; border: 1px solid rgba(139, 92, 246, 0.4);">
-                    <i class="fa-solid fa-microphone-lines" style="color: var(--accent-vivo); font-size: 1.4rem;"></i>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div style="width: 46px; height: 46px; border-radius: 14px; background: rgba(157, 78, 221, 0.22); display: flex; align-items: center; justify-content: center; border: 1px solid rgba(157, 78, 221, 0.4); box-shadow: 0 0 16px rgba(157, 78, 221, 0.3);">
+                    <i class="fa-solid fa-microphone-lines" style="color: var(--accent-vivo); font-size: 1.5rem;"></i>
                 </div>
                 <div>
-                    <h3 style="font-size: 1.2rem; margin: 0; font-weight: 800; color: #fff;">MONITOR DEDICADO LAUDITE SPEECH-TO-TEXT (ASR)</h3>
+                    <h3 style="font-size: 1.2rem; margin: 0; font-weight: 800; color: #fff; font-family: 'Outfit', sans-serif;">MONITOR DEDICADO LAUDITE SPEECH-TO-TEXT (ASR)</h3>
                     <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">Telemetria contínua de transcrição por voz e inteligência de rota (ITU-T G.107)</p>
                 </div>
             </div>
             <div style="display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap;">
                 <div id="laudite-best-route-winner">
-                    <span class="best-route-badge best-route-micks"><i class="fa-solid fa-trophy"></i> MICKS TELECOM (Mais rápida)</span>
+                    <span class="best-route-badge best-route-micks"><i class="fa-solid fa-trophy"></i> MICKS TELECOM</span>
                 </div>
                 <div style="background: rgba(52, 199, 89, 0.1); border: 1px solid rgba(52, 199, 89, 0.3); padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 700; color: var(--accent-green); display: flex; align-items: center; gap: 0.5rem;">
                     <i class="fa-solid fa-waveform"></i>
-                    <span>AUDIO STREAM ACTIVE</span>
+                    <span>DITADO FLUINDO</span>
                 </div>
             </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.2rem;">
-            <!-- MOS Score Item -->
-            <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 1rem; border-radius: 14px;">
-                <span style="font-size: 0.72rem; color: var(--text-muted); display: block; font-weight: 700; text-transform: uppercase; margin-bottom: 0.3rem;">Score MOS (G.107)</span>
-                <div id="med-mos-laudite" style="font-size: 1.4rem; font-weight: 800; color: var(--accent-green);">4.4 / 5.0 (Excelente)</div>
-                <span style="font-size: 0.75rem; color: var(--text-muted);">Fluidez total no ditado</span>
-            </div>
-
-            <!-- Laudite ASR RTT VIVO -->
-            <div style="background: rgba(111, 66, 193, 0.04); border: 1px solid rgba(111, 66, 193, 0.15); padding: 1rem; border-radius: 14px;">
-                <span style="font-size: 0.72rem; color: var(--accent-vivo); display: block; font-weight: 700; text-transform: uppercase; margin-bottom: 0.3rem;">ASR RTT (VIVO FIBRA)</span>
-                <div id="laudite-asr-rtt-vivo" style="font-size: 1.4rem; font-weight: 800; color: var(--text-main);">173.5 ms</div>
-                <span style="font-size: 0.75rem; color: var(--text-muted);">Servidor Cloud ASR</span>
-            </div>
-
-            <!-- Laudite ASR RTT MICKS -->
-            <div style="background: rgba(0, 210, 252, 0.04); border: 1px solid rgba(0, 210, 252, 0.15); padding: 1rem; border-radius: 14px;">
-                <span style="font-size: 0.72rem; color: var(--accent-micks); display: block; font-weight: 700; text-transform: uppercase; margin-bottom: 0.3rem;">ASR RTT (MICKS TELECOM)</span>
-                <div id="laudite-asr-rtt-micks" style="font-size: 1.4rem; font-weight: 800; color: var(--text-main);">163.9 ms</div>
-                <span style="font-size: 0.75rem; color: var(--text-muted);">Servidor Cloud ASR</span>
-            </div>
-
-            <!-- Jitter de Voz -->
-            <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 1rem; border-radius: 14px;">
-                <span style="font-size: 0.72rem; color: var(--text-muted); display: block; font-weight: 700; text-transform: uppercase; margin-bottom: 0.3rem;">Jitter de Voz</span>
-                <div id="laudite-jitter" style="font-size: 1.4rem; font-weight: 800; color: var(--accent-green);">0.1 ms</div>
-                <span style="font-size: 0.75rem; color: var(--text-muted);">Estabilidade da rota</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Painel de Saúde Radiológica & Calculadora PACS 2.0 (Engenharia Médica) -->
-    <div class="card" style="margin-bottom: 1.5rem; padding: 1.2rem 1.5rem; background: linear-gradient(135deg, rgba(139, 92, 246, 0.03), rgba(0, 210, 252, 0.03)); border: 1px solid rgba(255, 255, 255, 0.08);">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-            <div style="display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
-                <!-- Carga DICOM TC (500MB) -->
-                <div style="display: flex; align-items: center; gap: 0.8rem;">
-                    <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(0, 210, 252, 0.15); display: flex; align-items: center; justify-content: center;">
-                        <i class="fa-solid fa-x-ray" style="color: var(--accent-micks); font-size: 1.2rem;"></i>
-                    </div>
-                    <div>
-                        <span style="font-size: 0.72rem; color: var(--text-muted); display: block; font-weight: 600; text-transform: uppercase;">TC Tórax (500MB)</span>
-                        <span id="med-ct-load-time" style="font-weight: 800; font-size: 1.1rem; color: var(--text-main);">1.3 min</span>
-                    </div>
-                </div>
-
-                <!-- Carga DICOM RM (1GB) -->
-                <div style="display: flex; align-items: center; gap: 0.8rem; border-left: 1px solid rgba(255, 255, 255, 0.08); padding-left: 1.5rem;">
-                    <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(139, 92, 246, 0.15); display: flex; align-items: center; justify-content: center;">
-                        <i class="fa-solid fa-brain" style="color: var(--accent-vivo); font-size: 1.2rem;"></i>
-                    </div>
-                    <div>
-                        <span style="font-size: 0.72rem; color: var(--text-muted); display: block; font-weight: 600; text-transform: uppercase;">RM Encéfalo (1GB)</span>
-                        <span id="med-mri-load-time" style="font-weight: 800; font-size: 1.1rem; color: var(--text-main);">2.6 min</span>
-                    </div>
-                </div>
-
-                <!-- Proteção Anti-Fibrilação -->
-                <div style="display: flex; align-items: center; gap: 0.8rem; border-left: 1px solid rgba(255, 255, 255, 0.08); padding-left: 1.5rem;">
-                    <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(52, 199, 89, 0.15); display: flex; align-items: center; justify-content: center;">
-                        <i class="fa-solid fa-shield-halved" style="color: var(--accent-green); font-size: 1.2rem;"></i>
-                    </div>
-                    <div>
-                        <span style="font-size: 0.72rem; color: var(--text-muted); display: block; font-weight: 600; text-transform: uppercase;">Estabilidade Anti-Flapping</span>
-                        <span id="med-flapping-risk" style="font-weight: 800; font-size: 1.1rem; color: var(--accent-green);">0% (Estabilidade Total)</span>
-                    </div>
+        <div style="display: flex; align-items: center; gap: 1.8rem; flex-wrap: wrap;">
+            <!-- Neumorphic Score MOS Gauge -->
+            <div class="mos-gauge-wrapper">
+                <svg viewBox="0 0 100 100">
+                    <circle class="mos-gauge-bg" cx="50" cy="50" r="45"></circle>
+                    <circle id="mos-gauge-fill-circle" class="mos-gauge-fill" cx="50" cy="50" r="45"></circle>
+                </svg>
+                <div class="mos-gauge-text">
+                    <div class="mos-gauge-value" id="mos-gauge-num">4.4</div>
+                    <div class="mos-gauge-label">Score MOS</div>
                 </div>
             </div>
 
-            <!-- Diagnostics Clinical Note -->
-            <div style="font-size: 0.8rem; color: var(--text-muted); text-align: right;" id="med-radiology-rca">
-                <i class="fa-solid fa-circle-check" style="color: var(--accent-green); margin-right: 0.3rem;"></i>
-                <span>Fluidez Plena: Exames PACS e Ditado Laudite operando em capacidade máxima.</span>
+            <!-- Detailed Laudite Metrics Grid -->
+            <div style="flex: 1; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 1rem; border-radius: 14px;">
+                    <span style="font-size: 0.7rem; color: var(--text-muted); display: block; font-weight: 700; text-transform: uppercase; margin-bottom: 0.3rem;">Status da Transcrição</span>
+                    <div id="med-mos-laudite" style="font-size: 1.2rem; font-weight: 800; color: var(--accent-green);">Excelente (Ditado Fluido)</div>
+                    <span style="font-size: 0.72rem; color: var(--text-muted);">Sem latência audível</span>
+                </div>
+
+                <div style="background: rgba(157, 78, 221, 0.05); border: 1px solid rgba(157, 78, 221, 0.2); padding: 1rem; border-radius: 14px;">
+                    <span style="font-size: 0.7rem; color: var(--accent-vivo); display: block; font-weight: 700; text-transform: uppercase; margin-bottom: 0.3rem;">ASR RTT (VIVO FIBRA)</span>
+                    <div id="laudite-asr-rtt-vivo" style="font-size: 1.3rem; font-weight: 800; color: var(--text-main); font-family: 'Outfit', sans-serif;">-- ms</div>
+                    <span style="font-size: 0.72rem; color: var(--text-muted);">Servidor Cloud ASR</span>
+                </div>
+
+                <div style="background: rgba(0, 210, 252, 0.05); border: 1px solid rgba(0, 210, 252, 0.2); padding: 1rem; border-radius: 14px;">
+                    <span style="font-size: 0.7rem; color: var(--accent-micks); display: block; font-weight: 700; text-transform: uppercase; margin-bottom: 0.3rem;">ASR RTT (MICKS TELECOM)</span>
+                    <div id="laudite-asr-rtt-micks" style="font-size: 1.3rem; font-weight: 800; color: var(--text-main); font-family: 'Outfit', sans-serif;">-- ms</div>
+                    <span style="font-size: 0.72rem; color: var(--text-muted);">Servidor Cloud ASR</span>
+                </div>
+
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 1rem; border-radius: 14px;">
+                    <span style="font-size: 0.7rem; color: var(--text-muted); display: block; font-weight: 700; text-transform: uppercase; margin-bottom: 0.3rem;">Jitter de Voz</span>
+                    <div id="laudite-jitter" style="font-size: 1.3rem; font-weight: 800; color: var(--accent-green); font-family: 'Outfit', sans-serif;">-- ms</div>
+                    <span style="font-size: 0.72rem; color: var(--text-muted);">Estabilidade de pacotes</span>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Cards Grid -->
-    <div class="dashboard-grid">
+    <!-- MATRIZ INTERATIVA DE DECISÃO & SELEÇÃO DE ROTA 1-CLICK 3.0 -->
+    <div class="card" style="margin-bottom: 1.5rem; padding: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.2rem; flex-wrap: wrap; gap: 1rem;">
+            <h3 style="font-size: 1.1rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 0.6rem;">
+                <i class="fa-solid fa-route" style="color: var(--accent-micks);"></i>
+                <span>Matriz de Decisão &amp; Comparativo SLA dos Destinos Médicos</span>
+            </h3>
+            <span style="font-size: 0.72rem; color: var(--text-muted); background: rgba(255,255,255,0.04); padding: 0.3rem 0.8rem; border-radius: 20px;">
+                <i class="fa-solid fa-sliders" style="margin-right: 0.3rem;"></i>Controle de Rota 1-Click Disponível
+            </span>
+        </div>
+
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 20%;">Destino Médico</th>
+                        <th style="text-align: center; width: 11%;">VIVO RTT</th>
+                        <th style="text-align: center; width: 11%;">VIVO Jitter</th>
+                        <th style="text-align: center; width: 11%;">MICKS RTT</th>
+                        <th style="text-align: center; width: 11%;">MICKS Jitter</th>
+                        <th style="text-align: center; width: 14%;">Conformidade SLA</th>
+                        <th style="text-align: center; width: 12%;">Melhor Rota (Winner)</th>
+                        <th style="text-align: center; width: 10%;">Controle Rota</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr id="sla-row-mm">
+                        <td><div class="interface-name"><i class="fa-solid fa-hospital" style="color: var(--accent-vivo); margin-right: 0.4rem;"></i><span>MobileMed PACS (SLA: 150ms)</span></div></td>
+                        <td id="sla-vivo-rtt-mm" style="text-align: center; font-weight: 700;">-- ms</td>
+                        <td id="sla-vivo-jitter-mm" style="text-align: center;">-- ms</td>
+                        <td id="sla-micks-rtt-mm" style="text-align: center; font-weight: 700;">-- ms</td>
+                        <td id="sla-micks-jitter-mm" style="text-align: center;">-- ms</td>
+                        <td id="sla-status-mm" style="text-align: center;">--</td>
+                        <td id="sla-best-route-mm" style="text-align: center;"><span class="best-route-badge best-route-vivo"><i class="fa-solid fa-trophy"></i> VIVO FIBRA</span></td>
+                        <td style="text-align: center;">
+                            <div class="route-toggle-group">
+                                <button class="route-toggle-btn active-auto" onclick="toggleRouteOverride('mm', 'AUTO')">AUTO</button>
+                                <button class="route-toggle-btn" onclick="toggleRouteOverride('mm', 'VIVO')">VIVO</button>
+                                <button class="route-toggle-btn" onclick="toggleRouteOverride('mm', 'MICKS')">MICKS</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr id="sla-row-rbd">
+                        <td><div class="interface-name"><i class="fa-solid fa-x-ray" style="color: var(--accent-micks); margin-right: 0.4rem;"></i><span>RBD PACS (SLA: 150ms)</span></div></td>
+                        <td id="sla-vivo-rtt-rbd" style="text-align: center; font-weight: 700;">-- ms</td>
+                        <td id="sla-vivo-jitter-rbd" style="text-align: center;">-- ms</td>
+                        <td id="sla-micks-rtt-rbd" style="text-align: center; font-weight: 700;">-- ms</td>
+                        <td id="sla-micks-jitter-rbd" style="text-align: center;">-- ms</td>
+                        <td id="sla-status-rbd" style="text-align: center;">--</td>
+                        <td id="sla-best-route-rbd" style="text-align: center;"><span class="best-route-badge best-route-vivo"><i class="fa-solid fa-trophy"></i> VIVO FIBRA</span></td>
+                        <td style="text-align: center;">
+                            <div class="route-toggle-group">
+                                <button class="route-toggle-btn active-auto" onclick="toggleRouteOverride('rbd', 'AUTO')">AUTO</button>
+                                <button class="route-toggle-btn" onclick="toggleRouteOverride('rbd', 'VIVO')">VIVO</button>
+                                <button class="route-toggle-btn" onclick="toggleRouteOverride('rbd', 'MICKS')">MICKS</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr id="sla-row-lf">
+                        <td><div class="interface-name"><i class="fa-solid fa-eye" style="color: var(--accent-vivo); margin-right: 0.4rem;"></i><span>LifeFocus RIS (SLA: 280ms)</span></div></td>
+                        <td id="sla-vivo-rtt-lf" style="text-align: center; font-weight: 700;">-- ms</td>
+                        <td id="sla-vivo-jitter-lf" style="text-align: center;">-- ms</td>
+                        <td id="sla-micks-rtt-lf" style="text-align: center; font-weight: 700;">-- ms</td>
+                        <td id="sla-micks-jitter-lf" style="text-align: center;">-- ms</td>
+                        <td id="sla-status-lf" style="text-align: center;">--</td>
+                        <td id="sla-best-route-lf" style="text-align: center;"><span class="best-route-badge best-route-micks"><i class="fa-solid fa-trophy"></i> MICKS TELECOM</span></td>
+                        <td style="text-align: center;">
+                            <div class="route-toggle-group">
+                                <button class="route-toggle-btn active-auto" onclick="toggleRouteOverride('lf', 'AUTO')">AUTO</button>
+                                <button class="route-toggle-btn" onclick="toggleRouteOverride('lf', 'VIVO')">VIVO</button>
+                                <button class="route-toggle-btn" onclick="toggleRouteOverride('lf', 'MICKS')">MICKS</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr id="sla-row-lp">
+                        <td><div class="interface-name"><i class="fa-solid fa-circle-plus" style="color: var(--accent-micks); margin-right: 0.4rem;"></i><span>LifePlus Cloud (SLA: 280ms)</span></div></td>
+                        <td id="sla-vivo-rtt-lp" style="text-align: center; font-weight: 700;">-- ms</td>
+                        <td id="sla-vivo-jitter-lp" style="text-align: center;">-- ms</td>
+                        <td id="sla-micks-rtt-lp" style="text-align: center; font-weight: 700;">-- ms</td>
+                        <td id="sla-micks-jitter-lp" style="text-align: center;">-- ms</td>
+                        <td id="sla-status-lp" style="text-align: center;">--</td>
+                        <td id="sla-best-route-lp" style="text-align: center;"><span class="best-route-badge best-route-vivo"><i class="fa-solid fa-trophy"></i> VIVO FIBRA</span></td>
+                        <td style="text-align: center;">
+                            <div class="route-toggle-group">
+                                <button class="route-toggle-btn active-auto" onclick="toggleRouteOverride('lp', 'AUTO')">AUTO</button>
+                                <button class="route-toggle-btn" onclick="toggleRouteOverride('lp', 'VIVO')">VIVO</button>
+                                <button class="route-toggle-btn" onclick="toggleRouteOverride('lp', 'MICKS')">MICKS</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr id="sla-row-lda">
+                        <td><div class="interface-name"><i class="fa-solid fa-microphone" style="color: var(--accent-vivo); margin-right: 0.4rem;"></i><span>Laudite ASR Speech (SLA: 250ms)</span></div></td>
+                        <td id="sla-vivo-rtt-lda" style="text-align: center; font-weight: 700;">-- ms</td>
+                        <td id="sla-vivo-jitter-lda" style="text-align: center;">-- ms</td>
+                        <td id="sla-micks-rtt-lda" style="text-align: center; font-weight: 700;">-- ms</td>
+                        <td id="sla-micks-jitter-lda" style="text-align: center;">-- ms</td>
+                        <td id="sla-status-lda" style="text-align: center;">--</td>
+                        <td id="sla-best-route-lda" style="text-align: center;"><span class="best-route-badge best-route-micks"><i class="fa-solid fa-trophy"></i> MICKS TELECOM</span></td>
+                        <td style="text-align: center;">
+                            <div class="route-toggle-group">
+                                <button class="route-toggle-btn active-auto" onclick="toggleRouteOverride('lda', 'AUTO')">AUTO</button>
+                                <button class="route-toggle-btn" onclick="toggleRouteOverride('lda', 'VIVO')">VIVO</button>
+                                <button class="route-toggle-btn" onclick="toggleRouteOverride('lda', 'MICKS')">MICKS</button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- CARDS GRID: RECURSOS DO ROTEADOR & ESTIMATIVAS DICOM 3.0 -->
+    <div class="dashboard-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.2rem; margin-bottom: 1.5rem;">
         <div class="card" id="card-route">
             <div class="card-header">
-                <span>LINK ATIVO</span>
-                <i class="fa-solid fa-route card-icon"></i>
+                <span>LINK ATIVO PRINCIPAL</span>
+                <i class="fa-solid fa-route card-icon" style="color: var(--accent-vivo);"></i>
             </div>
-            <div class="card-value" id="active-link-name">Carregando...</div>
-            <div class="card-desc" id="active-link-desc">Buscando tabelas de rotas</div>
+            <div class="card-value" id="active-link-name">VIVO FIBRA</div>
+            <div class="card-desc" id="active-link-desc">Failover inteligente em operação</div>
         </div>
 
         <div class="card">
             <div class="card-header">
-                <span>CONSUMO LAN TOTAL</span>
+                <span>DOWNLOAD DICOM (TC 500MB)</span>
+                <i class="fa-solid fa-download card-icon text-muted"></i>
+            </div>
+            <div class="card-value" id="med-ct-load-time">1.3 min</div>
+            <div class="card-desc">Tempo estimado de download</div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span>DOWNLOAD DICOM (RM 1GB)</span>
+                <i class="fa-solid fa-magnet card-icon text-muted"></i>
+            </div>
+            <div class="card-value" id="med-mri-load-time">2.6 min</div>
+            <div class="card-desc">Série completa de Ressonância</div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span>CONSUMO BANDA LAN</span>
                 <i class="fa-solid fa-network-wired card-icon text-muted"></i>
             </div>
             <div class="card-value" id="lan-bandwidth">0.00 <span style="font-size: 1rem;">Mbps</span></div>
             <div class="card-desc" id="lan-bandwidth-desc">Download / Upload combinados</div>
         </div>
-
-        <div class="card">
-            <div class="card-header">
-                <span>TEMPERATURA CPU</span>
-                <i class="fa-solid fa-thermometer-half card-icon text-muted"></i>
-            </div>
-            <div class="card-value" id="cpu-temp">--°C</div>
-            <div class="card-desc" id="cpu-temp-desc">Hardware saudável</div>
-        </div>
-
-        <div class="card">
-            <div class="card-header">
-                <span>PROCESSAMENTO</span>
-                <i class="fa-solid fa-gauge card-icon text-muted"></i>
-            </div>
-            <div class="card-value" id="cpu-load">--%</div>
-            <div class="card-desc" id="cpu-load-desc">Uso atual da CPU</div>
-        </div>
     </div>
 
-    <!-- SLA & Uptime Availability Grid — Granular Per-Destination -->
-    <div class="card" style="margin-bottom: 2rem; padding: 1.5rem;">
+    <!-- DISPONIBILIDADE FÍSICA & CONFORMIDADE DE SLA (UPTIME) 3.0 -->
+    <div class="card" style="margin-bottom: 1.5rem; padding: 1.5rem;">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1.2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
-            <h3 style="font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; gap: 0.6rem; margin: 0;">
+            <h3 style="font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 0.6rem; margin: 0;">
                 <i class="fa-solid fa-clock-rotate-left" style="color: var(--accent-vivo);"></i>
-                <span>Disponibilidade Física & Conformidade SLA</span>
+                <span>Disponibilidade Física &amp; Conformidade SLA (Uptime)</span>
             </h3>
-            <div style="display: flex; gap: 1rem; align-items: center;">
+            <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
                 <div style="font-size: 0.72rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.3rem;">
                     <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--accent-vivo); display: inline-block;"></span> VIVO FIBRA
                 </div>
@@ -233,35 +310,34 @@
             </div>
         </div>
 
-        <!-- Global Uptime Summary -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
-            <div style="background: rgba(111, 66, 193, 0.04); border: 1px solid rgba(111, 66, 193, 0.15); padding: 1rem; border-radius: 14px; text-align: center;">
-                <span style="font-size: 0.7rem; color: var(--text-muted); display: block; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">VIVO Uptime Global (7d)</span>
+            <div style="background: rgba(157, 78, 221, 0.04); border: 1px solid rgba(157, 78, 221, 0.15); padding: 1rem; border-radius: 14px; text-align: center;">
+                <span style="font-size: 0.7rem; color: var(--text-muted); display: block; font-weight: 700; text-transform: uppercase;">VIVO Uptime Global (7d)</span>
                 <span id="vivo-uptime-7d" style="font-size: 1.8rem; font-weight: 800; color: var(--accent-green); font-family: 'Outfit', sans-serif;">--%</span>
                 <span style="font-size: 0.65rem; color: var(--text-muted); display: block; margin-top: 0.2rem;">Ao menos 1 destino respondendo</span>
             </div>
-            <div style="background: rgba(111, 66, 193, 0.04); border: 1px solid rgba(111, 66, 193, 0.15); padding: 1rem; border-radius: 14px; text-align: center;">
-                <span style="font-size: 0.7rem; color: var(--text-muted); display: block; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">VIVO Conformidade SLA (7d)</span>
+            <div style="background: rgba(157, 78, 221, 0.04); border: 1px solid rgba(157, 78, 221, 0.15); padding: 1rem; border-radius: 14px; text-align: center;">
+                <span style="font-size: 0.7rem; color: var(--text-muted); display: block; font-weight: 700; text-transform: uppercase;">VIVO Conformidade SLA (7d)</span>
                 <span id="vivo-sla-7d" style="font-size: 1.8rem; font-weight: 800; color: var(--accent-green); font-family: 'Outfit', sans-serif;">--%</span>
                 <span style="font-size: 0.65rem; color: var(--text-muted); display: block; margin-top: 0.2rem;">Média das conformidades por destino</span>
             </div>
             <div style="background: rgba(0, 210, 252, 0.04); border: 1px solid rgba(0, 210, 252, 0.15); padding: 1rem; border-radius: 14px; text-align: center;">
-                <span style="font-size: 0.7rem; color: var(--text-muted); display: block; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">MICKS Uptime Global (7d)</span>
+                <span style="font-size: 0.7rem; color: var(--text-muted); display: block; font-weight: 700; text-transform: uppercase;">MICKS Uptime Global (7d)</span>
                 <span id="micks-uptime-7d" style="font-size: 1.8rem; font-weight: 800; color: var(--accent-micks); font-family: 'Outfit', sans-serif;">--%</span>
                 <span style="font-size: 0.65rem; color: var(--text-muted); display: block; margin-top: 0.2rem;">Ao menos 1 destino respondendo</span>
             </div>
             <div style="background: rgba(0, 210, 252, 0.04); border: 1px solid rgba(0, 210, 252, 0.15); padding: 1rem; border-radius: 14px; text-align: center;">
-                <span style="font-size: 0.7rem; color: var(--text-muted); display: block; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">MICKS Conformidade SLA (7d)</span>
+                <span style="font-size: 0.7rem; color: var(--text-muted); display: block; font-weight: 700; text-transform: uppercase;">MICKS Conformidade SLA (7d)</span>
                 <span id="micks-sla-7d" style="font-size: 1.8rem; font-weight: 800; color: var(--accent-micks); font-family: 'Outfit', sans-serif;">--%</span>
                 <span style="font-size: 0.65rem; color: var(--text-muted); display: block; margin-top: 0.2rem;">Média das conformidades por destino</span>
             </div>
         </div>
 
-        <!-- Per-Destination Breakdown Table -->
+        <!-- Detalhamento por Destino Table -->
         <div style="margin-bottom: 0.8rem;">
             <h4 style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.5rem;">
                 <i class="fa-solid fa-layer-group" style="color: var(--accent-vivo); font-size: 0.8rem;"></i>
-                Detalhamento por Destino PACS/ASR (últimos 7 dias)
+                Detalhamento Granular por Destino PACS/ASR (Últimos 7 dias)
             </h4>
         </div>
         <div class="table-responsive">
@@ -269,12 +345,12 @@
                 <thead>
                     <tr>
                         <th style="width: 18%;">Destino</th>
-                        <th style="text-align: center; width: 10%;">VIVO<br>Uptime</th>
-                        <th style="text-align: center; width: 10%;">VIVO<br>Conform. SLA</th>
-                        <th style="text-align: center; width: 10%;">VIVO<br>Avg RTT</th>
-                        <th style="text-align: center; width: 10%;">MICKS<br>Uptime</th>
-                        <th style="text-align: center; width: 10%;">MICKS<br>Conform. SLA</th>
-                        <th style="text-align: center; width: 10%;">MICKS<br>Avg RTT</th>
+                        <th style="text-align: center; width: 10%;">VIVO Uptime</th>
+                        <th style="text-align: center; width: 10%;">VIVO Conform. SLA</th>
+                        <th style="text-align: center; width: 10%;">VIVO Avg RTT</th>
+                        <th style="text-align: center; width: 10%;">MICKS Uptime</th>
+                        <th style="text-align: center; width: 10%;">MICKS Conform. SLA</th>
+                        <th style="text-align: center; width: 10%;">MICKS Avg RTT</th>
                         <th style="text-align: center; width: 12%;">Limite SLA</th>
                         <th style="text-align: center; width: 10%;">Status</th>
                     </tr>
@@ -284,214 +360,20 @@
                 </tbody>
             </table>
         </div>
-
-        <!-- 30d Summary Footer -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.2rem; padding-top: 0.8rem; border-top: 1px solid var(--border-color); flex-wrap: wrap; gap: 0.8rem;">
-            <div style="display: flex; gap: 2rem;">
-                <div>
-                    <span style="font-size: 0.7rem; color: var(--text-muted); display: block; font-weight: 600; text-transform: uppercase;">VIVO Uptime 30d</span>
-                    <span id="vivo-uptime-30d" style="font-size: 1.2rem; font-weight: 800; color: var(--accent-green); font-family: 'Outfit', sans-serif;">--%</span>
-                </div>
-                <div>
-                    <span style="font-size: 0.7rem; color: var(--text-muted); display: block; font-weight: 600; text-transform: uppercase;">VIVO SLA 30d</span>
-                    <span id="vivo-sla-30d" style="font-size: 1.2rem; font-weight: 800; color: var(--accent-green); font-family: 'Outfit', sans-serif;">--%</span>
-                </div>
-            </div>
-            <div style="display: flex; gap: 2rem;">
-                <div>
-                    <span style="font-size: 0.7rem; color: var(--text-muted); display: block; font-weight: 600; text-transform: uppercase;">MICKS Uptime 30d</span>
-                    <span id="micks-uptime-30d" style="font-size: 1.2rem; font-weight: 800; color: var(--accent-micks); font-family: 'Outfit', sans-serif;">--%</span>
-                </div>
-                <div>
-                    <span style="font-size: 0.7rem; color: var(--text-muted); display: block; font-weight: 600; text-transform: uppercase;">MICKS SLA 30d</span>
-                    <span id="micks-sla-30d" style="font-size: 1.2rem; font-weight: 800; color: var(--accent-micks); font-family: 'Outfit', sans-serif;">--%</span>
-                </div>
-            </div>
-            <div style="font-size: 0.68rem; color: var(--text-muted); max-width: 280px; line-height: 1.4;">
-                <i class="fa-solid fa-circle-info" style="margin-right: 0.3rem;"></i>
-                <strong>Uptime</strong> = % de amostras com resposta > 0ms. <strong>SLA</strong> = % de amostras com latência dentro do limite do destino.
-            </div>
-        </div>
     </div>
 
-    <!-- Bandwidth Chart Section -->
-    <div class="two-col-grid" style="margin-top: 1.5rem; margin-bottom: 2rem;">
-        <div class="chart-card">
-            <div class="chart-title">
-                <i class="fa-solid fa-chart-line" style="color: var(--accent-vivo);"></i>
-                <span>Consumo Banda VIVO (Mbps)</span>
-            </div>
-            <div class="chart-container">
-                <canvas id="chart-bandwidth-vivo"></canvas>
-            </div>
-        </div>
-        <div class="chart-card">
-            <div class="chart-title">
-                <i class="fa-solid fa-chart-line" style="color: var(--accent-micks);"></i>
-                <span>Consumo Banda MICKS (Mbps)</span>
-            </div>
-            <div class="chart-container">
-                <canvas id="chart-bandwidth-micks"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- Interface & Tráfego de Operadoras -->
-    <div class="traffic-table-card" style="margin-bottom: 2rem;">
-        <h3 style="font-size: 1rem; font-weight: 600;"><i class="fa-solid fa-arrow-right-arrow-left" style="color: var(--accent-micks); margin-right: 0.5rem;"></i>Interface & Tráfego de Operadoras</h3>
-        <div class="table-responsive">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Interface</th>
-                        <th>Velocidade</th>
-                        <th>Erros (CRC)</th>
-                        <th>Hoje (RX / TX)</th>
-                        <th>Mês (RX / TX)</th>
-                        <th>Pico</th>
-                        <th>Download (RX)</th>
-                        <th>Upload (TX)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td data-label="Interface">
-                            <div class="interface-name">
-                                <i class="fa-solid fa-network-wired" style="color: var(--accent-vivo);"></i>
-                                <span>VIVO WAN (ether1)</span>
-                            </div>
-                        </td>
-                        <td data-label="Velocidade"><span class="bandwidth-badge" id="vivo-speed" style="font-weight: 600;">--</span></td>
-                        <td data-label="Erros (CRC)"><span class="bandwidth-badge" id="vivo-errors" style="color: var(--text-muted); font-weight: 600;">0</span></td>
-                        <td data-label="Hoje (RX / TX)"><span class="bandwidth-badge" id="vivo-today" style="font-weight: 600; color: var(--text-main);">0.00 GB / 0.00 GB</span></td>
-                        <td data-label="Mês (RX / TX)"><span class="bandwidth-badge" id="vivo-month" style="font-weight: 600; color: var(--text-main);">0.00 GB / 0.00 GB</span></td>
-                        <td data-label="Pico"><span class="bandwidth-badge" id="vivo-peak" style="font-weight: 600; color: var(--accent-orange);">0.00 / 0.00 Mbps</span></td>
-                        <td data-label="Download (RX)"><span class="bandwidth-badge rx-badge" id="vivo-rx">0.00 Mbps</span></td>
-                        <td data-label="Upload (TX)"><span class="bandwidth-badge tx-badge" id="vivo-tx">0.00 Mbps</span></td>
-                    </tr>
-                    <tr>
-                        <td data-label="Interface">
-                            <div class="interface-name">
-                                <i class="fa-solid fa-network-wired" style="color: var(--accent-micks);"></i>
-                                <span>MICKS WAN (ether2)</span>
-                            </div>
-                        </td>
-                        <td data-label="Velocidade"><span class="bandwidth-badge" id="micks-speed" style="font-weight: 600;">--</span></td>
-                        <td data-label="Erros (CRC)"><span class="bandwidth-badge" id="micks-errors" style="color: var(--text-muted); font-weight: 600;">0</span></td>
-                        <td data-label="Hoje (RX / TX)"><span class="bandwidth-badge" id="micks-today" style="font-weight: 600; color: var(--text-main);">0.00 GB / 0.00 GB</span></td>
-                        <td data-label="Mês (RX / TX)"><span class="bandwidth-badge" id="micks-month" style="font-weight: 600; color: var(--text-main);">0.00 GB / 0.00 GB</span></td>
-                        <td data-label="Pico"><span class="bandwidth-badge" id="micks-peak" style="font-weight: 600; color: var(--accent-orange);">0.00 / 0.00 Mbps</span></td>
-                        <td data-label="Download (RX)"><span class="bandwidth-badge rx-badge" id="micks-rx">0.00 Mbps</span></td>
-                        <td data-label="Upload (TX)"><span class="bandwidth-badge tx-badge" id="micks-tx">0.00 Mbps</span></td>
-                    </tr>
-                    <tr>
-                        <td data-label="Interface">
-                            <div class="interface-name">
-                                <i class="fa-solid fa-network-wired" style="color: var(--accent-green);"></i>
-                                <span>Rede Local LAN (bridge1)</span>
-                            </div>
-                        </td>
-                        <td data-label="Velocidade"><span class="bandwidth-badge" style="font-weight: 600;">1 Gbps</span></td>
-                        <td data-label="Erros (CRC)"><span class="bandwidth-badge" style="color: var(--text-muted); font-weight: 600;">0</span></td>
-                        <td data-label="Hoje (RX / TX)"><span class="bandwidth-badge" style="font-weight: 600; color: var(--text-muted);">--</span></td>
-                        <td data-label="Mês (RX / TX)"><span class="bandwidth-badge" style="font-weight: 600; color: var(--text-muted);">--</span></td>
-                        <td data-label="Pico"><span class="bandwidth-badge" style="font-weight: 600; color: var(--text-muted);">--</span></td>
-                        <td data-label="Download (RX)"><span class="bandwidth-badge rx-badge" id="lan-rx">0.00 Mbps</span></td>
-                        <td data-label="Upload (TX)"><span class="bandwidth-badge tx-badge" id="lan-tx">0.00 Mbps</span></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- SLA Quality & Best Route Winner Table -->
-    <div class="traffic-table-card" style="margin-bottom: 2rem;">
-        <h3 style="font-size: 1rem; font-weight: 600;"><i class="fa-solid fa-trophy" style="color: var(--accent-orange); margin-right: 0.5rem;"></i>Comparativo de SLA & Inteligência de Melhor Rota por Destino</h3>
-        <div class="table-responsive">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Destino</th>
-                        <th style="color: var(--accent-vivo); text-align: center;">VIVO RTT</th>
-                        <th style="color: var(--accent-vivo); text-align: center;">VIVO Jitter</th>
-                        <th style="color: var(--accent-micks); text-align: center;">MICKS RTT</th>
-                        <th style="color: var(--accent-micks); text-align: center;">MICKS Jitter</th>
-                        <th style="text-align: center;">Status SLA</th>
-                        <th style="text-align: center;">🏆 MELHOR ROTA INTEGRA</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr id="sla-row-mm">
-                        <td data-label="Destino"><div class="interface-name"><span>MobileMed (SLA: 150ms)</span></div></td>
-                        <td id="sla-vivo-rtt-mm" style="text-align: center;">-- ms</td>
-                        <td id="sla-vivo-jitter-mm" style="text-align: center;">-- ms</td>
-                        <td id="sla-micks-rtt-mm" style="text-align: center;">-- ms</td>
-                        <td id="sla-micks-jitter-mm" style="text-align: center;">-- ms</td>
-                        <td id="sla-status-mm" style="text-align: center;">--</td>
-                        <td id="sla-best-route-mm" style="text-align: center;"><span class="best-route-badge best-route-vivo"><i class="fa-solid fa-trophy"></i> VIVO FIBRA</span></td>
-                    </tr>
-                    <tr id="sla-row-rbd">
-                        <td data-label="Destino"><div class="interface-name"><span>RBD PACS (SLA: 150ms)</span></div></td>
-                        <td id="sla-vivo-rtt-rbd" style="text-align: center;">-- ms</td>
-                        <td id="sla-vivo-jitter-rbd" style="text-align: center;">-- ms</td>
-                        <td id="sla-micks-rtt-rbd" style="text-align: center;">-- ms</td>
-                        <td id="sla-micks-jitter-rbd" style="text-align: center;">-- ms</td>
-                        <td id="sla-status-rbd" style="text-align: center;">--</td>
-                        <td id="sla-best-route-rbd" style="text-align: center;"><span class="best-route-badge best-route-vivo"><i class="fa-solid fa-trophy"></i> VIVO FIBRA</span></td>
-                    </tr>
-                    <tr id="sla-row-lf">
-                        <td data-label="Destino"><div class="interface-name"><span>LifeFocus (SLA: 280ms)</span></div></td>
-                        <td id="sla-vivo-rtt-lf" style="text-align: center;">-- ms</td>
-                        <td id="sla-vivo-jitter-lf" style="text-align: center;">-- ms</td>
-                        <td id="sla-micks-rtt-lf" style="text-align: center;">-- ms</td>
-                        <td id="sla-micks-jitter-lf" style="text-align: center;">-- ms</td>
-                        <td id="sla-status-lf" style="text-align: center;">--</td>
-                        <td id="sla-best-route-lf" style="text-align: center;"><span class="best-route-badge best-route-vivo"><i class="fa-solid fa-trophy"></i> VIVO FIBRA</span></td>
-                    </tr>
-                    <tr id="sla-row-lp">
-                        <td data-label="Destino"><div class="interface-name"><span>LifePlus (SLA: 280ms)</span></div></td>
-                        <td id="sla-vivo-rtt-lp" style="text-align: center;">-- ms</td>
-                        <td id="sla-vivo-jitter-lp" style="text-align: center;">-- ms</td>
-                        <td id="sla-micks-rtt-lp" style="text-align: center;">-- ms</td>
-                        <td id="sla-micks-jitter-lp" style="text-align: center;">-- ms</td>
-                        <td id="sla-status-lp" style="text-align: center;">--</td>
-                        <td id="sla-best-route-lp" style="text-align: center;"><span class="best-route-badge best-route-vivo"><i class="fa-solid fa-trophy"></i> VIVO FIBRA</span></td>
-                    </tr>
-                    <tr id="sla-row-ld">
-                        <td data-label="Destino"><div class="interface-name"><i class="fa-solid fa-microphone" style="color: var(--accent-vivo); margin-right: 0.3rem;"></i><span>Laudite Portal (SLA: 250ms)</span></div></td>
-                        <td id="sla-vivo-rtt-ld" style="text-align: center;">-- ms</td>
-                        <td id="sla-vivo-jitter-ld" style="text-align: center;">-- ms</td>
-                        <td id="sla-micks-rtt-ld" style="text-align: center;">-- ms</td>
-                        <td id="sla-micks-jitter-ld" style="text-align: center;">-- ms</td>
-                        <td id="sla-status-ld" style="text-align: center;">--</td>
-                        <td id="sla-best-route-ld" style="text-align: center;"><span class="best-route-badge best-route-micks"><i class="fa-solid fa-trophy"></i> MICKS TELECOM</span></td>
-                    </tr>
-                    <tr id="sla-row-lda">
-                        <td data-label="Destino"><div class="interface-name"><i class="fa-solid fa-waveform" style="color: var(--accent-micks); margin-right: 0.3rem;"></i><span>Laudite ASR Speech-to-Text (SLA: 250ms)</span></div></td>
-                        <td id="sla-vivo-rtt-lda" style="text-align: center;">-- ms</td>
-                        <td id="sla-vivo-jitter-lda" style="text-align: center;">-- ms</td>
-                        <td id="sla-micks-rtt-lda" style="text-align: center;">-- ms</td>
-                        <td id="sla-micks-jitter-lda" style="text-align: center;">-- ms</td>
-                        <td id="sla-status-lda" style="text-align: center;">--</td>
-                        <td id="sla-best-route-lda" style="text-align: center;"><span class="best-route-badge best-route-micks"><i class="fa-solid fa-trophy"></i> MICKS TELECOM</span></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Charts Section -->
-    <div class="chart-card" style="margin-bottom: 2rem;">
+    <!-- CHARTS SECTION: GRÁFICO MASTER MULTI-ROTA GLASSMORPHISM 3.0 -->
+    <div class="card" style="margin-bottom: 1.5rem;">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1rem;">
             <div>
-                <h3 style="font-size: 1.1rem; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                <h3 style="font-size: 1.1rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 0.6rem;">
                     <i class="fa-solid fa-heart-pulse" style="color: var(--accent-vivo);"></i>
-                    <span>Monitor de Latência Integrado</span>
+                    <span>Monitor de Latência Integrado &amp; Histórico Temporal</span>
                 </h3>
             </div>
             
             <div class="segmented-control">
-                <button class="segment-btn active" id="btn-segment-todos" onclick="setLatencySegment('todos')" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(0, 210, 252, 0.15)); border: 1px solid rgba(139, 92, 246, 0.4);">🌟 TODOS</button>
+                <button class="segment-btn active" id="btn-segment-todos" onclick="setLatencySegment('todos')">🌟 TODOS</button>
                 <button class="segment-btn" id="btn-segment-mm" onclick="setLatencySegment('mm')">MobileMed</button>
                 <button class="segment-btn" id="btn-segment-rbd" onclick="setLatencySegment('rbd')">RBD PACS</button>
                 <button class="segment-btn" id="btn-segment-lf" onclick="setLatencySegment('lf')">LifeFocus</button>
@@ -506,13 +388,35 @@
         </div>
     </div>
 
-    <!-- Collapsible Incident History Log -->
+    <!-- BANDWIDTH CHARTS SECTION -->
+    <div class="dashboard-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.2rem; margin-bottom: 1.5rem;">
+        <div class="card">
+            <div class="card-header">
+                <span>CONSUMO BANDA VIVO (Mbps)</span>
+                <i class="fa-solid fa-chart-line" style="color: var(--accent-vivo);"></i>
+            </div>
+            <div class="chart-container" style="height: 220px;">
+                <canvas id="chart-bandwidth-vivo"></canvas>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <span>CONSUMO BANDA MICKS (Mbps)</span>
+                <i class="fa-solid fa-chart-line" style="color: var(--accent-micks);"></i>
+            </div>
+            <div class="chart-container" style="height: 220px;">
+                <canvas id="chart-bandwidth-micks"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- COLLAPSIBLE INCIDENT HISTORY LOG 3.0 -->
     <div class="card incident-log-card" style="margin-bottom: 2rem;">
         <div class="incident-log-header" onclick="toggleIncidentLog()" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
             <div style="display: flex; align-items: center; gap: 0.6rem;">
                 <i class="fa-solid fa-clock-rotate-left" style="color: var(--accent-orange);"></i>
                 <h3 style="font-size: 1rem; font-weight: 700; margin: 0;">Histórico de Incidentes &amp; Instabilidades</h3>
-                <span id="incident-count-badge" style="background: rgba(255,149,0,0.15); color: var(--accent-orange); padding: 0.15rem 0.5rem; border-radius: 20px; font-size: 0.72rem; font-weight: 700;">0</span>
+                <span id="incident-count-badge" style="background: rgba(255,149,0,0.15); color: var(--accent-orange); padding: 0.15rem 0.6rem; border-radius: 20px; font-size: 0.72rem; font-weight: 800;">0</span>
             </div>
             <div style="display: flex; align-items: center; gap: 0.5rem;">
                 <span style="font-size: 0.72rem; color: var(--text-muted);">Clique para expandir</span>
@@ -545,53 +449,35 @@
     </div>
 
     <!-- Modal Guia de Interpretação -->
-    <div id="guide-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 1rem;">
-        <div style="background: #14161e; border: 1px solid rgba(255,255,255,0.1); width: 100%; max-width: 650px; border-radius: 20px; padding: 2rem; box-shadow: 0 20px 40px rgba(0,0,0,0.6); position: relative; max-height: 90vh; overflow-y: auto;">
+    <div id="guide-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); z-index: 9999; align-items: center; justify-content: center; padding: 1rem;">
+        <div style="background: #0f1117; border: 1px solid rgba(255,255,255,0.12); width: 100%; max-width: 650px; border-radius: 20px; padding: 2rem; box-shadow: 0 25px 50px rgba(0,0,0,0.8); position: relative; max-height: 90vh; overflow-y: auto;">
             <button onclick="closeGuideModal();" style="position: absolute; top: 1.2rem; right: 1.2rem; background: transparent; border: none; color: var(--text-muted); font-size: 1.4rem; cursor: pointer;">
                 <i class="fa-solid fa-xmark"></i>
             </button>
             
-            <div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 1rem;">
-                <i class="fa-solid fa-graduation-cap" style="color: var(--accent-vivo); font-size: 1.8rem;"></i>
-                <div>
-                    <h2 style="font-size: 1.3rem; margin: 0; font-weight: 700;">Guia de Interpretação 2.0 Turbo</h2>
-                    <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">Como avaliar o desempenho e a melhor rota da sua rede radiológica</p>
+            <h3 style="font-size: 1.2rem; font-weight: 800; color: #fff; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.6rem;">
+                <i class="fa-solid fa-book-medical" style="color: var(--accent-vivo);"></i>
+                Guia de Interpretação da Telemetria Radiológica 3.0
+            </h3>
+            
+            <div style="display: flex; flex-direction: column; gap: 1rem; font-size: 0.88rem; color: #c4c9d4; line-height: 1.6;">
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); padding: 1rem; border-radius: 12px;">
+                    <strong style="color: var(--accent-vivo); display: block; margin-bottom: 0.3rem;">🎙️ Score MOS (ITU-T G.107):</strong>
+                    Pontuação de 1.0 a 4.5 para qualidade do áudio e transcrição no Laudite ASR. Scores &ge;3.8 indicam fluidez perfeita sem cortes.
+                </div>
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); padding: 1rem; border-radius: 12px;">
+                    <strong style="color: var(--accent-micks); display: block; margin-bottom: 0.3rem;">🏆 Melhor Rota (Best Route Winner):</strong>
+                    Comparativo contínuo de latência RTT entre VIVO FIBRA e MICKS TELECOM. O sistema destaca automaticamente a operadora com menor latência para cada servidor hospitalar.
+                </div>
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); padding: 1rem; border-radius: 14px;">
+                    <strong style="color: var(--accent-green); display: block; margin-bottom: 0.3rem;">📄 Relatório de Auditoria ISP SLA:</strong>
+                    Documento em formato CSV contendo todas as métricas detalhadas de indisponibilidade e violação de latência para contesting comercial de contrato com as operadoras.
                 </div>
             </div>
-
-            <div style="display: flex; flex-direction: column; gap: 1.2rem;">
-                <div style="background: rgba(255, 165, 0, 0.05); padding: 1rem; border-radius: 12px; border-left: 4px solid var(--accent-orange);">
-                    <h4 style="margin: 0 0 0.3rem 0; font-size: 0.95rem; color: var(--accent-orange);"><i class="fa-solid fa-trophy"></i> 🏆 Indicador de Melhor Rota por Destino</h4>
-                    <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0; line-height: 1.4;">Compara em tempo real a rota VIVO vs MICKS. A operadora com a **menor latência e menor jitter** recebe o selo de campeã para aquele destino específico.</p>
-                </div>
-
-                <div style="background: rgba(139, 92, 246, 0.05); padding: 1rem; border-radius: 12px; border-left: 4px solid var(--accent-vivo);">
-                    <h4 style="margin: 0 0 0.3rem 0; font-size: 0.95rem; color: var(--accent-vivo);"><i class="fa-solid fa-microphone-lines"></i> Laudite ASR & Score MOS (ITU-T G.107)</h4>
-                    <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0; line-height: 1.4;">Mede a qualidade da rota de voz para o ditado por IA. O <strong>Score MOS (1.0 a 4.5)</strong> combina Latência + Jitter + Perda. Notas acima de <strong>4.2</strong> garantem transcrição em tempo real sem perda de palavras.</p>
-                </div>
-
-                <div style="background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 12px; border-left: 4px solid var(--accent-micks);">
-                    <h4 style="margin: 0 0 0.3rem 0; font-size: 0.95rem; color: var(--accent-micks);"><i class="fa-solid fa-stopwatch"></i> RTT (Latência em ms)</h4>
-                    <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0; line-height: 1.4;">Tempo de ida e volta do pacote até os servidores do PACS. <strong>Quanto menor o RTT, mais rápido os exames de TC/RM abrem.</strong> (Ideal: &lt; 150ms).</p>
-                </div>
-
-                <div style="background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 12px; border-left: 4px solid var(--accent-green);">
-                    <h4 style="margin: 0 0 0.3rem 0; font-size: 0.95rem; color: var(--accent-green);"><i class="fa-solid fa-shield-halved"></i> Estabilidade Anti-Flapping</h4>
-                    <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0; line-height: 1.4;">Proteção de histerese que impede que o MikroTik fique alternando de operadora em pequenas oscilações, mantendo seu laudo estável sem quedas bruscas.</p>
-                </div>
-            </div>
-
-            <button onclick="closeGuideModal();" style="margin-top: 1.5rem; width: 100%; padding: 0.8rem; background: var(--accent-vivo); border: none; border-radius: 12px; color: white; font-weight: 700; cursor: pointer;">
-                Entendido
-            </button>
         </div>
     </div>
 
-    <footer>
-        <p>MikroTik Telemetry Monitor 2.0 Turbo &copy; 2026. Desenvolvido para estabilidade total.</p>
-    </footer>
-
-    <!-- Modular JS Scripts -->
+    <!-- Scripts Javascript 3.0 -->
     <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>

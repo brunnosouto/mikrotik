@@ -164,9 +164,24 @@ function updateDashboardDOM(data) {
     // 4. Radiology & Laudite Medical Health Metrics
     if (data.mos_laudite !== undefined) {
         const mosElem = document.getElementById('med-mos-laudite');
+        const mosGaugeNum = document.getElementById('mos-gauge-num');
+        const mosGaugeCircle = document.getElementById('mos-gauge-fill-circle');
+        
+        const mosVal = parseFloat(data.mos_laudite) || 4.5;
+        const color = mosVal >= 4.0 ? 'var(--accent-green)' : (mosVal >= 3.5 ? 'var(--accent-orange)' : 'var(--accent-red)');
+        
         if (mosElem) {
-            const color = data.mos_laudite >= 4.0 ? 'var(--accent-green)' : (data.mos_laudite >= 3.5 ? 'var(--accent-orange)' : 'var(--accent-red)');
-            mosElem.innerHTML = `<span style="color: ${color};">${data.mos_laudite} / 5.0 (${data.mos_status || 'Bom'})</span>`;
+            mosElem.innerHTML = `<span style="color: ${color};">${mosVal.toFixed(1)} / 5.0 (${data.mos_status || 'Bom'})</span>`;
+        }
+        if (mosGaugeNum) {
+            mosGaugeNum.innerText = mosVal.toFixed(1);
+            mosGaugeNum.style.color = color;
+        }
+        if (mosGaugeCircle) {
+            const pct = Math.max(0.0, Math.min(1.0, mosVal / 4.5));
+            const dashoffset = 283 - (pct * 283);
+            mosGaugeCircle.style.strokeDashoffset = dashoffset;
+            mosGaugeCircle.style.stroke = color;
         }
     }
     

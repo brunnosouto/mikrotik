@@ -1,4 +1,4 @@
-// Chart.js Module for MikroTik Live Monitor 2.0 Turbo
+// Chart.js Module for MikroTik Live Monitor 3.0 Command Center
 
 let masterChart = null;
 let bandwidthVivoChart = null;
